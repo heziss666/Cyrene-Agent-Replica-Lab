@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import { runToolAgent } from "../../src/main/agent/tool-agent.js";
 import { createDefaultToolRegistry } from "../../src/main/tools/built-in-tools.js";
 import { ToolRegistry } from "../../src/main/tools/tool-registry.js";
@@ -87,12 +88,15 @@ describe("runToolAgent", () => {
         }),
       );
 
+    const events: AgentEvent[] = [];
+
     const result = await runToolAgent({
       messages: [createUserMessage("echo something")],
       config,
       adapter: openAICompatibleAdapter,
       toolRegistry: createDefaultToolRegistry(),
       fetchImpl: fetchMock as unknown as typeof fetch,
+      onEvent: (event) => events.push(event),
     });
 
     expect(result.reply).toBe("The tool returned: hello from tool");
@@ -115,6 +119,61 @@ describe("runToolAgent", () => {
       name: "echo",
       content: "hello from tool",
     });
+    expect(events).toEqual([
+      {
+        type: "run_started",
+        inputMessageCount: 1,
+        maxRounds: 5,
+      },
+      {
+        type: "model_call_started",
+        round: 1,
+        messageCount: 1,
+        toolCount: 3,
+      },
+      {
+        type: "model_call_finished",
+        round: 1,
+        text: "",
+        toolCallCount: 1,
+      },
+      {
+        type: "tool_call_started",
+        round: 1,
+        toolCallId: "call_echo",
+        toolName: "echo",
+        args: { text: "hello from tool" },
+      },
+      {
+        type: "tool_call_finished",
+        round: 1,
+        toolCallId: "call_echo",
+        toolName: "echo",
+        output: "hello from tool",
+      },
+      {
+        type: "model_call_started",
+        round: 2,
+        messageCount: 3,
+        toolCount: 3,
+      },
+      {
+        type: "model_call_finished",
+        round: 2,
+        text: "The tool returned: hello from tool",
+        toolCallCount: 0,
+      },
+      {
+        type: "final_reply",
+        round: 2,
+        text: "The tool returned: hello from tool",
+      },
+      {
+        type: "run_finished",
+        roundsUsed: 2,
+        toolResultCount: 1,
+      },
+    ]);
   });
 
   it("returns unknown tool errors as tool results", async () => {
@@ -167,5 +226,46 @@ describe("runToolAgent", () => {
 
     expect(result.toolResults[0]?.output).toContain("[error] tool is not available");
     expect(result.reply).toBe("I could not use that tool.");
+  });
+
+  it("emits a run error event when the model request fails", async () => {
+    const fetchMock = vi.fn(async () =>
+      ({
+        ok: false,
+        status: 500,
+        json: async () => ({}),
+        text: async () => "upstream failed",
+      }) as Response,
+    );
+    const events: AgentEvent[] = [];
+
+    await expect(
+      runToolAgent({
+        messages: [createUserMessage("hello")],
+        config,
+        adapter: openAICompatibleAdapter,
+        toolRegistry: createDefaultToolRegistry(),
+        fetchImpl: fetchMock as unknown as typeof fetch,
+        onEvent: (event) => events.push(event),
+      }),
+    ).rejects.toThrow("Model request failed: HTTP 500 - upstream failed");
+
+    expect(events).toEqual([
+      {
+        type: "run_started",
+        inputMessageCount: 1,
+        maxRounds: 5,
+      },
+      {
+        type: "model_call_started",
+        round: 1,
+        messageCount: 1,
+        toolCount: 3,
+      },
+      {
+        type: "run_error",
+        message: "Model request failed: HTTP 500 - upstream failed",
+      },
+    ]);
   });
 });

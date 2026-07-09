@@ -1,4 +1,5 @@
 import type { ChatMessage } from "../../shared/chat-types.js";
+import type { AgentEvent } from "./agent-events.js";
 import type { ModelConfig } from "../config/model-config.js";
 import type { ToolCall, ToolExecutionResult } from "../tools/tool-types.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
@@ -13,6 +14,7 @@ export interface RunToolAgentInput {
   toolRegistry: ToolRegistry;
   fetchImpl?: typeof fetch;
   maxRounds?: number;
+  onEvent?: (event: ToolAgentEvent) => void;
 }
 
 export interface ToolAgentResult {
@@ -20,6 +22,8 @@ export interface ToolAgentResult {
   messages: ChatMessage[];
   toolResults: ToolExecutionResult[];
 }
+
+export type ToolAgentEvent = AgentEvent;
 
 function parseToolArguments(toolCall: ToolCall): Record<string, unknown> {
   try {
@@ -37,8 +41,9 @@ function parseToolArguments(toolCall: ToolCall): Record<string, unknown> {
 async function executeToolCall(
   toolCall: ToolCall,
   toolRegistry: ToolRegistry,
+  parsedArgs?: Record<string, unknown>,
 ): Promise<ToolExecutionResult> {
-  const args = parseToolArguments(toolCall);
+  const args = parsedArgs ?? parseToolArguments(toolCall);
   if (typeof args.__toolArgumentError === "string") {
     return {
       toolCall,
@@ -73,49 +78,117 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
   const maxRounds = input.maxRounds ?? DEFAULT_MAX_ROUNDS;
   let conversation = input.messages.map((message) => ({ ...message }));
   const allToolResults: ToolExecutionResult[] = [];
+  let runErrorEmitted = false;
 
-  for (let round = 0; round < maxRounds; round += 1) {
-    const request = input.adapter.buildRequest(
-      {
-        messages: conversation,
-        tools: input.toolRegistry.getEnabledToolSpecs(),
-      },
-      input.config,
-    );
+  const emit = (event: AgentEvent): void => {
+    input.onEvent?.(event);
+  };
 
-    const response = await fetchImpl(request.url, {
-      method: request.method,
-      headers: request.headers,
-      body: request.body,
+  const emitRunError = (message: string): void => {
+    if (runErrorEmitted) return;
+    runErrorEmitted = true;
+    emit({ type: "run_error", message });
+  };
+
+  try {
+    emit({
+      type: "run_started",
+      inputMessageCount: conversation.length,
+      maxRounds,
     });
 
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      const detail = body ? ` - ${body.slice(0, 200)}` : "";
-      throw new Error(`Model request failed: HTTP ${response.status}${detail}`);
+    for (let round = 0; round < maxRounds; round += 1) {
+      const roundNumber = round + 1;
+      const tools = input.toolRegistry.getEnabledToolSpecs();
+
+      emit({
+        type: "model_call_started",
+        round: roundNumber,
+        messageCount: conversation.length,
+        toolCount: tools.length,
+      });
+
+      const request = input.adapter.buildRequest(
+        {
+          messages: conversation,
+          tools,
+        },
+        input.config,
+      );
+
+      const response = await fetchImpl(request.url, {
+        method: request.method,
+        headers: request.headers,
+        body: request.body,
+      });
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        const detail = body ? ` - ${body.slice(0, 200)}` : "";
+        throw new Error(`Model request failed: HTTP ${response.status}${detail}`);
+      }
+
+      const data = await response.json();
+      const completion = input.adapter.parseResponse(data);
+      emit({
+        type: "model_call_finished",
+        round: roundNumber,
+        text: completion.text,
+        toolCallCount: completion.toolCalls.length,
+      });
+      conversation.push(completion.assistantMessage);
+
+      if (completion.toolCalls.length === 0) {
+        emit({
+          type: "final_reply",
+          round: roundNumber,
+          text: completion.text,
+        });
+        emit({
+          type: "run_finished",
+          roundsUsed: roundNumber,
+          toolResultCount: allToolResults.length,
+        });
+        return {
+          reply: completion.text,
+          messages: conversation,
+          toolResults: allToolResults,
+        };
+      }
+
+      const roundToolResults: ToolExecutionResult[] = [];
+      for (const toolCall of completion.toolCalls) {
+        const args = parseToolArguments(toolCall);
+        emit({
+          type: "tool_call_started",
+          round: roundNumber,
+          toolCallId: toolCall.id,
+          toolName: toolCall.name,
+          args:
+            typeof args.__toolArgumentError === "string"
+              ? {}
+              : args,
+        });
+
+        const result = await executeToolCall(toolCall, input.toolRegistry, args);
+        emit({
+          type: "tool_call_finished",
+          round: roundNumber,
+          toolCallId: toolCall.id,
+          toolName: toolCall.name,
+          output: result.output,
+        });
+        roundToolResults.push(result);
+        allToolResults.push(result);
+      }
+
+      conversation = input.adapter.appendToolResults(conversation, roundToolResults);
     }
 
-    const data = await response.json();
-    const completion = input.adapter.parseResponse(data);
-    conversation.push(completion.assistantMessage);
-
-    if (completion.toolCalls.length === 0) {
-      return {
-        reply: completion.text,
-        messages: conversation,
-        toolResults: allToolResults,
-      };
-    }
-
-    const roundToolResults: ToolExecutionResult[] = [];
-    for (const toolCall of completion.toolCalls) {
-      const result = await executeToolCall(toolCall, input.toolRegistry);
-      roundToolResults.push(result);
-      allToolResults.push(result);
-    }
-
-    conversation = input.adapter.appendToolResults(conversation, roundToolResults);
+    throw new Error(`Tool agent exceeded max rounds: ${maxRounds}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    emitRunError(message);
+    throw error;
   }
-
-  throw new Error(`Tool agent exceeded max rounds: ${maxRounds}`);
 }

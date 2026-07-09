@@ -1,6 +1,7 @@
 import { stdin as input, stdout as output } from "node:process";
 import * as readline from "node:readline/promises";
 import { pathToFileURL } from "node:url";
+import { formatAgentEventForTerminal } from "../main/agent/agent-events.js";
 import { runToolAgent } from "../main/agent/tool-agent.js";
 import { loadLocalEnvFile } from "../main/config/env-file.js";
 import { loadModelConfig } from "../main/config/model-config.js";
@@ -52,6 +53,9 @@ export async function runTerminalChat(): Promise<void> {
           config,
           adapter: openAICompatibleAdapter,
           toolRegistry,
+          onEvent: (event) => {
+            console.log(formatAgentEventForTerminal(event));
+          },
         });
         history = result.messages;
         console.log(`\nAgent> ${result.reply}`);
