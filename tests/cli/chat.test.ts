@@ -58,6 +58,7 @@ describe("createRuntimeToolRegistry", () => {
       "get_current_time",
       "calculator",
       "echo",
+      "search_knowledge",
     ]);
   });
 });

@@ -9,7 +9,16 @@ describe("createDefaultToolRegistry", () => {
       "get_current_time",
       "calculator",
       "echo",
+      "search_knowledge",
     ]);
+  });
+
+  it("exposes the search_knowledge schema to the model", () => {
+    const registry = createDefaultToolRegistry();
+
+    const specs = registry.getEnabledToolSpecs();
+
+    expect(specs.some((spec) => spec.name === "search_knowledge")).toBe(true);
   });
 
   it("echoes text", async () => {
@@ -38,5 +47,17 @@ describe("createDefaultToolRegistry", () => {
 
     expect(output).toEqual(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/));
     expect(Number.isNaN(Date.parse(output ?? ""))).toBe(false);
+  });
+
+  it("search_knowledge returns matching knowledge snippets", async () => {
+    const tool = createDefaultToolRegistry().getById("search_knowledge");
+
+    const output = await tool?.execute({
+      query: "ToolRegistry",
+      topK: 2,
+    });
+
+    expect(output).toContain("ToolRegistry");
+    expect(output).toContain("content:");
   });
 });

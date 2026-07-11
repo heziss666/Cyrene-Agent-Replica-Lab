@@ -129,7 +129,7 @@ describe("runToolAgent", () => {
         type: "model_call_started",
         round: 1,
         messageCount: 1,
-        toolCount: 3,
+        toolCount: 4,
       },
       {
         type: "model_call_finished",
@@ -155,7 +155,7 @@ describe("runToolAgent", () => {
         type: "model_call_started",
         round: 2,
         messageCount: 3,
-        toolCount: 3,
+        toolCount: 4,
       },
       {
         type: "model_call_finished",
@@ -260,7 +260,7 @@ describe("runToolAgent", () => {
         type: "model_call_started",
         round: 1,
         messageCount: 1,
-        toolCount: 3,
+        toolCount: 4,
       },
       {
         type: "run_error",

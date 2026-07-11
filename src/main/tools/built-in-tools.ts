@@ -1,3 +1,4 @@
+import { createDefaultKnowledgeBase } from "../rag/default-knowledge.js";
 import { ToolRegistry } from "./tool-registry.js";
 import type { ToolDefinition } from "./tool-types.js";
 
@@ -73,9 +74,53 @@ const echoTool: ToolDefinition = {
 };
 
 export function createDefaultToolRegistry(): ToolRegistry {
+  const knowledgeBase = createDefaultKnowledgeBase();
   const registry = new ToolRegistry();
+  const searchKnowledgeTool: ToolDefinition = {
+    id: "search_knowledge",
+    description: "Search the local knowledge base for relevant text snippets.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query describing what knowledge to retrieve.",
+        },
+        topK: {
+          type: "number",
+          description: "Maximum number of snippets to return.",
+        },
+      },
+      required: ["query"],
+    },
+    enabled: true,
+    execute: async (args) => {
+      const query = stringifyArg(args.query).trim();
+      const topK = typeof args.topK === "number" ? args.topK : 5;
+      const results = knowledgeBase.search(query, topK);
+
+      if (results.length === 0) {
+        return "No matching knowledge found.";
+      }
+
+      return results
+        .map((result, index) =>
+          [
+            `[${index + 1}] ${result.chunk.title}`,
+            `source: ${result.chunk.source}`,
+            `score: ${result.score}`,
+            `matched_terms: ${result.matchedTerms.join(", ")}`,
+            "content:",
+            result.chunk.text,
+          ].join("\n"),
+        )
+        .join("\n\n");
+    },
+  };
+
   registry.register(getCurrentTimeTool);
   registry.register(calculatorTool);
   registry.register(echoTool);
+  registry.register(searchKnowledgeTool);
   return registry;
 }
