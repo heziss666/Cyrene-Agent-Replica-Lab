@@ -29,6 +29,20 @@ describe("createDefaultToolRegistry", () => {
     expect(specs.some((spec) => spec.name === "search_knowledge")).toBe(true);
   });
 
+  it("asks the model for a standalone semantic search question", () => {
+    const registry = createDefaultToolRegistry({
+      embeddingProvider: fakeEmbeddingProvider,
+    });
+    const searchSpec = registry
+      .getEnabledToolSpecs()
+      .find((spec) => spec.name === "search_knowledge");
+    const queryDescription = searchSpec?.parameters.properties.query?.description;
+
+    expect(searchSpec?.description).toContain("standalone natural-language question");
+    expect(queryDescription).toContain("semantic vector search");
+    expect(queryDescription).toContain("Do not output a disconnected keyword list");
+  });
+
   it("echoes text", async () => {
     const tool = createDefaultToolRegistry().getById("echo");
 

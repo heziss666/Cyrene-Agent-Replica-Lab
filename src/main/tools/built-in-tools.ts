@@ -85,13 +85,15 @@ export function createDefaultToolRegistry(
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {
     id: "search_knowledge",
-    description: "Search the local knowledge base for relevant text snippets.",
+    description:
+      "Search the local knowledge base for relevant text snippets. Formulate the query as a concise, standalone natural-language question rather than a keyword list.",
     parameters: {
       type: "object",
       properties: {
         query: {
           type: "string",
-          description: "Search query describing what knowledge to retrieve.",
+          description:
+            "A concise, standalone natural-language question for semantic vector search. Preserve important entities, actions, relationships, constraints, and relevant conversation context. Do not output a disconnected keyword list.",
         },
         topK: {
           type: "number",
