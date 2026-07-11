@@ -1,6 +1,11 @@
 import { createDefaultKnowledgeBase } from "../rag/default-knowledge.js";
+import type { EmbeddingProvider } from "../rag/embedding-provider.js";
 import { ToolRegistry } from "./tool-registry.js";
 import type { ToolDefinition } from "./tool-types.js";
+
+export interface CreateDefaultToolRegistryOptions {
+  embeddingProvider?: EmbeddingProvider;
+}
 
 function stringifyArg(value: unknown): string {
   return typeof value === "string" ? value : String(value ?? "");
@@ -73,8 +78,10 @@ const echoTool: ToolDefinition = {
   execute: async (args) => stringifyArg(args.text),
 };
 
-export function createDefaultToolRegistry(): ToolRegistry {
-  const knowledgeBase = createDefaultKnowledgeBase();
+export function createDefaultToolRegistry(
+  options: CreateDefaultToolRegistryOptions = {},
+): ToolRegistry {
+  const knowledgeBase = createDefaultKnowledgeBase(options.embeddingProvider);
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {
     id: "search_knowledge",
@@ -97,24 +104,33 @@ export function createDefaultToolRegistry(): ToolRegistry {
     execute: async (args) => {
       const query = stringifyArg(args.query).trim();
       const topK = typeof args.topK === "number" ? args.topK : 5;
-      const results = knowledgeBase.search(query, topK);
+      const response = await knowledgeBase.search(query, topK);
+      const header = [
+        `retrieval_mode: ${response.mode}`,
+        response.model ? `embedding_model: ${response.model}` : undefined,
+        response.warning ? `warning: ${response.warning}` : undefined,
+      ].filter((line): line is string => Boolean(line));
 
-      if (results.length === 0) {
-        return "No matching knowledge found.";
+      if (response.results.length === 0) {
+        return [...header, "No matching knowledge found."].join("\n");
       }
 
-      return results
-        .map((result, index) =>
-          [
-            `[${index + 1}] ${result.chunk.title}`,
-            `source: ${result.chunk.source}`,
-            `score: ${result.score}`,
-            `matched_terms: ${result.matchedTerms.join(", ")}`,
-            "content:",
-            result.chunk.text,
-          ].join("\n"),
-        )
-        .join("\n\n");
+      const snippets = response.results.map((result, index) =>
+        [
+          `[${index + 1}] ${result.chunk.title}`,
+          `source: ${result.chunk.source}`,
+          `score: ${result.score}`,
+          result.matchedTerms
+            ? `matched_terms: ${result.matchedTerms.join(", ")}`
+            : undefined,
+          "content:",
+          result.chunk.text,
+        ]
+          .filter((line): line is string => Boolean(line))
+          .join("\n"),
+      );
+
+      return [...header, "", ...snippets].join("\n");
     },
   };
 

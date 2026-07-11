@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { EmbeddingProvider } from "../../src/main/rag/embedding-provider.js";
 import { createDefaultToolRegistry } from "../../src/main/tools/built-in-tools.js";
+
+const fakeEmbeddingProvider: EmbeddingProvider = {
+  id: "fake",
+  model: "fake-model",
+  embedDocuments: async (texts) => texts.map((_, index) => [index + 1, 1]),
+  embedQuery: async () => [1, 1],
+};
 
 describe("createDefaultToolRegistry", () => {
   it("registers the default safe tools", () => {
@@ -49,15 +57,18 @@ describe("createDefaultToolRegistry", () => {
     expect(Number.isNaN(Date.parse(output ?? ""))).toBe(false);
   });
 
-  it("search_knowledge returns matching knowledge snippets", async () => {
-    const tool = createDefaultToolRegistry().getById("search_knowledge");
+  it("search_knowledge returns vector snippets and diagnostics", async () => {
+    const tool = createDefaultToolRegistry({
+      embeddingProvider: fakeEmbeddingProvider,
+    }).getById("search_knowledge");
 
     const output = await tool?.execute({
       query: "ToolRegistry",
       topK: 2,
     });
 
-    expect(output).toContain("ToolRegistry");
+    expect(output).toContain("retrieval_mode: vector");
+    expect(output).toContain("embedding_model: fake-model");
     expect(output).toContain("content:");
   });
 });
