@@ -70,6 +70,25 @@ describe("createVectorRetriever", () => {
     ]);
   });
 
+  it("re-embeds a chunk whose text changed under the same id", async () => {
+    const embedDocuments = vi
+      .fn()
+      .mockResolvedValueOnce([[1, 0]])
+      .mockResolvedValueOnce([[0, 1]]);
+    const provider: EmbeddingProvider = {
+      id: "fake",
+      model: "fake-model",
+      embedDocuments,
+      embedQuery: vi.fn(async () => [1, 0]),
+    };
+    const retriever = createVectorRetriever(provider, createInMemoryVectorIndex());
+
+    await retriever.retrieve("query", [chunk("same-id", "old text")], 1);
+    await retriever.retrieve("query", [chunk("same-id", "new text")], 1);
+
+    expect(embedDocuments.mock.calls).toEqual([[['old text']], [['new text']]]);
+  });
+
   it("returns empty results without calling the provider for empty input", async () => {
     const embedDocuments = vi.fn(async () => []);
     const embedQuery = vi.fn(async () => [1, 0]);

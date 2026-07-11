@@ -1,5 +1,6 @@
 import type { EmbeddingProvider } from "./embedding-provider.js";
-import type { VectorIndex } from "./in-memory-vector-index.js";
+import { hashText } from "./text-hash.js";
+import type { VectorIndex } from "./vector-index-types.js";
 import type { KnowledgeChunk, KnowledgeSearchResult } from "./rag-types.js";
 import { cosineSimilarity } from "./vector-math.js";
 
@@ -10,7 +11,7 @@ export interface VectorRetriever {
     chunks: KnowledgeChunk[],
     topK?: number,
   ): Promise<KnowledgeSearchResult[]>;
-  clear(): void;
+  clear(): Promise<void>;
 }
 
 export function createVectorRetriever(
@@ -24,37 +25,52 @@ export function createVectorRetriever(
       const normalizedQuery = query.trim();
       if (!normalizedQuery || chunks.length === 0 || topK <= 0) return [];
 
-      const missingChunks = chunks.filter((chunk) => !index.has(chunk.id));
-      if (missingChunks.length > 0) {
+      await index.initialize();
+      const indexedChunks = chunks.map((chunk) => ({
+        chunk,
+        textHash: hashText(chunk.text),
+      }));
+      await index.prune(
+        indexedChunks.map(({ chunk, textHash }) => ({
+          chunkId: chunk.id,
+          textHash,
+        })),
+      );
+
+      const missing = indexedChunks.filter(
+        ({ chunk, textHash }) => !index.has(chunk.id, textHash),
+      );
+      if (missing.length > 0) {
         const vectors = await provider.embedDocuments(
-          missingChunks.map((chunk) => chunk.text),
+          missing.map(({ chunk }) => chunk.text),
         );
-        if (vectors.length !== missingChunks.length) {
+        if (vectors.length !== missing.length) {
           throw new Error(
-            `Embedding provider returned ${vectors.length} vectors for ${missingChunks.length} chunks`,
+            `Embedding provider returned ${vectors.length} vectors for ${missing.length} chunks`,
           );
         }
-        missingChunks.forEach((chunk, chunkIndex) => {
-          index.add(chunk.id, vectors[chunkIndex]);
-        });
+        await index.addMany(
+          missing.map(({ chunk, textHash }, vectorIndex) => ({
+            chunkId: chunk.id,
+            textHash,
+            vector: vectors[vectorIndex],
+          })),
+        );
       }
 
       const queryVector = await provider.embedQuery(normalizedQuery);
-      return chunks
-        .map((chunk) => {
-          const vector = index.get(chunk.id);
+      return indexedChunks
+        .map(({ chunk, textHash }) => {
+          const vector = index.get(chunk.id, textHash);
           if (!vector) throw new Error(`Missing vector for chunk: ${chunk.id}`);
-          return {
-            chunk,
-            score: cosineSimilarity(queryVector, vector),
-          };
+          return { chunk, score: cosineSimilarity(queryVector, vector) };
         })
         .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))
         .slice(0, topK);
     },
 
     clear() {
-      index.clear();
+      return index.clear();
     },
   };
 }

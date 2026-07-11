@@ -55,7 +55,7 @@ describe("createKnowledgeBase", () => {
   });
 
   it("clears documents and vector state", async () => {
-    const clear = vi.fn();
+    const clear = vi.fn(async () => undefined);
     const vectorRetriever = {
       model: "fake-model",
       retrieve: vi.fn(async () => []),
