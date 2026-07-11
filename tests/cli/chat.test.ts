@@ -10,6 +10,7 @@ import {
 
 const originalCwd = process.cwd();
 const originalApiKey = process.env.CYRENE_MODEL_API_KEY;
+const originalEmbeddingModel = process.env.CYRENE_EMBEDDING_MODEL;
 
 afterEach(() => {
   process.chdir(originalCwd);
@@ -17,6 +18,11 @@ afterEach(() => {
     delete process.env.CYRENE_MODEL_API_KEY;
   } else {
     process.env.CYRENE_MODEL_API_KEY = originalApiKey;
+  }
+  if (originalEmbeddingModel === undefined) {
+    delete process.env.CYRENE_EMBEDDING_MODEL;
+  } else {
+    process.env.CYRENE_EMBEDDING_MODEL = originalEmbeddingModel;
   }
 });
 
@@ -60,5 +66,25 @@ describe("createRuntimeToolRegistry", () => {
       "echo",
       "search_knowledge",
     ]);
+  });
+
+  it("loads embedding settings from a local .env file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "cyrene-cli-embedding-env-test-"));
+
+    try {
+      delete process.env.CYRENE_EMBEDDING_MODEL;
+      writeFileSync(
+        join(dir, ".env"),
+        "CYRENE_EMBEDDING_MODEL=embedding-from-local-env\n",
+      );
+      process.chdir(dir);
+
+      createRuntimeToolRegistry();
+
+      expect(process.env.CYRENE_EMBEDDING_MODEL).toBe("embedding-from-local-env");
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
