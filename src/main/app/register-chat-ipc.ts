@@ -41,6 +41,7 @@ export function registerChatIpc(deps: RegisterChatIpcDeps): void {
   const getConfig = deps.createConfig ?? loadRuntimeModelConfig;
   const getToolRegistry = deps.createToolRegistry ?? createRuntimeToolRegistry;
   const adapter = deps.adapter ?? openAICompatibleAdapter;
+  const toolRegistry = getToolRegistry() as ToolRegistry;
   const session = createChatSession(getInitialHistory());
   let nextRunNumber = 1;
 
@@ -52,7 +53,7 @@ export function registerChatIpc(deps: RegisterChatIpcDeps): void {
       messages,
       config: getConfig(),
       adapter,
-      toolRegistry: getToolRegistry() as ToolRegistry,
+      toolRegistry,
       onEvent: (agentEvent) => {
         event.sender.send(IPC_CHANNELS.chat.agentEvent, { runId, event: agentEvent });
       },

@@ -158,6 +158,33 @@ describe("registerChatIpc", () => {
     ]);
   });
 
+  it("reuses one tool registry across multiple messages", async () => {
+    const registry = { getEnabledToolSpecs: () => [] };
+    const createToolRegistry = vi.fn(() => registry);
+    const runAgent = vi.fn(async ({
+      messages,
+    }: {
+      messages: ChatMessage[];
+      toolRegistry: unknown;
+    }) => ({
+      reply: "reply",
+      messages: [...messages, { role: "assistant" as const, content: "reply" }],
+      toolResults: [],
+    }));
+    const deps = createFakeDeps(runAgent);
+    deps.createToolRegistry = createToolRegistry;
+    registerChatIpc(deps);
+    const { sender } = createSender();
+    const handler = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await handler({ sender }, "first");
+    await handler({ sender }, "second");
+
+    expect(createToolRegistry).toHaveBeenCalledOnce();
+    expect(runAgent.mock.calls[0]?.[0].toolRegistry).toBe(registry);
+    expect(runAgent.mock.calls[1]?.[0].toolRegistry).toBe(registry);
+  });
+
   it("clears session history through the clear-session channel", async () => {
     const runAgent = vi
       .fn()
