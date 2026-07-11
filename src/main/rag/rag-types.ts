@@ -19,5 +19,12 @@ export interface KnowledgeChunk {
 export interface KnowledgeSearchResult {
   chunk: KnowledgeChunk;
   score: number;
-  matchedTerms: string[];
+  matchedTerms?: string[];
+}
+
+export interface KnowledgeSearchResponse {
+  mode: "vector" | "keyword-fallback";
+  model?: string;
+  results: KnowledgeSearchResult[];
+  warning?: string;
 }
