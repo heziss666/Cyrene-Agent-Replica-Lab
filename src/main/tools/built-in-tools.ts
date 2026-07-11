@@ -1,5 +1,11 @@
+import { createDefaultKnowledgeBase } from "../rag/default-knowledge.js";
+import type { EmbeddingProvider } from "../rag/embedding-provider.js";
 import { ToolRegistry } from "./tool-registry.js";
 import type { ToolDefinition } from "./tool-types.js";
+
+export interface CreateDefaultToolRegistryOptions {
+  embeddingProvider?: EmbeddingProvider;
+}
 
 function stringifyArg(value: unknown): string {
   return typeof value === "string" ? value : String(value ?? "");
@@ -72,10 +78,65 @@ const echoTool: ToolDefinition = {
   execute: async (args) => stringifyArg(args.text),
 };
 
-export function createDefaultToolRegistry(): ToolRegistry {
+export function createDefaultToolRegistry(
+  options: CreateDefaultToolRegistryOptions = {},
+): ToolRegistry {
+  const knowledgeBase = createDefaultKnowledgeBase(options.embeddingProvider);
   const registry = new ToolRegistry();
+  const searchKnowledgeTool: ToolDefinition = {
+    id: "search_knowledge",
+    description: "Search the local knowledge base for relevant text snippets.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query describing what knowledge to retrieve.",
+        },
+        topK: {
+          type: "number",
+          description: "Maximum number of snippets to return.",
+        },
+      },
+      required: ["query"],
+    },
+    enabled: true,
+    execute: async (args) => {
+      const query = stringifyArg(args.query).trim();
+      const topK = typeof args.topK === "number" ? args.topK : 5;
+      const response = await knowledgeBase.search(query, topK);
+      const header = [
+        `retrieval_mode: ${response.mode}`,
+        response.model ? `embedding_model: ${response.model}` : undefined,
+        response.warning ? `warning: ${response.warning}` : undefined,
+      ].filter((line): line is string => Boolean(line));
+
+      if (response.results.length === 0) {
+        return [...header, "No matching knowledge found."].join("\n");
+      }
+
+      const snippets = response.results.map((result, index) =>
+        [
+          `[${index + 1}] ${result.chunk.title}`,
+          `source: ${result.chunk.source}`,
+          `score: ${result.score}`,
+          result.matchedTerms
+            ? `matched_terms: ${result.matchedTerms.join(", ")}`
+            : undefined,
+          "content:",
+          result.chunk.text,
+        ]
+          .filter((line): line is string => Boolean(line))
+          .join("\n"),
+      );
+
+      return [...header, "", ...snippets].join("\n");
+    },
+  };
+
   registry.register(getCurrentTimeTool);
   registry.register(calculatorTool);
   registry.register(echoTool);
+  registry.register(searchKnowledgeTool);
   return registry;
 }

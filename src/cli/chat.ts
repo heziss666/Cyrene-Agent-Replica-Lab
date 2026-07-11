@@ -27,6 +27,7 @@ export function loadRuntimeModelConfig(): ModelConfig {
 }
 
 export function createRuntimeToolRegistry(): ToolRegistry {
+  loadLocalEnvFile();
   return createDefaultToolRegistry();
 }
 
