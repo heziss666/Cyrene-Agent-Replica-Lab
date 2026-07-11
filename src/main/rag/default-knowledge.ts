@@ -30,7 +30,7 @@ const DEFAULT_DOCUMENTS: KnowledgeDocument[] = [
     source: "seed",
     text:
       "Minimal RAG stores local knowledge as text chunks. The search_knowledge tool retrieves relevant chunks and returns them to the model. " +
-      "Phase 6A uses keyword search before adding embeddings and vector search in a later phase.",
+      "Phase 6B uses Ollama embeddings and vector search. Phase 6C persists document vectors for reuse across application restarts.",
   },
 ];
 

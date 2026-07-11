@@ -36,17 +36,14 @@ describe("createInitialHistory", () => {
           "You are Cyrene Replica Lab, a minimal learning agent.",
           "Answer clearly and briefly.",
           "When explaining technical ideas, use beginner-friendly wording.",
-          "When using search_knowledge, formulate a concise, standalone natural-language question that preserves important entities, actions, relationships, constraints, and relevant conversation context; use a semantic question, not a disconnected keyword list.",
         ].join("\n"),
       },
     ]);
   });
 
-  it("instructs tool queries to preserve standalone semantic meaning", () => {
-    expect(SYSTEM_PROMPT).toContain(
-      "formulate a concise, standalone natural-language question",
-    );
-    expect(SYSTEM_PROMPT).toContain("not a disconnected keyword list");
+  it("keeps tool-specific query rules out of the system prompt", () => {
+    expect(SYSTEM_PROMPT).not.toContain("search_knowledge");
+    expect(SYSTEM_PROMPT).not.toContain("disconnected keyword list");
   });
 });
 
