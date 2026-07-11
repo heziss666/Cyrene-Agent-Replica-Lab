@@ -1,5 +1,10 @@
+import { loadEmbeddingConfig } from "../config/embedding-config.js";
+import type { EmbeddingProvider } from "./embedding-provider.js";
+import { createInMemoryVectorIndex } from "./in-memory-vector-index.js";
 import { createKnowledgeBase, type KnowledgeBase } from "./knowledge-base.js";
+import { createOllamaEmbeddingProvider } from "./ollama-embedding-provider.js";
 import type { KnowledgeDocument } from "./rag-types.js";
+import { createVectorRetriever } from "./vector-retriever.js";
 
 const DEFAULT_DOCUMENTS: KnowledgeDocument[] = [
   {
@@ -29,6 +34,14 @@ const DEFAULT_DOCUMENTS: KnowledgeDocument[] = [
   },
 ];
 
-export function createDefaultKnowledgeBase(): KnowledgeBase {
-  return createKnowledgeBase(DEFAULT_DOCUMENTS);
+export function createDefaultKnowledgeBase(
+  embeddingProvider: EmbeddingProvider = createOllamaEmbeddingProvider(
+    loadEmbeddingConfig(),
+  ),
+): KnowledgeBase {
+  const vectorRetriever = createVectorRetriever(
+    embeddingProvider,
+    createInMemoryVectorIndex(),
+  );
+  return createKnowledgeBase(DEFAULT_DOCUMENTS, undefined, { vectorRetriever });
 }
