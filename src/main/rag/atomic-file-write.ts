@@ -24,7 +24,12 @@ export async function writeFileAtomically(
   const backupPath = `${filePath}.bak`;
 
   await fileOps.mkdir(dirname(filePath), { recursive: true });
-  await fileOps.writeFile(temporaryPath, content, "utf8");
+  try {
+    await fileOps.writeFile(temporaryPath, content, "utf8");
+  } catch (error) {
+    await fileOps.rm(temporaryPath, { force: true });
+    throw error;
+  }
 
   try {
     await fileOps.rename(temporaryPath, filePath);

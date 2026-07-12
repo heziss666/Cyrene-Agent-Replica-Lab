@@ -14,6 +14,21 @@ function operations(): AtomicFileOperations {
 }
 
 describe("writeFileAtomically", () => {
+  it("cleans up the temporary path when writing it fails", async () => {
+    const ops = operations();
+    const writeError = new Error("write failed");
+    vi.mocked(ops.writeFile).mockRejectedValueOnce(writeError);
+
+    await expect(
+      writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops),
+    ).rejects.toBe(writeError);
+
+    expect(ops.rm).toHaveBeenCalledWith(
+      "C:\\rag\\vector-index.json.tmp",
+      { force: true },
+    );
+  });
+
   it("writes a same-directory temporary file then renames it", async () => {
     const ops = operations();
 
