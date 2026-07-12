@@ -1,10 +1,14 @@
 import { createDefaultKnowledgeBase } from "../rag/default-knowledge.js";
 import type { EmbeddingProvider } from "../rag/embedding-provider.js";
+import type { VectorIndex } from "../rag/vector-index-types.js";
+import type { RagStorageConfig } from "../config/rag-storage-config.js";
 import { ToolRegistry } from "./tool-registry.js";
 import type { ToolDefinition } from "./tool-types.js";
 
 export interface CreateDefaultToolRegistryOptions {
   embeddingProvider?: EmbeddingProvider;
+  vectorIndex?: VectorIndex;
+  storageConfig?: RagStorageConfig;
 }
 
 function stringifyArg(value: unknown): string {
@@ -81,7 +85,11 @@ const echoTool: ToolDefinition = {
 export function createDefaultToolRegistry(
   options: CreateDefaultToolRegistryOptions = {},
 ): ToolRegistry {
-  const knowledgeBase = createDefaultKnowledgeBase(options.embeddingProvider);
+  const knowledgeBase = createDefaultKnowledgeBase({
+    embeddingProvider: options.embeddingProvider,
+    vectorIndex: options.vectorIndex,
+    storageConfig: options.storageConfig,
+  });
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {
     id: "search_knowledge",

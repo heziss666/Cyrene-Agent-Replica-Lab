@@ -1,5 +1,9 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { EmbeddingProvider } from "../../src/main/rag/embedding-provider.js";
+import { createInMemoryVectorIndex } from "../../src/main/rag/in-memory-vector-index.js";
 import { createDefaultToolRegistry } from "../../src/main/tools/built-in-tools.js";
 
 const fakeEmbeddingProvider: EmbeddingProvider = {
@@ -9,9 +13,16 @@ const fakeEmbeddingProvider: EmbeddingProvider = {
   embedQuery: async () => [1, 1],
 };
 
+function createTestToolRegistry() {
+  return createDefaultToolRegistry({
+    embeddingProvider: fakeEmbeddingProvider,
+    vectorIndex: createInMemoryVectorIndex(),
+  });
+}
+
 describe("createDefaultToolRegistry", () => {
   it("registers the default safe tools", () => {
-    const registry = createDefaultToolRegistry();
+    const registry = createTestToolRegistry();
 
     expect(registry.getEnabledTools().map((tool) => tool.id)).toEqual([
       "get_current_time",
@@ -22,7 +33,7 @@ describe("createDefaultToolRegistry", () => {
   });
 
   it("exposes the search_knowledge schema to the model", () => {
-    const registry = createDefaultToolRegistry();
+    const registry = createTestToolRegistry();
 
     const specs = registry.getEnabledToolSpecs();
 
@@ -30,9 +41,7 @@ describe("createDefaultToolRegistry", () => {
   });
 
   it("asks the model for a standalone semantic search question", () => {
-    const registry = createDefaultToolRegistry({
-      embeddingProvider: fakeEmbeddingProvider,
-    });
+    const registry = createTestToolRegistry();
     const searchSpec = registry
       .getEnabledToolSpecs()
       .find((spec) => spec.name === "search_knowledge");
@@ -44,19 +53,19 @@ describe("createDefaultToolRegistry", () => {
   });
 
   it("echoes text", async () => {
-    const tool = createDefaultToolRegistry().getById("echo");
+    const tool = createTestToolRegistry().getById("echo");
 
     await expect(tool?.execute({ text: "hello tools" })).resolves.toBe("hello tools");
   });
 
   it("calculates a simple arithmetic expression", async () => {
-    const tool = createDefaultToolRegistry().getById("calculator");
+    const tool = createTestToolRegistry().getById("calculator");
 
     await expect(tool?.execute({ expression: "2 + 3 * (4 - 1)" })).resolves.toBe("11");
   });
 
   it("rejects unsafe calculator expressions", async () => {
-    const tool = createDefaultToolRegistry().getById("calculator");
+    const tool = createTestToolRegistry().getById("calculator");
 
     await expect(tool?.execute({ expression: "process.exit()" })).resolves.toContain(
       "[error]",
@@ -64,7 +73,7 @@ describe("createDefaultToolRegistry", () => {
   });
 
   it("returns the current time as an ISO string", async () => {
-    const tool = createDefaultToolRegistry().getById("get_current_time");
+    const tool = createTestToolRegistry().getById("get_current_time");
     const output = await tool?.execute({});
 
     expect(output).toEqual(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/));
@@ -72,9 +81,7 @@ describe("createDefaultToolRegistry", () => {
   });
 
   it("search_knowledge returns vector snippets and diagnostics", async () => {
-    const tool = createDefaultToolRegistry({
-      embeddingProvider: fakeEmbeddingProvider,
-    }).getById("search_knowledge");
+    const tool = createTestToolRegistry().getById("search_knowledge");
 
     const output = await tool?.execute({
       query: "ToolRegistry",
@@ -84,5 +91,27 @@ describe("createDefaultToolRegistry", () => {
     expect(output).toContain("retrieval_mode: vector");
     expect(output).toContain("embedding_model: fake-model");
     expect(output).toContain("content:");
+  });
+
+  it("persists vector search data at the configured JSON path", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "cyrene-rag-"));
+    const vectorIndexPath = join(tempDir, "vector-index.json");
+
+    try {
+      const registry = createDefaultToolRegistry({
+        embeddingProvider: fakeEmbeddingProvider,
+        storageConfig: { dataDir: tempDir, vectorIndexPath },
+      });
+      const output = await registry.getById("search_knowledge")?.execute({
+        query: "How does ToolRegistry execute tools?",
+        topK: 2,
+      });
+
+      expect(await readFile(vectorIndexPath, "utf8")).toContain('"schemaVersion": 1');
+      expect(output).toContain("retrieval_mode: vector");
+      expect(output).toContain("embedding_model: fake-model");
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   });
 });

@@ -25,7 +25,7 @@ export interface CreateKnowledgeBaseOptions {
 export interface KnowledgeBase {
   addDocument(input: AddKnowledgeDocumentInput): KnowledgeChunk[];
   search(query: string, topK?: number): Promise<KnowledgeSearchResponse>;
-  clear(): void;
+  clear(): Promise<void>;
 }
 
 export function createKnowledgeBase(
@@ -78,9 +78,9 @@ export function createKnowledgeBase(
       };
     },
 
-    clear() {
+    async clear() {
       store.clear();
-      options.vectorRetriever?.clear();
+      await options.vectorRetriever?.clear();
     },
   };
 }
