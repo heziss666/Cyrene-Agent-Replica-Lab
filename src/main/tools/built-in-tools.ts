@@ -9,6 +9,7 @@ export interface CreateDefaultToolRegistryOptions {
   embeddingProvider?: EmbeddingProvider;
   vectorIndex?: VectorIndex;
   storageConfig?: RagStorageConfig;
+  logger?: (message: string) => void;
 }
 
 function stringifyArg(value: unknown): string {
@@ -89,6 +90,7 @@ export function createDefaultToolRegistry(
     embeddingProvider: options.embeddingProvider,
     vectorIndex: options.vectorIndex,
     storageConfig: options.storageConfig,
+    logger: options.logger,
   });
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {

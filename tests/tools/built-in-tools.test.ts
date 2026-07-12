@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { EmbeddingProvider } from "../../src/main/rag/embedding-provider.js";
 import { createInMemoryVectorIndex } from "../../src/main/rag/in-memory-vector-index.js";
 import { createDefaultToolRegistry } from "../../src/main/tools/built-in-tools.js";
@@ -96,11 +96,13 @@ describe("createDefaultToolRegistry", () => {
   it("persists vector search data at the configured JSON path", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "cyrene-rag-"));
     const vectorIndexPath = join(tempDir, "vector-index.json");
+    const logger = vi.fn();
 
     try {
       const registry = createDefaultToolRegistry({
         embeddingProvider: fakeEmbeddingProvider,
         storageConfig: { dataDir: tempDir, vectorIndexPath },
+        logger,
       });
       const output = await registry.getById("search_knowledge")?.execute({
         query: "How does ToolRegistry execute tools?",
@@ -110,6 +112,12 @@ describe("createDefaultToolRegistry", () => {
       expect(await readFile(vectorIndexPath, "utf8")).toContain('"schemaVersion": 1');
       expect(output).toContain("retrieval_mode: vector");
       expect(output).toContain("embedding_model: fake-model");
+      expect(logger).toHaveBeenCalledWith(
+        expect.stringContaining("vector index missing"),
+      );
+      expect(logger).toHaveBeenCalledWith(
+        expect.stringContaining("vector index saved"),
+      );
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
