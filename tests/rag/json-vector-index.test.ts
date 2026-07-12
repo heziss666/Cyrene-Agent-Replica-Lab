@@ -2,7 +2,10 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createJsonVectorIndex } from "../../src/main/rag/json-vector-index.js";
+import {
+  createJsonVectorIndex,
+  validateVectorIndexFile,
+} from "../../src/main/rag/json-vector-index.js";
 
 const identity = {
   providerId: "fake",
@@ -126,5 +129,32 @@ describe("createJsonVectorIndex", () => {
       status: "loaded",
       loadedEntries: 0,
     });
+  });
+
+  it("rejects a custom-prototype vector index file", () => {
+    class VectorIndexFileLike {
+      schemaVersion = 1;
+      embedding = { providerId: "fake", model: "fake-model", dimensions: 2 };
+      chunking = { chunkSizeChars: 600, overlapChars: 120 };
+      entries: unknown[] = [];
+    }
+
+    expect(() => validateVectorIndexFile(new VectorIndexFileLike())).toThrow(
+      "Invalid vector index:",
+    );
+  });
+
+  it("rejects a sparse addMany batch with a validation error", async () => {
+    const filePath = await createFilePath();
+    const entries = new Array<{
+      chunkId: string;
+      textHash: string;
+      vector: number[];
+    }>(2);
+    entries[0] = { chunkId: "one", textHash: "hash-one", vector: [1, 0] };
+
+    await expect(createIndex(filePath).addMany(entries)).rejects.toThrow(
+      "Invalid vector index:",
+    );
   });
 });

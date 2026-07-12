@@ -28,7 +28,13 @@ function invalid(message: string): Error {
 }
 
 function assertPlainObject(value: unknown, label: string): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value) ||
+    (Object.getPrototypeOf(value) !== Object.prototype &&
+      Object.getPrototypeOf(value) !== null)
+  ) {
     throw invalid(`${label} must be a plain object`);
   }
   return value as Record<string, unknown>;
@@ -77,7 +83,7 @@ function assertEntryArray(value: unknown): VectorIndexEntry[] {
   if (!Array.isArray(value)) throw invalid("entries must be an array");
 
   const chunkIds = new Set<string>();
-  return value.map((entry, index) => {
+  return Array.from(value, (entry, index) => {
     const parsed = assertEntry(entry, `entries[${index}]`);
     if (chunkIds.has(parsed.chunkId)) {
       throw invalid(`duplicate chunkId: ${parsed.chunkId}`);
@@ -91,55 +97,66 @@ function isMissingFile(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }
 
+export function validateVectorIndexFile(value: unknown): VectorIndexFile {
+  const file = assertPlainObject(value, "file");
+  const schemaVersion = assertPositiveInteger(file.schemaVersion, "schemaVersion");
+  if (schemaVersion !== VECTOR_INDEX_SCHEMA_VERSION) {
+    throw invalid(`schemaVersion must match ${VECTOR_INDEX_SCHEMA_VERSION}`);
+  }
+
+  const embedding = assertPlainObject(file.embedding, "embedding");
+  const providerId = assertString(embedding.providerId, "embedding.providerId");
+  const model = assertString(embedding.model, "embedding.model");
+  const dimensions = assertPositiveInteger(embedding.dimensions, "embedding.dimensions");
+
+  const chunking = assertPlainObject(file.chunking, "chunking");
+  const chunkSizeChars = assertPositiveInteger(chunking.chunkSizeChars, "chunking.chunkSizeChars");
+  const overlapChars = assertNonNegativeInteger(chunking.overlapChars, "chunking.overlapChars");
+
+  const entries = assertEntryArray(file.entries);
+  validateDimensions(entries, dimensions);
+  return {
+    schemaVersion: VECTOR_INDEX_SCHEMA_VERSION,
+    embedding: { providerId, model, dimensions },
+    chunking: { chunkSizeChars, overlapChars },
+    entries,
+  };
+}
+
+function validateDimensions(entriesToValidate: VectorIndexEntry[], expectedDimensions: number): void {
+  for (const entry of entriesToValidate) {
+    if (entry.vector.length !== expectedDimensions) {
+      throw invalid(
+        `vector dimensions must match embedding.dimensions: expected ${expectedDimensions}, received ${entry.vector.length}`,
+      );
+    }
+  }
+}
+
 export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): VectorIndex {
   const entries = new Map<string, VectorIndexEntry>();
   const logger = options.logger ?? console.log;
   let dimensions: number | undefined;
   let initializationPromise: Promise<VectorIndexLoadResult> | undefined;
 
-  function validateDimensions(entriesToValidate: VectorIndexEntry[], expectedDimensions: number): void {
-    for (const entry of entriesToValidate) {
-      if (entry.vector.length !== expectedDimensions) {
-        throw invalid(
-          `vector dimensions must match embedding.dimensions: expected ${expectedDimensions}, received ${entry.vector.length}`,
-        );
-      }
-    }
-  }
-
   function parseFile(value: unknown): VectorIndexFile {
-    const file = assertPlainObject(value, "file");
-    const schemaVersion = assertPositiveInteger(file.schemaVersion, "schemaVersion");
-    if (schemaVersion !== options.identity.schemaVersion) {
+    const file = validateVectorIndexFile(value);
+    if (file.schemaVersion !== options.identity.schemaVersion) {
       throw invalid(`schemaVersion must match ${options.identity.schemaVersion}`);
     }
-
-    const embedding = assertPlainObject(file.embedding, "embedding");
-    const providerId = assertString(embedding.providerId, "embedding.providerId");
-    const model = assertString(embedding.model, "embedding.model");
-    const fileDimensions = assertPositiveInteger(embedding.dimensions, "embedding.dimensions");
-    if (providerId !== options.identity.providerId || model !== options.identity.model) {
+    if (
+      file.embedding.providerId !== options.identity.providerId ||
+      file.embedding.model !== options.identity.model
+    ) {
       throw invalid("embedding identity does not match");
     }
-
-    const chunking = assertPlainObject(file.chunking, "chunking");
-    const chunkSizeChars = assertPositiveInteger(chunking.chunkSizeChars, "chunking.chunkSizeChars");
-    const overlapChars = assertNonNegativeInteger(chunking.overlapChars, "chunking.overlapChars");
     if (
-      chunkSizeChars !== options.chunkSizeChars ||
-      overlapChars !== options.overlapChars
+      file.chunking.chunkSizeChars !== options.chunkSizeChars ||
+      file.chunking.overlapChars !== options.overlapChars
     ) {
       throw invalid("chunking configuration does not match");
     }
-
-    const fileEntries = assertEntryArray(file.entries);
-    validateDimensions(fileEntries, fileDimensions);
-    return {
-      schemaVersion: VECTOR_INDEX_SCHEMA_VERSION,
-      embedding: { providerId, model, dimensions: fileDimensions },
-      chunking: { chunkSizeChars, overlapChars },
-      entries: fileEntries,
-    };
+    return file;
   }
 
   async function load(): Promise<VectorIndexLoadResult> {
