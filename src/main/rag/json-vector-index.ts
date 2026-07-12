@@ -1,4 +1,5 @@
-import { readFile, rm } from "node:fs/promises";
+import { readFile, rename, rm } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { writeFileAtomically } from "./atomic-file-write.js";
 import { validateVector } from "./vector-math.js";
 import {
@@ -52,6 +53,13 @@ function assertPositiveInteger(value: unknown, label: string): number {
   return value;
 }
 
+function assertInteger(value: unknown, label: string): number {
+  if (!Number.isInteger(value) || typeof value !== "number") {
+    throw invalid(`${label} must be an integer`);
+  }
+  return value;
+}
+
 function assertNonNegativeInteger(value: unknown, label: string): number {
   if (!Number.isInteger(value) || typeof value !== "number" || value < 0) {
     throw invalid(`${label} must be a non-negative integer`);
@@ -97,6 +105,10 @@ function isMissingFile(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function validateVectorIndexFile(value: unknown): VectorIndexFile {
   const file = assertPlainObject(value, "file");
   const schemaVersion = assertPositiveInteger(file.schemaVersion, "schemaVersion");
@@ -139,24 +151,36 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
   let dimensions: number | undefined;
   let initializationPromise: Promise<VectorIndexLoadResult> | undefined;
 
-  function parseFile(value: unknown): VectorIndexFile {
-    const file = validateVectorIndexFile(value);
-    if (file.schemaVersion !== options.identity.schemaVersion) {
-      throw invalid(`schemaVersion must match ${options.identity.schemaVersion}`);
+  function incompatible(warning: string): VectorIndexLoadResult {
+    logger(`[RAG] ${warning}`);
+    return { status: "incompatible", loadedEntries: 0, warning };
+  }
+
+  function getCompatibilityWarning(file: VectorIndexFile): string | undefined {
+    if (file.embedding.providerId !== options.identity.providerId) {
+      return `Vector index incompatible: provider changed from ${file.embedding.providerId} to ${options.identity.providerId}`;
     }
-    if (
-      file.embedding.providerId !== options.identity.providerId ||
-      file.embedding.model !== options.identity.model
-    ) {
-      throw invalid("embedding identity does not match");
+    if (file.embedding.model !== options.identity.model) {
+      return `Vector index incompatible: model changed from ${file.embedding.model} to ${options.identity.model}`;
     }
-    if (
-      file.chunking.chunkSizeChars !== options.chunkSizeChars ||
-      file.chunking.overlapChars !== options.overlapChars
-    ) {
-      throw invalid("chunking configuration does not match");
+    if (file.chunking.chunkSizeChars !== options.chunkSizeChars) {
+      return `Vector index incompatible: chunkSizeChars changed from ${file.chunking.chunkSizeChars} to ${options.chunkSizeChars}`;
     }
-    return file;
+    if (file.chunking.overlapChars !== options.overlapChars) {
+      return `Vector index incompatible: overlapChars changed from ${file.chunking.overlapChars} to ${options.overlapChars}`;
+    }
+    return undefined;
+  }
+
+  async function recoverCorruptFile(error: unknown): Promise<VectorIndexLoadResult> {
+    const backupPath = join(
+      dirname(options.filePath),
+      `vector-index.corrupt-${Date.now()}.json`,
+    );
+    await rename(options.filePath, backupPath);
+    const warning = `Vector index corrupt: ${errorMessage(error)}; backup created at ${backupPath}`;
+    logger(`[RAG] ${warning}`);
+    return { status: "corrupt", loadedEntries: 0, warning };
   }
 
   async function load(): Promise<VectorIndexLoadResult> {
@@ -171,7 +195,24 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
       throw error;
     }
 
-    const file = parseFile(JSON.parse(content));
+    let file: VectorIndexFile;
+    try {
+      const parsed = JSON.parse(content);
+      const persisted = assertPlainObject(parsed, "file");
+      const schemaVersion = assertInteger(persisted.schemaVersion, "schemaVersion");
+      if (schemaVersion !== VECTOR_INDEX_SCHEMA_VERSION) {
+        return incompatible(
+          `Vector index incompatible: schemaVersion changed from ${schemaVersion} to ${VECTOR_INDEX_SCHEMA_VERSION}`,
+        );
+      }
+
+      file = validateVectorIndexFile(parsed);
+      const warning = getCompatibilityWarning(file);
+      if (warning) return incompatible(warning);
+    } catch (error) {
+      return recoverCorruptFile(error);
+    }
+
     dimensions = file.embedding.dimensions;
     for (const entry of file.entries) entries.set(entry.chunkId, cloneEntry(entry));
     logger(`[RAG] vector index loaded: ${entries.size} entries`);
