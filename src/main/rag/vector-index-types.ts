@@ -41,6 +41,10 @@ export interface VectorIndexLoadResult {
   warning?: string;
 }
 
+/**
+ * Implementations serialize mutations within one process. Callers must not
+ * write the same persistent index path from multiple OS processes at once.
+ */
 export interface VectorIndex {
   initialize(): Promise<VectorIndexLoadResult>;
   has(chunkId: string, textHash: string): boolean;

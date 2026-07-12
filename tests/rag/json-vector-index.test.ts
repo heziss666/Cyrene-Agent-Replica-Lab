@@ -4,8 +4,14 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createJsonVectorIndex,
+  type CreateJsonVectorIndexOptions,
   validateVectorIndexFile,
 } from "../../src/main/rag/json-vector-index.js";
+import { writeFileAtomically } from "../../src/main/rag/atomic-file-write.js";
+import type {
+  VectorIndexEntry,
+  VectorIndexFile,
+} from "../../src/main/rag/vector-index-types.js";
 
 const identity = {
   providerId: "fake",
@@ -14,6 +20,25 @@ const identity = {
 };
 
 const temporaryDirectories: string[] = [];
+const HASH_ONE = "1".repeat(64);
+const HASH_TWO = "2".repeat(64);
+
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
+function validFile(entries: VectorIndexEntry[] = []): VectorIndexFile {
+  return {
+    schemaVersion: 1,
+    embedding: { providerId: "fake", model: "fake-model", dimensions: 2 },
+    chunking: { chunkSizeChars: 600, overlapChars: 120 },
+    entries,
+  };
+}
 
 async function createFilePath(): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), "cyrene-json-vector-index-"));
@@ -21,13 +46,18 @@ async function createFilePath(): Promise<string> {
   return join(directory, "vector-index.json");
 }
 
-function createIndex(filePath: string, logger = vi.fn()) {
+function createIndex(
+  filePath: string,
+  logger = vi.fn(),
+  overrides: Partial<CreateJsonVectorIndexOptions> = {},
+) {
   return createJsonVectorIndex({
     filePath,
     identity,
     chunkSizeChars: 600,
     overlapChars: 120,
     logger,
+    ...overrides,
   });
 }
 
@@ -48,8 +78,8 @@ describe("createJsonVectorIndex", () => {
       loadedEntries: 0,
     });
     await first.addMany([
-      { chunkId: "one", textHash: "hash-one", vector: [1, 0] },
-      { chunkId: "two", textHash: "hash-two", vector: [0, 1] },
+      { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+      { chunkId: "two", textHash: HASH_TWO, vector: [0, 1] },
     ]);
 
     const saved = JSON.parse(await readFile(filePath, "utf8"));
@@ -69,10 +99,10 @@ describe("createJsonVectorIndex", () => {
       status: "loaded",
       loadedEntries: 2,
     });
-    expect(second.get("one", "hash-one")).toEqual([1, 0]);
+    expect(second.get("one", HASH_ONE)).toEqual([1, 0]);
 
     await expect(
-      second.prune([{ chunkId: "one", textHash: "hash-one" }]),
+      second.prune([{ chunkId: "one", textHash: HASH_ONE }]),
     ).resolves.toBe(1);
     expect(JSON.parse(await readFile(filePath, "utf8")).entries).toHaveLength(1);
 
@@ -84,8 +114,8 @@ describe("createJsonVectorIndex", () => {
     const missingFilePath = await createFilePath();
     await expect(
       createIndex(missingFilePath).addMany([
-        { chunkId: "one", textHash: "hash-one", vector: [1, 0] },
-        { chunkId: "one", textHash: "hash-two", vector: [0, 1] },
+        { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+        { chunkId: "one", textHash: HASH_TWO, vector: [0, 1] },
       ]),
     ).rejects.toThrow("Invalid vector index: duplicate chunkId: one");
   });
@@ -139,7 +169,7 @@ describe("createJsonVectorIndex", () => {
   ])("returns an empty incompatible state when the $description changes", async ({ options, expectedReason }) => {
     const filePath = await createFilePath();
     const first = createIndex(filePath);
-    await first.addMany([{ chunkId: "one", textHash: "hash-one", vector: [1, 0] }]);
+    await first.addMany([{ chunkId: "one", textHash: HASH_ONE, vector: [1, 0] }]);
 
     const result = await createJsonVectorIndex({
       filePath,
@@ -192,7 +222,7 @@ describe("createJsonVectorIndex", () => {
     const backupPath = join(dirname(filePath), backupNames[0]);
     expect(await readFile(backupPath, "utf8")).toBe("{ not valid JSON");
 
-    await index.addMany([{ chunkId: "one", textHash: "hash-one", vector: [1, 0] }]);
+    await index.addMany([{ chunkId: "one", textHash: HASH_ONE, vector: [1, 0] }]);
 
     const rebuilt = JSON.parse(await readFile(filePath, "utf8"));
     expect(() => validateVectorIndexFile(rebuilt)).not.toThrow();
@@ -214,7 +244,7 @@ describe("createJsonVectorIndex", () => {
         schemaVersion: 1,
         embedding: { providerId: "fake", model: "fake-model", dimensions: 1 },
         chunking: { chunkSizeChars: 600, overlapChars: 120 },
-        entries: [{ chunkId: "one", textHash: "hash-one", vector: [] }],
+        entries: [{ chunkId: "one", textHash: HASH_ONE, vector: [] }],
       },
     },
     {
@@ -223,7 +253,7 @@ describe("createJsonVectorIndex", () => {
         schemaVersion: 1,
         embedding: { providerId: "fake", model: "fake-model", dimensions: 2 },
         chunking: { chunkSizeChars: 600, overlapChars: 120 },
-        entries: [{ chunkId: "one", textHash: "hash-one", vector: [1] }],
+        entries: [{ chunkId: "one", textHash: HASH_ONE, vector: [1] }],
       },
     },
     {
@@ -233,8 +263,8 @@ describe("createJsonVectorIndex", () => {
         embedding: { providerId: "fake", model: "fake-model", dimensions: 1 },
         chunking: { chunkSizeChars: 600, overlapChars: 120 },
         entries: [
-          { chunkId: "one", textHash: "hash-one", vector: [1] },
-          { chunkId: "one", textHash: "hash-two", vector: [0] },
+          { chunkId: "one", textHash: HASH_ONE, vector: [1] },
+          { chunkId: "one", textHash: HASH_TWO, vector: [0] },
         ],
       },
     },
@@ -260,7 +290,7 @@ describe("createJsonVectorIndex", () => {
           schemaVersion: 1,
           embedding: { providerId: "fake", model: "fake-model", dimensions: 1 },
           chunking: { chunkSizeChars: 600, overlapChars: 120 },
-          entries: [{ chunkId: "one", textHash: "hash-one", vector: [value] }],
+          entries: [{ chunkId: "one", textHash: HASH_ONE, vector: [value] }],
         }),
       ).toThrow("contains a non-finite value");
     },
@@ -286,10 +316,176 @@ describe("createJsonVectorIndex", () => {
       textHash: string;
       vector: number[];
     }>(2);
-    entries[0] = { chunkId: "one", textHash: "hash-one", vector: [1, 0] };
+    entries[0] = { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] };
 
     await expect(createIndex(filePath).addMany(entries)).rejects.toThrow(
       "Invalid vector index:",
     );
+  });
+
+  it("keeps addMany state unchanged when persistence fails, then retries", async () => {
+    const filePath = await createFilePath();
+    const persistenceError = new Error("disk full");
+    const atomicWrite = vi
+      .fn<(filePath: string, content: string) => Promise<void>>()
+      .mockRejectedValueOnce(persistenceError)
+      .mockImplementation((path, content) => writeFileAtomically(path, content));
+    const index = createIndex(filePath, vi.fn(), { atomicWrite });
+    const entry = { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] };
+
+    await expect(index.addMany([entry])).rejects.toBe(persistenceError);
+    expect(index.has("one", HASH_ONE)).toBe(false);
+
+    await expect(index.addMany([entry])).resolves.toBeUndefined();
+    expect(index.has("one", HASH_ONE)).toBe(true);
+    expect(JSON.parse(await readFile(filePath, "utf8")).entries).toHaveLength(1);
+  });
+
+  it("keeps prune state unchanged when persistence fails, then retries", async () => {
+    const filePath = await createFilePath();
+    const persistenceError = new Error("save failed");
+    let writes = 0;
+    const atomicWrite = vi.fn(async (path: string, content: string) => {
+      writes += 1;
+      if (writes === 2) throw persistenceError;
+      await writeFileAtomically(path, content);
+    });
+    const index = createIndex(filePath, vi.fn(), { atomicWrite });
+    await index.addMany([
+      { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+      { chunkId: "two", textHash: HASH_TWO, vector: [0, 1] },
+    ]);
+
+    await expect(
+      index.prune([{ chunkId: "one", textHash: HASH_ONE }]),
+    ).rejects.toBe(persistenceError);
+    expect(index.has("two", HASH_TWO)).toBe(true);
+
+    await expect(
+      index.prune([{ chunkId: "one", textHash: HASH_ONE }]),
+    ).resolves.toBe(1);
+    expect(index.has("two", HASH_TWO)).toBe(false);
+  });
+
+  it("serializes clear behind an overlapping save", async () => {
+    const filePath = await createFilePath();
+    const saveStarted = deferred();
+    const releaseSave = deferred();
+    const atomicWrite = vi.fn(async (path: string, content: string) => {
+      saveStarted.resolve();
+      await releaseSave.promise;
+      await writeFileAtomically(path, content);
+    });
+    const index = createIndex(filePath, vi.fn(), { atomicWrite });
+
+    const save = index.addMany([
+      { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+    ]);
+    const saveWasIntercepted = await Promise.race([
+      saveStarted.promise.then(() => true),
+      save.then(() => false),
+    ]);
+    expect(saveWasIntercepted).toBe(true);
+
+    let clearFinished = false;
+    const clear = index.clear().then(() => {
+      clearFinished = true;
+    });
+    await Promise.resolve();
+    expect(clearFinished).toBe(false);
+
+    releaseSave.resolve();
+    await Promise.all([save, clear]);
+    expect(index.has("one", HASH_ONE)).toBe(false);
+    await expect(readFile(filePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("resets dimensions when pruning every entry", async () => {
+    const filePath = await createFilePath();
+    const index = createIndex(filePath);
+    await index.addMany([
+      { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+    ]);
+
+    await expect(index.prune([])).resolves.toBe(1);
+    await expect(
+      index.addMany([
+        { chunkId: "two", textHash: HASH_TWO, vector: [1, 0, 0] },
+      ]),
+    ).resolves.toBeUndefined();
+
+    expect(JSON.parse(await readFile(filePath, "utf8")).embedding.dimensions).toBe(3);
+  });
+
+  it("restores a backup and removes orphan temps when the formal file is absent", async () => {
+    const filePath = await createFilePath();
+    await writeFile(`${filePath}.bak`, JSON.stringify(validFile()), "utf8");
+    await writeFile(`${filePath}.writer.tmp`, "orphan", "utf8");
+
+    await expect(createIndex(filePath).initialize()).resolves.toEqual({
+      status: "loaded",
+      loadedEntries: 0,
+    });
+
+    expect(JSON.parse(await readFile(filePath, "utf8")).schemaVersion).toBe(1);
+    expect(await readdir(dirname(filePath))).toEqual(["vector-index.json"]);
+  });
+
+  it("removes stale backups and temps after validating the formal file", async () => {
+    const filePath = await createFilePath();
+    await writeFile(filePath, JSON.stringify(validFile()), "utf8");
+    await writeFile(`${filePath}.bak`, "stale backup", "utf8");
+    await writeFile(`${filePath}.tmp`, "legacy temp", "utf8");
+    await writeFile(`${filePath}.writer.tmp`, "writer temp", "utf8");
+
+    await expect(createIndex(filePath).initialize()).resolves.toMatchObject({
+      status: "loaded",
+    });
+
+    expect(await readdir(dirname(filePath))).toEqual(["vector-index.json"]);
+  });
+
+  it("removes orphan temps when neither formal nor backup exists", async () => {
+    const filePath = await createFilePath();
+    await writeFile(`${filePath}.writer.tmp`, "orphan", "utf8");
+
+    await expect(createIndex(filePath).initialize()).resolves.toEqual({
+      status: "missing",
+      loadedEntries: 0,
+    });
+
+    expect(await readdir(dirname(filePath))).toEqual([]);
+  });
+
+  it.each([
+    ["empty chunkId", { chunkId: "", textHash: HASH_ONE, vector: [1, 0] }, "chunkId must be a non-empty string"],
+    ["uppercase hash", { chunkId: "one", textHash: "A".repeat(64), vector: [1, 0] }, "textHash must be exactly 64 lowercase hex characters"],
+    ["short hash", { chunkId: "one", textHash: "abc", vector: [1, 0] }, "textHash must be exactly 64 lowercase hex characters"],
+  ])("rejects an entry with %s", async (_description, entry, message) => {
+    const filePath = await createFilePath();
+    await expect(createIndex(filePath).addMany([entry])).rejects.toThrow(message);
+  });
+
+  it.each([
+    ["empty provider", { providerId: "", model: "fake-model", dimensions: 2 }, "embedding.providerId must be a non-empty string"],
+    ["empty model", { providerId: "fake", model: " ", dimensions: 2 }, "embedding.model must be a non-empty string"],
+  ])("rejects persisted metadata with %s", (_description, embedding, message) => {
+    expect(() => validateVectorIndexFile({
+      ...validFile(),
+      embedding,
+    })).toThrow(message);
+  });
+
+  it("requires overlapChars to be smaller than chunkSizeChars", () => {
+    expect(() => validateVectorIndexFile({
+      ...validFile(),
+      chunking: { chunkSizeChars: 600, overlapChars: 600 },
+    })).toThrow("overlapChars must be smaller than chunkSizeChars");
+    expect(() => createJsonVectorIndex({
+      filePath: "unused.json",
+      identity,
+      chunkSizeChars: 600,
+      overlapChars: 600,
+    })).toThrow("overlapChars must be smaller than chunkSizeChars");
   });
 });

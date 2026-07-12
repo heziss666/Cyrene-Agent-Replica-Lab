@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { EmbeddingProvider } from "../../src/main/rag/embedding-provider.js";
 import { createInMemoryVectorIndex } from "../../src/main/rag/in-memory-vector-index.js";
 import type { KnowledgeChunk } from "../../src/main/rag/rag-types.js";
+import { hashText } from "../../src/main/rag/text-hash.js";
 import { createVectorRetriever } from "../../src/main/rag/vector-retriever.js";
 
 function chunk(id: string, text: string): KnowledgeChunk {
@@ -13,6 +14,14 @@ function chunk(id: string, text: string): KnowledgeChunk {
     source: "test",
     index: 0,
   };
+}
+
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
 }
 
 describe("createVectorRetriever", () => {
@@ -108,5 +117,76 @@ describe("createVectorRetriever", () => {
     await expect(retriever.retrieve("query", [chunk("one", "text")], 0)).resolves.toEqual([]);
     expect(embedDocuments).not.toHaveBeenCalled();
     expect(embedQuery).not.toHaveBeenCalled();
+  });
+
+  it("serializes overlapping document-index synchronization", async () => {
+    const firstEmbeddingStarted = deferred();
+    const releaseFirstEmbedding = deferred();
+    const embedDocuments = vi
+      .fn<(texts: string[]) => Promise<number[][]>>()
+      .mockImplementationOnce(async () => {
+        firstEmbeddingStarted.resolve();
+        await releaseFirstEmbedding.promise;
+        return [[1, 0]];
+      })
+      .mockResolvedValueOnce([[0, 1]]);
+    const retriever = createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments,
+        embedQuery: vi.fn(async () => [1, 0]),
+      },
+      createInMemoryVectorIndex(),
+    );
+
+    const first = retriever.retrieve("first", [chunk("one", "first text")], 1);
+    await firstEmbeddingStarted.promise;
+    const second = retriever.retrieve(
+      "second",
+      [chunk("one", "first text"), chunk("two", "second text")],
+      2,
+    );
+    await Promise.resolve();
+
+    expect(embedDocuments).toHaveBeenCalledTimes(1);
+    releaseFirstEmbedding.resolve();
+    await Promise.all([first, second]);
+    expect(embedDocuments.mock.calls).toEqual([
+      [["first text"]],
+      [["second text"]],
+    ]);
+  });
+
+  it("serializes clear behind an overlapping retrieval save", async () => {
+    const embeddingStarted = deferred();
+    const releaseEmbedding = deferred();
+    const index = createInMemoryVectorIndex();
+    const retriever = createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments: vi.fn(async () => {
+          embeddingStarted.resolve();
+          await releaseEmbedding.promise;
+          return [[1, 0]];
+        }),
+        embedQuery: vi.fn(async () => [1, 0]),
+      },
+      index,
+    );
+
+    const retrieval = retriever.retrieve("query", [chunk("one", "text")], 1);
+    await embeddingStarted.promise;
+    let clearFinished = false;
+    const clear = retriever.clear().then(() => {
+      clearFinished = true;
+    });
+    await Promise.resolve();
+    expect(clearFinished).toBe(false);
+
+    releaseEmbedding.resolve();
+    await Promise.all([retrieval, clear]);
+    expect(index.has("one", hashText("text"))).toBe(false);
   });
 });

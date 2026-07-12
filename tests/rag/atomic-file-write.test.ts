@@ -23,26 +23,24 @@ describe("writeFileAtomically", () => {
       writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops),
     ).rejects.toBe(writeError);
 
-    expect(ops.rm).toHaveBeenCalledWith(
-      "C:\\rag\\vector-index.json.tmp",
-      { force: true },
-    );
+    const temporaryPath = vi.mocked(ops.writeFile).mock.calls[0][0];
+    expect(ops.rm).toHaveBeenCalledWith(temporaryPath, { force: true });
   });
 
-  it("writes a same-directory temporary file then renames it", async () => {
+  it("uses a writer-unique same-directory temporary file", async () => {
     const ops = operations();
 
     await writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops);
+    await writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops);
 
-    expect(ops.writeFile).toHaveBeenCalledWith(
-      "C:\\rag\\vector-index.json.tmp",
-      "{}",
-      "utf8",
+    const firstTemporaryPath = vi.mocked(ops.writeFile).mock.calls[0][0];
+    const secondTemporaryPath = vi.mocked(ops.writeFile).mock.calls[1][0];
+    expect(firstTemporaryPath).toMatch(
+      /^C:\\rag\\vector-index\.json\..+\.tmp$/,
     );
-    expect(ops.rename).toHaveBeenCalledWith(
-      "C:\\rag\\vector-index.json.tmp",
-      "C:\\rag\\vector-index.json",
-    );
+    expect(secondTemporaryPath).not.toBe(firstTemporaryPath);
+    expect(ops.rename).toHaveBeenCalledWith(firstTemporaryPath, "C:\\rag\\vector-index.json");
+    expect(ops.rename).toHaveBeenCalledWith(secondTemporaryPath, "C:\\rag\\vector-index.json");
   });
 
   it("uses a backup when direct replacement is denied", async () => {
@@ -53,6 +51,8 @@ describe("writeFileAtomically", () => {
 
     await writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops);
 
+    const temporaryPath = vi.mocked(ops.writeFile).mock.calls[0][0];
+
     expect(ops.rename).toHaveBeenNthCalledWith(
       2,
       "C:\\rag\\vector-index.json",
@@ -60,7 +60,7 @@ describe("writeFileAtomically", () => {
     );
     expect(ops.rename).toHaveBeenNthCalledWith(
       3,
-      "C:\\rag\\vector-index.json.tmp",
+      temporaryPath,
       "C:\\rag\\vector-index.json",
     );
     expect(ops.rm).toHaveBeenCalledWith(
@@ -86,5 +86,16 @@ describe("writeFileAtomically", () => {
       "C:\\rag\\vector-index.json.bak",
       "C:\\rag\\vector-index.json",
     );
+  });
+
+  it("preserves the primary write error when temporary cleanup fails", async () => {
+    const ops = operations();
+    const writeError = new Error("write failed");
+    vi.mocked(ops.writeFile).mockRejectedValueOnce(writeError);
+    vi.mocked(ops.rm).mockRejectedValueOnce(new Error("cleanup failed"));
+
+    await expect(
+      writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops),
+    ).rejects.toBe(writeError);
   });
 });

@@ -1,5 +1,13 @@
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { randomUUID } from "node:crypto";
+import {
+  access,
+  mkdir,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
 
 export interface AtomicFileOperations {
   mkdir(path: string, options: { recursive: true }): Promise<unknown>;
@@ -15,19 +23,30 @@ const defaultFileOperations: AtomicFileOperations = {
   rm: (path, options) => rm(path, options),
 };
 
+async function bestEffortRemove(
+  path: string,
+  fileOps: Pick<AtomicFileOperations, "rm"> = defaultFileOperations,
+): Promise<void> {
+  try {
+    await fileOps.rm(path, { force: true });
+  } catch {
+    // A later startup pass can remove stale artifacts.
+  }
+}
+
 export async function writeFileAtomically(
   filePath: string,
   content: string,
   fileOps: AtomicFileOperations = defaultFileOperations,
 ): Promise<void> {
-  const temporaryPath = `${filePath}.tmp`;
+  const temporaryPath = `${filePath}.${process.pid}-${randomUUID()}.tmp`;
   const backupPath = `${filePath}.bak`;
 
   await fileOps.mkdir(dirname(filePath), { recursive: true });
   try {
     await fileOps.writeFile(temporaryPath, content, "utf8");
   } catch (error) {
-    await fileOps.rm(temporaryPath, { force: true });
+    await bestEffortRemove(temporaryPath, fileOps);
     throw error;
   }
 
@@ -36,23 +55,83 @@ export async function writeFileAtomically(
     return;
   } catch (error) {
     if (!isReplacementError(error)) {
-      await fileOps.rm(temporaryPath, { force: true });
+      await bestEffortRemove(temporaryPath, fileOps);
       throw error;
     }
   }
 
   try {
     await fileOps.rename(filePath, backupPath);
-    try {
-      await fileOps.rename(temporaryPath, filePath);
-    } catch (error) {
-      await fileOps.rename(backupPath, filePath);
-      throw error;
-    }
-    await fileOps.rm(backupPath, { force: true });
-  } finally {
-    await fileOps.rm(temporaryPath, { force: true });
+  } catch (error) {
+    await bestEffortRemove(temporaryPath, fileOps);
+    throw error;
   }
+
+  try {
+    await fileOps.rename(temporaryPath, filePath);
+  } catch (error) {
+    try {
+      await fileOps.rename(backupPath, filePath);
+    } catch {
+      // Preserve the replacement error; the backup remains recoverable at startup.
+    }
+    await bestEffortRemove(temporaryPath, fileOps);
+    throw error;
+  }
+
+  await bestEffortRemove(backupPath, fileOps);
+  await bestEffortRemove(temporaryPath, fileOps);
+}
+
+export async function recoverInterruptedAtomicWrite(
+  filePath: string,
+): Promise<void> {
+  try {
+    await access(filePath);
+  } catch (error) {
+    if (!isMissingFile(error)) throw error;
+    try {
+      await rename(`${filePath}.bak`, filePath);
+    } catch (backupError) {
+      if (!isMissingFile(backupError)) throw backupError;
+    }
+  }
+
+  await removeAtomicTemporaryFiles(filePath);
+}
+
+export async function removeStaleAtomicBackup(filePath: string): Promise<void> {
+  await bestEffortRemove(`${filePath}.bak`);
+}
+
+export async function removeAtomicTemporaryFiles(filePath: string): Promise<void> {
+  const directory = dirname(filePath);
+  const fileName = basename(filePath);
+  let names: string[];
+  try {
+    names = await readdir(directory);
+  } catch (error) {
+    if (isMissingFile(error)) return;
+    return;
+  }
+
+  await Promise.all(
+    names
+      .filter((name) =>
+        name === `${fileName}.tmp` ||
+        (name.startsWith(`${fileName}.`) && name.endsWith(".tmp")),
+      )
+      .map((name) => bestEffortRemove(join(directory, name))),
+  );
+}
+
+function isMissingFile(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ENOENT"
+  );
 }
 
 function isReplacementError(error: unknown): boolean {

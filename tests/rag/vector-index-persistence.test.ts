@@ -172,4 +172,74 @@ describe("persisted vector indexes", () => {
     expect(secondEmbedDocuments).toHaveBeenCalledOnce();
     expect(secondEmbedDocuments).toHaveBeenCalledWith(["tool registry", "weather tool"]);
   });
+
+  it("rebuilds once when the same provider and model change dimensions", async () => {
+    const filePath = await createFilePath();
+    const chunks = [chunk("tools", "tool registry"), chunk("weather", "weather tool")];
+    await createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments: vi.fn(async () => [[1, 0], [0, 1]]),
+        embedQuery: vi.fn(async () => [1, 0]),
+      },
+      persistentIndex(filePath),
+    ).retrieve("first query", chunks, 2);
+
+    const embedDocuments = vi.fn(async () => [[1, 0, 0], [0, 1, 0]]);
+    const embedQuery = vi.fn(async () => [1, 0, 0]);
+    const results = await createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments,
+        embedQuery,
+      },
+      persistentIndex(filePath),
+    ).retrieve("second query", chunks, 2);
+
+    expect(results).toHaveLength(2);
+    expect(embedQuery).toHaveBeenCalledOnce();
+    expect(embedDocuments).toHaveBeenCalledOnce();
+    expect(embedDocuments).toHaveBeenCalledWith(["tool registry", "weather tool"]);
+    const saved = JSON.parse(await readFile(filePath, "utf8")) as VectorIndexFile;
+    expect(saved.embedding.dimensions).toBe(3);
+    expect(saved.entries.every((entry) => entry.vector.length === 3)).toBe(true);
+  });
+
+  it("detects dimension drift before incrementally saving a new chunk", async () => {
+    const filePath = await createFilePath();
+    await createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments: vi.fn(async () => [[1, 0]]),
+        embedQuery: vi.fn(async () => [1, 0]),
+      },
+      persistentIndex(filePath),
+    ).retrieve("first query", [chunk("tools", "tool registry")], 1);
+
+    const embedDocuments = vi.fn(async (texts: string[]) =>
+      texts.map((_, index) => index === 0 ? [1, 0, 0] : [0, 1, 0]),
+    );
+    await createVectorRetriever(
+      {
+        id: "fake",
+        model: "fake-model",
+        embedDocuments,
+        embedQuery: vi.fn(async () => [1, 0, 0]),
+      },
+      persistentIndex(filePath),
+    ).retrieve(
+      "second query",
+      [chunk("tools", "tool registry"), chunk("weather", "weather tool")],
+      2,
+    );
+
+    expect(embedDocuments).toHaveBeenCalledOnce();
+    expect(embedDocuments).toHaveBeenCalledWith(["tool registry", "weather tool"]);
+    const saved = JSON.parse(await readFile(filePath, "utf8")) as VectorIndexFile;
+    expect(saved.embedding.dimensions).toBe(3);
+    expect(saved.entries).toHaveLength(2);
+  });
 });
