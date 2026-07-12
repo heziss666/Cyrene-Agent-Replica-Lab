@@ -34,6 +34,21 @@ async function bestEffortRemove(
   }
 }
 
+async function retireBackup(
+  backupPath: string,
+  fileOps: Pick<AtomicFileOperations, "rm"> = defaultFileOperations,
+): Promise<void> {
+  try {
+    await fileOps.rm(backupPath, { force: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Failed to retire stale backup ${backupPath}: ${message}`,
+      { cause: error },
+    );
+  }
+}
+
 export async function writeFileAtomically(
   filePath: string,
   content: string,
@@ -58,6 +73,13 @@ export async function writeFileAtomically(
       await bestEffortRemove(temporaryPath, fileOps);
       throw error;
     }
+  }
+
+  try {
+    await retireBackup(backupPath, fileOps);
+  } catch (error) {
+    await bestEffortRemove(temporaryPath, fileOps);
+    throw error;
   }
 
   try {
@@ -101,7 +123,7 @@ export async function recoverInterruptedAtomicWrite(
 }
 
 export async function removeStaleAtomicBackup(filePath: string): Promise<void> {
-  await bestEffortRemove(`${filePath}.bak`);
+  await retireBackup(`${filePath}.bak`);
 }
 
 export async function removeAtomicTemporaryFiles(filePath: string): Promise<void> {

@@ -67,6 +67,9 @@ describe("writeFileAtomically", () => {
       "C:\\rag\\vector-index.json.bak",
       { force: true },
     );
+    expect(vi.mocked(ops.rm).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(ops.rename).mock.invocationCallOrder[1],
+    );
   });
 
   it("restores the backup when the fallback replacement fails", async () => {
@@ -97,5 +100,37 @@ describe("writeFileAtomically", () => {
     await expect(
       writeFileAtomically("C:\\rag\\vector-index.json", "{}", ops),
     ).rejects.toBe(writeError);
+  });
+
+  it("preserves the formal file when stale backup retirement fails and allows retry", async () => {
+    const ops = operations();
+    const replacementDenied = Object.assign(new Error("denied"), {
+      code: "EPERM",
+    });
+    vi.mocked(ops.rename)
+      .mockRejectedValueOnce(replacementDenied)
+      .mockRejectedValueOnce(replacementDenied)
+      .mockResolvedValue(undefined);
+    vi.mocked(ops.rm)
+      .mockRejectedValueOnce(new Error("backup locked"))
+      .mockResolvedValue(undefined);
+
+    await expect(
+      writeFileAtomically("C:\\rag\\vector-index.json", "first", ops),
+    ).rejects.toThrow(
+      "Failed to retire stale backup C:\\rag\\vector-index.json.bak: backup locked",
+    );
+    expect(ops.rename).not.toHaveBeenCalledWith(
+      "C:\\rag\\vector-index.json",
+      "C:\\rag\\vector-index.json.bak",
+    );
+
+    await expect(
+      writeFileAtomically("C:\\rag\\vector-index.json", "second", ops),
+    ).resolves.toBeUndefined();
+    expect(ops.rename).toHaveBeenCalledWith(
+      "C:\\rag\\vector-index.json",
+      "C:\\rag\\vector-index.json.bak",
+    );
   });
 });

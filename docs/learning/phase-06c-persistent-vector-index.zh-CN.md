@@ -142,7 +142,7 @@ entry = {"chunkId": chunk_id, "textHash": digest, "vector": vector_2560}
 
 **代码：** `src/main/rag/json-vector-index.ts`、`src/main/rag/vector-index-types.ts`
 
-`initialize()` 缓存同一个 Promise，避免并发调用各自读取或恢复文件。不存在文件是正常首次运行；成功且兼容的文件才加载到 Map；格式正确但身份不匹配的文件不复用；无法解析或违反结构约束的文件会备份后重建。
+`initialize()` 缓存同一个 Promise，避免并发调用各自读取或恢复文件。不存在文件是正常首次运行；成功且兼容的文件才加载到 Map；格式正确但身份不匹配的文件不复用。启动时会把正式文件和 `.bak` 作为一组状态处理：正式文件缺失时恢复备份；正式文件有效时严格退役陈旧备份；正式文件损坏时先验证 `.bak`，可用就归档坏正式文件并恢复备份，不可用就先退役备份再进入空索引重建。
 
 ```ts
 export type VectorIndexLoadStatus =
@@ -160,13 +160,13 @@ if self._initialization is None:
 return await self._initialization
 ```
 
-`missing` 的日志是 `[RAG] vector index missing`；`loaded` 会报告条目数。`incompatible` 是安全地忽略旧文件，`corrupt` 是先保留坏文件证据再从空索引开始。
+`missing` 的日志是 `[RAG] vector index missing`；`loaded` 会报告条目数。`incompatible` 是安全地忽略旧文件，`corrupt` 是先保留坏文件证据再从空索引开始。所有日志都经过不抛异常的包装函数：自定义 logger 即使失败，也不能改变加载分类、阻止内存提交或把有效文件误判为损坏。
 
 ## 7. JsonVectorIndex 如何验证磁盘数据？
 
 **代码：** `src/main/rag/json-vector-index.ts`、`src/main/rag/vector-math.ts`
 
-磁盘 JSON 是不可信输入。加载时先要求 plain object 和整数 schema，再验证 provider/model 字符串、正整数 dimensions、非负 overlap、entries 数组、唯一 `chunkId`，以及每个非空有限向量。最后每条向量长度必须等于 `embedding.dimensions`。
+磁盘 JSON 是不可信输入。加载时先要求 plain object 和整数 schema，再验证非空 provider/model/chunk ID、正整数 dimensions、entries 数组、唯一 `chunkId`，以及每个非空有限向量。`textHash` 必须恰好是 64 个小写十六进制字符，`overlapChars` 必须非负且严格小于 `chunkSizeChars`，最后每条向量长度必须等于 `embedding.dimensions`。构造索引时还会在运行时确认 `identity.schemaVersion === 1`，不能只依赖 TypeScript 的字面量类型。
 
 ```ts
 const entries = assertEntryArray(file.entries);
@@ -190,7 +190,7 @@ if any(not math.isfinite(x) for x in vector):
 
 **代码：** `src/main/rag/vector-retriever.ts`、`src/main/rag/json-vector-index.ts`
 
-检索器先收集所有缺失块，用一次 `embedDocuments()` 取得同数量向量，再用一次 `addMany()` 提交整个批次。JSON 索引先验证整个批次、更新 Map、设置维度，最后只调用一次 `save()`，不会每个块各写一次磁盘。
+检索器先收集所有缺失块，用一次 `embedDocuments()` 取得同数量向量，再用一次 `addMany()` 提交整个批次。JSON 索引先验证整个批次，再克隆当前 Map 形成 staged state；只把 staged state 保存成功后，才替换正式内存 Map 和 dimensions。这样每批只写一次磁盘，而且保存失败时 `has()` 仍看到旧状态，下一次检索不会被错误地抑制重试。
 
 ```ts
 const vectors = await provider.embedDocuments(missing.map(({ chunk }) => chunk.text));
@@ -200,16 +200,22 @@ await index.addMany(missing.map(({ chunk, textHash }, i) => ({
 ```
 
 ```ts
-for (const entry of parsedEntries) entries.set(entry.chunkId, cloneEntry(entry));
+const stagedEntries = cloneEntries(entries);
+for (const entry of parsedEntries) {
+  stagedEntries.set(entry.chunkId, cloneEntry(entry));
+}
+await save(stagedEntries, nextDimensions);
+entries = stagedEntries;
 dimensions = nextDimensions;
-await save();
 ```
 
 Python 对照：先构造一个批次，再一次性落盘。
 
 ```python
-entries.update({item.chunk_id: item for item in batch})
-await save_once(entries)
+staged = copy.deepcopy(entries)
+staged.update({item.chunk_id: item for item in batch})
+await save_once(staged)
+entries = staged
 ```
 
 首次检索三个默认种子块时，预期是一批 3 个文档向量和一条 `[RAG] vector index saved: 3 entries` 日志。
@@ -218,21 +224,26 @@ await save_once(entries)
 
 **代码：** `src/main/rag/vector-retriever.ts`、`src/main/rag/json-vector-index.ts`
 
-每次有效检索先为当前 chunks 计算 `(chunkId, textHash)` 清单并 `prune()`。不存在于清单中的旧条目被删除；同 ID 但 hash 已变的条目也被删除。之后 `missing` 会把新增或修改后的块送去向量化，未变块则直接复用。
+每次有效检索先为当前 chunks 计算 `(chunkId, textHash)` 清单并 `prune()`。不存在于清单中的旧条目被删除；同 ID 但 hash 已变的条目也被删除。`prune()` 与 `addMany()` 一样在副本上修改、保存成功后才提交；保存失败不会让内存先少掉条目。若裁剪后没有条目，运行时 dimensions 会重置，下一批可以安全采用提供者的新维度。
 
 ```ts
 await index.prune(indexedChunks.map(({ chunk, textHash }) => ({
   chunkId: chunk.id, textHash,
 })));
 
-if (valid.get(chunkId) !== entry.textHash) entries.delete(chunkId);
+if (valid.get(chunkId) !== entry.textHash) stagedEntries.delete(chunkId);
+await save(stagedEntries, persistedDimensions);
+entries = stagedEntries;
+dimensions = stagedEntries.size === 0 ? undefined : dimensions;
 ```
 
 Python 对照：
 
 ```python
 valid = {c.id: sha256(c.text) for c in chunks}
-entries = {id: e for id, e in entries.items() if valid.get(id) == e.text_hash}
+staged = {id: e for id, e in entries.items() if valid.get(id) == e.text_hash}
+await save_once(staged)
+entries = staged
 ```
 
 例如重启后 `keep` 保持原文、`change` 文本变化、`remove` 不再出现：只为 `change` 调用嵌入，`remove` 会从 JSON 删除，最终仅保留 `keep` 和 `change`。
@@ -241,9 +252,10 @@ entries = {id: e for id, e in entries.items() if valid.get(id) == e.text_hash}
 
 **代码：** `src/main/rag/atomic-file-write.ts`
 
-先在目标文件同目录写 `vector-index.json.tmp`，再尝试直接把 tmp 重命名为正式文件。这样同一文件系统内的重命名可替换整个文件。Windows 可能因句柄或权限让替换返回 `EPERM`、`EACCES` 或 `EEXIST`；此时先把正式文件改名为 `.bak`，再把 tmp 升为正式文件。第二步失败则立即把 `.bak` 还原。
+每个 writer 先在目标文件同目录写唯一临时文件，例如 `vector-index.json.<pid>-<uuid>.tmp`，再尝试把它重命名为正式文件。唯一名称避免同一进程内重叠保存互相覆盖临时内容。Windows 可能因句柄或权限让替换返回 `EPERM`、`EACCES` 或 `EEXIST`；进入降级流程前，必须在正式文件仍完整时严格删除旧 `.bak`。若备份退役失败，保留正式文件并抛出清楚错误；成功退役后才把正式文件改名为 `.bak`，再把本次 tmp 升为正式文件。
 
 ```ts
+await retireBackup(backupPath, fileOps);
 await fileOps.rename(filePath, backupPath);
 try {
   await fileOps.rename(temporaryPath, filePath);
@@ -256,6 +268,7 @@ try {
 Python 对照：重点是永远不在已有正式文件尚未备份时删除它。
 
 ```python
+backup_path.unlink(missing_ok=True)  # 失败就停止，index_path 此时仍完整
 os.replace(index_path, backup_path)
 try:
     os.replace(tmp_path, index_path)
@@ -264,15 +277,23 @@ except Exception:
     raise
 ```
 
-成功后删除 `.bak`；无论如何都会清理 `.tmp`。损坏文件恢复使用不同的 `vector-index.corrupt-<timestamp>.json`，便于保留诊断证据。
+成功后以 best-effort 方式删除本次 `.bak` 和 tmp；清理失败不能遮蔽原始写入或替换错误，遗留物由下一次启动继续处理。启动恢复会删除旧式固定 `.tmp` 和 writer-unique tmp；若只有 `.bak` 就恢复为正式文件；若正式文件与备份同时存在，则先验证正式文件，损坏时再验证并恢复可用备份。损坏正式文件使用 `vector-index.corrupt-<timestamp>.json` 保留诊断证据。
 
 ## 11. VectorRetriever 如何复用旧向量？
 
 **代码：** `src/main/rag/vector-retriever.ts`
 
-它先 `await index.initialize()`，再用 hash-aware 的 `has()` 筛出缺失块。跨进程时新的 `JsonVectorIndex` 会从 JSON 加载 Map；若 `seed_tool_registry_chunk_0` 的完整 ID 和 `5d480c...72fefa` 都相同，就不调用 `embedDocuments()`，但仍调用 `embedQuery()` 处理新问题。
+它先在 retriever 的串行队列中 `await index.initialize()` 和 `prune()`，再生成当前 query vector，并与已有文档向量维度比较。若同一个 provider/model 在后续运行返回了新维度，检索器会清空旧文档向量、只重建一次全部当前文档，并复用已经生成的 query vector；重建后仍不一致才报错。维度兼容时，hash-aware 的 `has()` 只筛出真正缺失的块。
 
 ```ts
+const storedVector = indexedChunks
+  .map(({ chunk, textHash }) => index.get(chunk.id, textHash))
+  .find((vector) => vector !== undefined);
+if (storedVector && queryVector.length !== storedVector.length) {
+  await index.clear();
+  await prepareIndex(indexedChunks);
+}
+
 const vector = index.get(chunk.id, textHash);
 if (!vector) throw new Error(`Missing vector for chunk: ${chunk.id}`);
 return { chunk, score: cosineSimilarity(queryVector, vector) };
@@ -287,7 +308,7 @@ if vector is None:
 score = cosine_similarity(query_vector, vector)
 ```
 
-排序按分数降序；分数相同再按 `chunk.id.localeCompare()`，让结果稳定。当前是逐条比较的 O(n) 精确检索。
+`retrieve()` 的完整索引同步和 `clear()` 共用同一个 promise-tail serializer，所以重叠检索不会同时 prune/save，clear 也不会穿过正在进行的保存。`JsonVectorIndex` 另有自己的 mutation serializer，保护 `addMany()`、`prune()` 和 `clear()`。排序按分数降序；分数相同再按 `chunk.id.localeCompare()`，让结果稳定。当前是逐条比较的 O(n) 精确检索。
 
 ## 12. KnowledgeBase 为什么仍然保留关键词回退？
 
@@ -342,7 +363,7 @@ data_dir = Path(os.environ.get("CYRENE_RAG_DATA_DIR", "").strip()).resolve() \
 
 **代码：** `tests/rag/json-vector-index.test.ts`、`tests/rag/vector-index-persistence.test.ts`、`tests/rag/atomic-file-write.test.ts`、`tests/tools/built-in-tools.test.ts`
 
-单元测试把每个边界独立开：JSON 测试覆盖 missing、loaded、incompatible、corrupt、重复 ID、维度和 clear；原子写测试用可注入的 `AtomicFileOperations` 模拟 Windows 替换失败。它们使用 `mkdtemp()` 和 fake provider，因此不访问 `127.0.0.1:11434`，也不写真实主目录。
+单元测试把每个边界独立开：JSON 测试覆盖 missing、loaded、incompatible、corrupt、事务式失败重试、formal/backup/tmp 崩溃矩阵、损坏正式文件恢复有效备份、严格 ID/hash/chunking/schema 校验、throwing logger 隔离、维度重建和 clear；原子写测试用可注入的 `AtomicFileOperations` 模拟 Windows 替换失败、旧备份退役失败和后续重试。deferred promise 测试确定性地制造重叠 retrieve/save/clear，不依赖脆弱的计时等待。它们使用 `mkdtemp()` 和 fake provider，因此不访问 `127.0.0.1:11434`，也不写真实主目录。
 
 ```ts
 const secondEmbedDocuments = vi.fn(async () => {
@@ -400,7 +421,7 @@ second = JsonIndex(path); assert (await second.initialize()).status == "loaded"
 
 **代码：** `src/main/rag/vector-retriever.ts`、`src/main/rag/json-vector-index.ts`、`src/main/rag/vector-math.ts`
 
-这是一套清晰、可教学、适合少量本地种子数据的实现，不是大型向量数据库。JSON 会完整载入内存；每次变更都重写整个文件；检索对每个块计算余弦相似度，是 O(n)。当前没有文档导入界面、并发多进程协调、ANN/HNSW、BM25/混合排序、reranker 或迁移器。
+这是一套清晰、可教学、适合少量本地种子数据的实现，不是大型向量数据库。JSON 会完整载入内存；每次变更都重写整个文件；检索对每个块计算余弦相似度，是 O(n)。serializer 只保证同一进程、同一实例边界内的顺序；系统明确不支持多个 OS 进程同时写同一个索引路径。后续进程在前一个进程退出后加载同一文件是受支持的“重启复用”，不能把它理解为多进程写协调。当前也没有文档导入界面、ANN/HNSW、BM25/混合排序、reranker 或迁移器。
 
 ```ts
 return indexedChunks

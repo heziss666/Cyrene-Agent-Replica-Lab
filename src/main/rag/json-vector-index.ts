@@ -250,6 +250,11 @@ function createSerialExecutor() {
 export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): VectorIndex {
   assertNonEmptyString(options.identity.providerId, "identity.providerId");
   assertNonEmptyString(options.identity.model, "identity.model");
+  if (options.identity.schemaVersion !== VECTOR_INDEX_SCHEMA_VERSION) {
+    throw invalid(
+      `identity.schemaVersion must match ${VECTOR_INDEX_SCHEMA_VERSION}`,
+    );
+  }
   assertChunking(options.chunkSizeChars, options.overlapChars, "");
 
   // Mutations are serialized within this index instance. Coordinating simultaneous
@@ -261,8 +266,16 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
   let dimensions: number | undefined;
   let initializationPromise: Promise<VectorIndexLoadResult> | undefined;
 
+  function log(message: string): void {
+    try {
+      logger(message);
+    } catch {
+      // Observability must never alter index state or persistence outcomes.
+    }
+  }
+
   function incompatible(warning: string): VectorIndexLoadResult {
-    logger(`[RAG] ${warning}`);
+    log(`[RAG] ${warning}`);
     return { status: "incompatible", loadedEntries: 0, warning };
   }
 
@@ -282,15 +295,96 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
     return undefined;
   }
 
-  async function recoverCorruptFile(error: unknown): Promise<VectorIndexLoadResult> {
-    const backupPath = join(
+  type IndexCandidate =
+    | { kind: "loaded"; file: VectorIndexFile }
+    | { kind: "incompatible"; warning: string };
+
+  function inspectContent(content: string): IndexCandidate {
+    const parsed: unknown = JSON.parse(content);
+    const persisted = assertPlainObject(parsed, "file");
+    const schemaVersion = assertInteger(persisted.schemaVersion, "schemaVersion");
+    if (schemaVersion !== VECTOR_INDEX_SCHEMA_VERSION) {
+      return {
+        kind: "incompatible",
+        warning: `Vector index incompatible: schemaVersion changed from ${schemaVersion} to ${VECTOR_INDEX_SCHEMA_VERSION}`,
+      };
+    }
+
+    const file = validateVectorIndexFile(parsed);
+    const warning = getCompatibilityWarning(file);
+    return warning
+      ? { kind: "incompatible", warning }
+      : { kind: "loaded", file };
+  }
+
+  function useCandidate(candidate: IndexCandidate): VectorIndexLoadResult {
+    if (candidate.kind === "incompatible") {
+      return incompatible(candidate.warning);
+    }
+
+    entries = new Map(
+      candidate.file.entries.map((entry) => [entry.chunkId, cloneEntry(entry)]),
+    );
+    dimensions = entries.size > 0
+      ? candidate.file.embedding.dimensions
+      : undefined;
+    log(`[RAG] vector index loaded: ${entries.size} entries`);
+    return { status: "loaded", loadedEntries: entries.size };
+  }
+
+  function corruptPath(): string {
+    return join(
       dirname(options.filePath),
       `vector-index.corrupt-${Date.now()}.json`,
     );
+  }
+
+  async function recoverCorruptFile(error: unknown): Promise<VectorIndexLoadResult> {
+    const backupPath = corruptPath();
     await rename(options.filePath, backupPath);
     const warning = `Vector index corrupt: ${errorMessage(error)}; backup created at ${backupPath}`;
-    logger(`[RAG] ${warning}`);
+    log(`[RAG] ${warning}`);
     return { status: "corrupt", loadedEntries: 0, warning };
+  }
+
+  async function readBackupCandidate(): Promise<IndexCandidate | undefined> {
+    let backupContent: string;
+    try {
+      backupContent = await readFile(`${options.filePath}.bak`, "utf8");
+    } catch (error) {
+      if (isMissingFile(error)) return undefined;
+      throw error;
+    }
+
+    try {
+      return inspectContent(backupContent);
+    } catch {
+      await removeStaleAtomicBackup(options.filePath);
+      return undefined;
+    }
+  }
+
+  async function restoreBackup(
+    candidate: IndexCandidate,
+    formalError: unknown,
+  ): Promise<VectorIndexLoadResult> {
+    const archivedFormalPath = corruptPath();
+    await rename(options.filePath, archivedFormalPath);
+    try {
+      await rename(`${options.filePath}.bak`, options.filePath);
+    } catch (error) {
+      try {
+        await rename(archivedFormalPath, options.filePath);
+      } catch {
+        // Preserve the backup promotion error; startup can retry either artifact.
+      }
+      throw error;
+    }
+
+    log(
+      `[RAG] corrupt formal index archived at ${archivedFormalPath}; valid backup restored: ${errorMessage(formalError)}`,
+    );
+    return useCandidate(candidate);
   }
 
   async function load(): Promise<VectorIndexLoadResult> {
@@ -301,39 +395,25 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
       content = await readFile(options.filePath, "utf8");
     } catch (error) {
       if (isMissingFile(error)) {
-        logger("[RAG] vector index missing");
+        log("[RAG] vector index missing");
         return { status: "missing", loadedEntries: 0 };
       }
       throw error;
     }
 
-    let file: VectorIndexFile;
+    let candidate: IndexCandidate;
     try {
-      const parsed: unknown = JSON.parse(content);
-      const persisted = assertPlainObject(parsed, "file");
-      const schemaVersion = assertInteger(persisted.schemaVersion, "schemaVersion");
-      if (schemaVersion !== VECTOR_INDEX_SCHEMA_VERSION) {
-        await removeStaleAtomicBackup(options.filePath);
-        return incompatible(
-          `Vector index incompatible: schemaVersion changed from ${schemaVersion} to ${VECTOR_INDEX_SCHEMA_VERSION}`,
-        );
-      }
-
-      file = validateVectorIndexFile(parsed);
+      candidate = inspectContent(content);
     } catch (error) {
+      const backupCandidate = await readBackupCandidate();
+      if (backupCandidate) {
+        return restoreBackup(backupCandidate, error);
+      }
       return recoverCorruptFile(error);
     }
 
     await removeStaleAtomicBackup(options.filePath);
-    const warning = getCompatibilityWarning(file);
-    if (warning) return incompatible(warning);
-
-    entries = new Map(
-      file.entries.map((entry) => [entry.chunkId, cloneEntry(entry)]),
-    );
-    dimensions = entries.size > 0 ? file.embedding.dimensions : undefined;
-    logger(`[RAG] vector index loaded: ${entries.size} entries`);
-    return { status: "loaded", loadedEntries: entries.size };
+    return useCandidate(candidate);
   }
 
   function initialize(): Promise<VectorIndexLoadResult> {
@@ -359,7 +439,7 @@ export function createJsonVectorIndex(options: CreateJsonVectorIndexOptions): Ve
       entries: [...nextEntries.values()].map(cloneEntry),
     };
     await atomicWrite(options.filePath, `${JSON.stringify(file, null, 2)}\n`);
-    logger(`[RAG] vector index saved: ${nextEntries.size} entries`);
+    log(`[RAG] vector index saved: ${nextEntries.size} entries`);
   }
 
   async function removePersistedIndex(): Promise<void> {

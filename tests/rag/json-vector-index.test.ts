@@ -431,6 +431,35 @@ describe("createJsonVectorIndex", () => {
     expect(await readdir(dirname(filePath))).toEqual(["vector-index.json"]);
   });
 
+  it("restores a valid backup when the formal file is corrupt", async () => {
+    const filePath = await createFilePath();
+    const backupEntry = {
+      chunkId: "one",
+      textHash: HASH_ONE,
+      vector: [1, 0],
+    };
+    await writeFile(filePath, "{ corrupt formal", "utf8");
+    await writeFile(
+      `${filePath}.bak`,
+      JSON.stringify(validFile([backupEntry])),
+      "utf8",
+    );
+
+    const index = createIndex(filePath);
+    await expect(index.initialize()).resolves.toEqual({
+      status: "loaded",
+      loadedEntries: 1,
+    });
+
+    expect(index.get("one", HASH_ONE)).toEqual([1, 0]);
+    expect(JSON.parse(await readFile(filePath, "utf8")).entries).toEqual([
+      backupEntry,
+    ]);
+    const names = await readdir(dirname(filePath));
+    expect(names).not.toContain("vector-index.json.bak");
+    expect(names.some((name) => /^vector-index\.corrupt-\d+\.json$/.test(name))).toBe(true);
+  });
+
   it("removes stale backups and temps after validating the formal file", async () => {
     const filePath = await createFilePath();
     await writeFile(filePath, JSON.stringify(validFile()), "utf8");
@@ -487,5 +516,59 @@ describe("createJsonVectorIndex", () => {
       chunkSizeChars: 600,
       overlapChars: 600,
     })).toThrow("overlapChars must be smaller than chunkSizeChars");
+  });
+
+  it("isolates initialization and staged commits from throwing loggers", async () => {
+    const filePath = await createFilePath();
+    const logger = vi.fn(() => {
+      throw new Error("logger failed");
+    });
+    const index = createIndex(filePath, logger);
+
+    await expect(index.initialize()).resolves.toEqual({
+      status: "missing",
+      loadedEntries: 0,
+    });
+    await expect(index.addMany([
+      { chunkId: "one", textHash: HASH_ONE, vector: [1, 0] },
+    ])).resolves.toBeUndefined();
+
+    expect(index.has("one", HASH_ONE)).toBe(true);
+    expect(JSON.parse(await readFile(filePath, "utf8")).entries).toHaveLength(1);
+    expect(logger).toHaveBeenCalled();
+  });
+
+  it("does not classify a valid incompatible index as corrupt when logging throws", async () => {
+    const filePath = await createFilePath();
+    await writeFile(filePath, JSON.stringify(validFile()), "utf8");
+    const index = createJsonVectorIndex({
+      filePath,
+      identity: { ...identity, model: "new-model" },
+      chunkSizeChars: 600,
+      overlapChars: 120,
+      logger: () => {
+        throw new Error("logger failed");
+      },
+    });
+
+    await expect(index.initialize()).resolves.toMatchObject({
+      status: "incompatible",
+      loadedEntries: 0,
+    });
+    expect(JSON.parse(await readFile(filePath, "utf8")).schemaVersion).toBe(1);
+    expect(
+      (await readdir(dirname(filePath))).some((name) =>
+        /^vector-index\.corrupt-\d+\.json$/.test(name),
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects an unsupported runtime identity schema version", () => {
+    expect(() => createJsonVectorIndex({
+      filePath: "unused.json",
+      identity: { ...identity, schemaVersion: 2 as 1 },
+      chunkSizeChars: 600,
+      overlapChars: 120,
+    })).toThrow("identity.schemaVersion must match 1");
   });
 });

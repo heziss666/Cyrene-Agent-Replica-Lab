@@ -730,3 +730,15 @@ Phase 6D 将在持久化索引基础上实现用户文档导入：
 ```
 
 Phase 6E 再实现关键词与向量混合检索。
+
+## 22. 最终实现加固补充
+
+最终审查后的实现以本节为准，取代前文中简化的固定 `.tmp`、先改内存再保存等伪代码：
+
+- `addMany()` 和 `prune()` 使用“克隆 staged state -> 持久化 -> 提交内存”的事务顺序；保存失败保留旧内存状态并允许重试。
+- retriever 的完整索引同步与 clear 串行化，JSON index 的 mutations 也在实例内串行化。
+- 临时文件使用同目录 writer-unique 名称；Windows 降级替换前必须在正式文件仍完整时严格退役旧 `.bak`。
+- 启动同时解析 formal/backup/tmp 状态；损坏 formal 可恢复已验证的 backup，清理错误不得遮蔽主要错误。
+- logger 仅用于观测且永不向业务路径抛错；运行时严格校验 schema identity、非空 ID、SHA-256 hash 和切块边界。
+- query 与已存文档向量维度变化时，只清空并重建一次文档向量，同时复用当前 query vector。
+- 串行保证仅覆盖同一进程内的实例边界；多个 OS 进程同时写同一路径仍明确不受支持。
