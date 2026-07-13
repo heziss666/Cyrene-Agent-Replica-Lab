@@ -13,6 +13,7 @@
     "dev:electron": "npm run build && electron .",
     "test": "vitest run",
     "test:embedding": "tsx src/cli/test-embedding.ts",
+    "rag:benchmark": "tsx src/cli/rag-benchmark.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

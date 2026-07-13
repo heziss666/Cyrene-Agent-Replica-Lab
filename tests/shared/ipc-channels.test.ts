@@ -7,4 +7,9 @@ describe("IPC_CHANNELS", () => {
     expect(IPC_CHANNELS.chat.agentEvent).toBe("cyrene:chat:agent-event");
     expect(IPC_CHANNELS.chat.clearSession).toBe("cyrene:chat:clear-session");
   });
+
+  it("defines stable persona IPC channel names", () => {
+    expect(IPC_CHANNELS.persona.getStyle).toBe("cyrene:persona:get-style");
+    expect(IPC_CHANNELS.persona.setStyle).toBe("cyrene:persona:set-style");
+  });
 });

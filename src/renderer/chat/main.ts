@@ -1,8 +1,17 @@
 import type { CyreneApi } from "../../shared/electron-api.js";
 import {
+  STYLE_OPTIONS,
+  isStyleId,
+  type StyleId,
+} from "../../shared/persona-types.js";
+import {
   formatRendererErrorMessage,
   formatRendererEventPayload,
 } from "./renderer-events.js";
+import {
+  changeSelectedStyle,
+  loadSelectedStyle,
+} from "./style-selector.js";
 import "./style.css";
 
 declare global {
@@ -17,6 +26,7 @@ const messages = document.querySelector<HTMLElement>("#messages");
 const events = document.querySelector<HTMLOListElement>("#events");
 const status = document.querySelector<HTMLElement>("#status");
 const newChatButton = document.querySelector<HTMLButtonElement>("#new-chat-button");
+const styleSelectElement = document.querySelector<HTMLSelectElement>("#style-select");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -31,6 +41,9 @@ const messageList = requireElement(messages, "messages");
 const eventList = requireElement(events, "events");
 const statusBadge = requireElement(status, "status");
 const newChat = requireElement(newChatButton, "new-chat-button");
+const styleSelect = requireElement(styleSelectElement, "style-select");
+let isChatBusy = false;
+let selectedStyle: StyleId = "default";
 
 function appendMessage(role: "user" | "agent", text: string): void {
   const item = document.createElement("article");
@@ -53,15 +66,53 @@ function clearChatView(): void {
 }
 
 function setBusy(isBusy: boolean): void {
+  isChatBusy = isBusy;
   messageInput.disabled = isBusy;
   newChat.disabled = isBusy;
+  styleSelect.disabled = isBusy;
   if (isBusy) {
     statusBadge.textContent = "Running";
   }
 }
 
+function populateStyleOptions(): void {
+  for (const option of STYLE_OPTIONS) {
+    const element = document.createElement("option");
+    element.value = option.id;
+    element.textContent = option.label;
+    styleSelect.append(element);
+  }
+}
+
+async function initializeStyleSelector(): Promise<void> {
+  populateStyleOptions();
+  selectedStyle = await loadSelectedStyle(window.cyrene.persona);
+  styleSelect.value = selectedStyle;
+}
+
 window.cyrene.chat.onAgentEvent((payload) => {
   appendEvent(formatRendererEventPayload(payload));
+});
+
+styleSelect.addEventListener("change", async () => {
+  const requestedStyle = styleSelect.value;
+  if (!isStyleId(requestedStyle)) {
+    styleSelect.value = selectedStyle;
+    return;
+  }
+
+  styleSelect.disabled = true;
+  try {
+    selectedStyle = await changeSelectedStyle(window.cyrene.persona, requestedStyle);
+    styleSelect.value = selectedStyle;
+  } catch (error) {
+    styleSelect.value = selectedStyle;
+    const message = formatRendererErrorMessage(error);
+    appendEvent(message);
+    statusBadge.textContent = "Error";
+  } finally {
+    styleSelect.disabled = isChatBusy;
+  }
 });
 
 newChat.addEventListener("click", async () => {
@@ -103,4 +154,10 @@ chatForm.addEventListener("submit", async (event) => {
     setBusy(false);
     messageInput.focus();
   }
+});
+
+initializeStyleSelector().catch((error) => {
+  const message = formatRendererErrorMessage(error);
+  appendEvent(message);
+  statusBadge.textContent = "Error";
 });

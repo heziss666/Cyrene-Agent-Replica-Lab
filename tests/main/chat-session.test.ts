@@ -3,44 +3,112 @@ import { createChatSession } from "../../src/main/chat/chat-session.js";
 import type { ChatMessage } from "../../src/shared/chat-types.js";
 
 describe("createChatSession", () => {
-  it("keeps multi-turn messages and clears back to the initial history", () => {
-    const initialMessages: ChatMessage[] = [{ role: "system", content: "system prompt" }];
-    const session = createChatSession(initialMessages);
-
-    expect(session.getMessages()).toEqual([{ role: "system", content: "system prompt" }]);
+  it("stores conversation history without a system message", () => {
+    const session = createChatSession({ styleId: "default" });
 
     session.appendUserMessage("hello");
-    expect(session.getMessages()).toEqual([
-      { role: "system", content: "system prompt" },
-      { role: "user", content: "hello" },
-    ]);
-
     session.replaceMessages([
-      { role: "system", content: "system prompt" },
-      { role: "user", content: "hello" },
-      { role: "assistant", content: "hi there" },
-    ]);
-    expect(session.getMessages()).toEqual([
-      { role: "system", content: "system prompt" },
       { role: "user", content: "hello" },
       { role: "assistant", content: "hi there" },
     ]);
 
-    session.clear();
-    expect(session.getMessages()).toEqual([{ role: "system", content: "system prompt" }]);
+    expect(session.getMessages()).toEqual([
+      { role: "user", content: "hello" },
+      { role: "assistant", content: "hi there" },
+    ]);
   });
 
-  it("uses defensive copies for input and output messages", () => {
-    const initialMessages: ChatMessage[] = [{ role: "system", content: "system prompt" }];
-    const session = createChatSession(initialMessages);
+  it("changes style without deleting history and records a pending transition", () => {
+    const session = createChatSession({ styleId: "default" });
+    session.replaceMessages([
+      { role: "user", content: "remember this" },
+      { role: "assistant", content: "remembered" },
+    ]);
 
-    initialMessages[0]!.content = "mutated outside";
-    expect(session.getMessages()).toEqual([{ role: "system", content: "system prompt" }]);
+    session.setStyle("healing");
 
-    const messages = session.getMessages();
-    messages.push({ role: "user", content: "mutated copy" });
-    messages[0]!.content = "mutated copy";
+    expect(session.getMessages()).toHaveLength(2);
+    expect(session.getStyle()).toBe("healing");
+    expect(session.getPendingStyleTransition()).toEqual({
+      from: "default",
+      to: "healing",
+    });
+  });
 
-    expect(session.getMessages()).toEqual([{ role: "system", content: "system prompt" }]);
+  it("does not create a transition when setting the current style", () => {
+    const session = createChatSession({ styleId: "focused" });
+
+    session.setStyle("focused");
+
+    expect(session.getPendingStyleTransition()).toBeUndefined();
+  });
+
+  it("keeps the original transition source across repeated changes", () => {
+    const session = createChatSession({ styleId: "default" });
+
+    session.setStyle("lively");
+    session.setStyle("sweet");
+
+    expect(session.getPendingStyleTransition()).toEqual({
+      from: "default",
+      to: "sweet",
+    });
+  });
+
+  it("acknowledges only the transition used by the completed request", () => {
+    const session = createChatSession({ styleId: "default" });
+    session.setStyle("healing");
+    const usedTransition = session.getPendingStyleTransition();
+
+    session.setStyle("sweet");
+    session.acknowledgeStyleTransition(usedTransition);
+
+    expect(session.getPendingStyleTransition()).toEqual({
+      from: "default",
+      to: "sweet",
+    });
+
+    session.acknowledgeStyleTransition(session.getPendingStyleTransition());
+
+    expect(session.getPendingStyleTransition()).toBeUndefined();
+  });
+
+  it("clears history while preserving the selected style", () => {
+    const session = createChatSession({ styleId: "default" });
+    session.appendUserMessage("hello");
+    session.setStyle("focused");
+
+    session.clear();
+
+    expect(session.getMessages()).toEqual([]);
+    expect(session.getStyle()).toBe("focused");
+    expect(session.getPendingStyleTransition()).toBeUndefined();
+  });
+
+  it("rejects system messages in session-owned history", () => {
+    const session = createChatSession({ styleId: "default" });
+
+    expect(() => session.replaceMessages([
+      { role: "system", content: "must not persist" },
+    ])).toThrow("ChatSession history cannot contain system messages");
+  });
+
+  it("uses defensive copies for messages and transitions", () => {
+    const input: ChatMessage[] = [{ role: "user", content: "hello" }];
+    const session = createChatSession({ styleId: "default" });
+    session.replaceMessages(input);
+    session.setStyle("healing");
+
+    input[0]!.content = "mutated outside";
+    const output = session.getMessages();
+    output[0]!.content = "mutated copy";
+    const transition = session.getPendingStyleTransition()!;
+    transition.to = "sweet";
+
+    expect(session.getMessages()).toEqual([{ role: "user", content: "hello" }]);
+    expect(session.getPendingStyleTransition()).toEqual({
+      from: "default",
+      to: "healing",
+    });
   });
 });

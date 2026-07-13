@@ -1,4 +1,5 @@
 import type { AgentEvent } from "../main/agent/agent-events.js";
+import type { StyleId } from "./persona-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -19,10 +20,18 @@ export interface ChatAgentEventPayload {
 
 export type AgentEventListener = (payload: ChatAgentEventPayload) => void;
 
+export interface PersonaStyleResult {
+  styleId: StyleId;
+}
+
 export interface CyreneApi {
   chat: {
     sendMessage: (text: string) => Promise<ChatSendResult>;
     clearSession: () => Promise<ChatClearResult>;
     onAgentEvent: (listener: AgentEventListener) => () => void;
+  };
+  persona: {
+    getStyle: () => Promise<PersonaStyleResult>;
+    setStyle: (styleId: StyleId) => Promise<PersonaStyleResult>;
   };
 }

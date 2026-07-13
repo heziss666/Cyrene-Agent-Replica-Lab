@@ -10,6 +10,7 @@ export interface CreateDefaultToolRegistryOptions {
   vectorIndex?: VectorIndex;
   storageConfig?: RagStorageConfig;
   logger?: (message: string) => void;
+  knowledgeDir?: string;
 }
 
 function stringifyArg(value: unknown): string {
@@ -91,6 +92,7 @@ export function createDefaultToolRegistry(
     vectorIndex: options.vectorIndex,
     storageConfig: options.storageConfig,
     logger: options.logger,
+    knowledgeDir: options.knowledgeDir,
   });
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {

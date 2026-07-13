@@ -6,19 +6,25 @@ import { runToolAgent } from "../main/agent/tool-agent.js";
 import { loadLocalEnvFile } from "../main/config/env-file.js";
 import { loadModelConfig } from "../main/config/model-config.js";
 import type { ModelConfig } from "../main/config/model-config.js";
+import { loadPersonaConfig } from "../main/config/persona-config.js";
+import {
+  createPromptComposer,
+  type PromptComposer,
+} from "../main/prompts/prompt-composer.js";
 import { createDefaultToolRegistry } from "../main/tools/built-in-tools.js";
 import type { ToolRegistry } from "../main/tools/tool-registry.js";
 import { openAICompatibleAdapter } from "../main/vendors/openai-compatible.js";
 import type { ChatMessage } from "../shared/chat-types.js";
 
-export const SYSTEM_PROMPT = [
-  "You are Cyrene Replica Lab, a minimal learning agent.",
-  "Answer clearly and briefly.",
-  "When explaining technical ideas, use beginner-friendly wording.",
-].join("\n");
+export function createRuntimePromptComposer(): PromptComposer {
+  return createPromptComposer();
+}
 
-export function createInitialHistory(): ChatMessage[] {
-  return [{ role: "system", content: SYSTEM_PROMPT }];
+export function buildModelMessages(
+  systemPrompt: string,
+  history: ChatMessage[],
+): ChatMessage[] {
+  return [{ role: "system", content: systemPrompt }, ...history];
 }
 
 export function loadRuntimeModelConfig(): ModelConfig {
@@ -34,8 +40,10 @@ export function createRuntimeToolRegistry(): ToolRegistry {
 export async function runTerminalChat(): Promise<void> {
   const config = loadRuntimeModelConfig();
   const toolRegistry = createRuntimeToolRegistry();
+  const promptComposer = createRuntimePromptComposer();
+  const personaConfig = await loadPersonaConfig();
   const rl = readline.createInterface({ input, output });
-  let history = createInitialHistory();
+  let history: ChatMessage[] = [];
 
   console.log("Cyrene Agent Replica Lab - terminal chat");
   console.log("Type /exit to quit.");
@@ -50,7 +58,10 @@ export async function runTerminalChat(): Promise<void> {
 
       try {
         const result = await runToolAgent({
-          messages: history,
+          messages: buildModelMessages(
+            promptComposer.composeSystemPrompt({ styleId: personaConfig.styleId }),
+            history,
+          ),
           config,
           adapter: openAICompatibleAdapter,
           toolRegistry,
@@ -58,7 +69,7 @@ export async function runTerminalChat(): Promise<void> {
             console.log(formatAgentEventForTerminal(event));
           },
         });
-        history = result.messages;
+        history = result.messages.filter((message) => message.role !== "system");
         console.log(`\nAgent> ${result.reply}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

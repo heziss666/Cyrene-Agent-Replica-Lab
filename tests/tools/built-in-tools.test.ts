@@ -84,12 +84,13 @@ describe("createDefaultToolRegistry", () => {
     const tool = createTestToolRegistry().getById("search_knowledge");
 
     const output = await tool?.execute({
-      query: "ToolRegistry",
+      query: "昔涟最初是什么形态？",
       topK: 2,
     });
 
     expect(output).toContain("retrieval_mode: vector");
     expect(output).toContain("embedding_model: fake-model");
+    expect(output).toContain("source: worldbook/");
     expect(output).toContain("content:");
   });
 
@@ -105,7 +106,7 @@ describe("createDefaultToolRegistry", () => {
         logger,
       });
       const output = await registry.getById("search_knowledge")?.execute({
-        query: "How does ToolRegistry execute tools?",
+        query: "昔涟和开拓者是什么关系？",
         topK: 2,
       });
 
