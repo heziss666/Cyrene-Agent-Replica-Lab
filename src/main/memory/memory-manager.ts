@@ -24,17 +24,34 @@ const l1Fields = new Set<L1Field>([
 ]);
 const importanceValues = new Set(["low", "medium", "high"]);
 
-const sensitivePatterns = [
-  /\bsk-[a-z0-9_-]+/iu,
-  /\bapi[\s_-]*key\b/iu,
-  /\baccess[\s_-]*token\b/iu,
-  /\bpassword\b/iu,
-  /\b(?:bank[\s_-]*card|card[\s_-]*number|payment[\s_-]*account)\b/iu,
-  /\b(?:id(?:entity)?[\s_-]*(?:card|document)|passport|social[\s_-]*security)\b/iu,
-  /\b(?:home|residential|exact)[\s_-]*address\b/iu,
-  /密码|验证码|银行卡|支付账户|身份证|护照|家庭住址|家庭地址|详细地址|精确地址/u,
-  /(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)/u,
+const sensitiveCompactLabels = [
+  "apikey",
+  "accesstoken",
+  "password",
+  "bankcard",
+  "cardnumber",
+  "paymentaccount",
+  "idcard",
+  "identitycard",
+  "identitydocument",
+  "passport",
+  "socialsecurity",
+  "homeaddress",
+  "residentialaddress",
+  "exactaddress",
+  "\u5bc6\u7801",
+  "\u9a8c\u8bc1\u7801",
+  "\u94f6\u884c\u5361",
+  "\u652f\u4ed8\u8d26\u6237",
+  "\u8eab\u4efd\u8bc1",
+  "\u62a4\u7167",
+  "\u5bb6\u5ead\u4f4f\u5740",
+  "\u5bb6\u5ead\u5730\u5740",
+  "\u8be6\u7ec6\u5730\u5740",
+  "\u7cbe\u786e\u5730\u5740",
 ];
+const secretLikePattern = /(?<![\p{L}\p{N}])sk[\s\p{P}\u2212]+[\p{L}\p{N}]/iu;
+const bankCardLikePattern = /(?:\d[\s\p{P}\u2212]*){12,18}\d/u;
 
 interface ValidatedCandidateBase {
   content: string;
@@ -105,7 +122,8 @@ function validateCandidate(
     || typeof value.importance !== "string"
     || !importanceValues.has(value.importance)
     || typeof value.evidenceQuote !== "string"
-    || value.evidenceQuote.trim().length === 0
+    || normalizeContent(value.evidenceQuote).length === 0
+    || typeof value.reason !== "string"
     || !userMessage.includes(value.evidenceQuote)) {
     return undefined;
   }
@@ -228,16 +246,24 @@ function appendUnique(values: string[], content: string): boolean {
 }
 
 function normalizeContent(value: string): string {
-  return value.normalize("NFKC").trim().replace(/\s+/gu, " ");
+  return normalizeUnicode(value).trim().replace(/\s+/gu, " ");
 }
 
 function dedupeKey(value: string): string {
-  return normalizeContent(value).toLowerCase();
+  // Uppercasing uses built-in multi-character expansions such as ß -> SS.
+  return normalizeContent(value).toUpperCase();
 }
 
 function containsSensitiveData(value: string): boolean {
-  const normalized = value.normalize("NFKC");
-  return sensitivePatterns.some((pattern) => pattern.test(normalized));
+  const normalized = normalizeUnicode(value);
+  const compact = normalized.replace(/[\s\p{P}\u2212]+/gu, "").toLowerCase();
+  return secretLikePattern.test(normalized)
+    || bankCardLikePattern.test(normalized)
+    || sensitiveCompactLabels.some((label) => compact.includes(label));
+}
+
+function normalizeUnicode(value: string): string {
+  return value.normalize("NFKC").replace(/\p{Cf}/gu, "");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

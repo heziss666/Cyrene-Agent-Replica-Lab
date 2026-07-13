@@ -115,14 +115,15 @@ describe("createMemoryManager", () => {
     { layer: "L1" as const, field: "currentProject", confidence: 0.80, write: "L1.currentProject" },
     { layer: "L2" as const, field: undefined, confidence: 0.80, write: "L2" },
   ])("accepts $layer confidence at its $confidence boundary", async (testCase) => {
-    const { manager } = await createHarness();
+    const { manager, store } = await createHarness();
     const evidenceQuote = `Boundary ${testCase.layer}`;
+    const content = `${testCase.layer} boundary memory`;
 
     const summary = await manager.writeCandidates({
       userMessage: evidenceQuote,
       candidates: [candidate({
         ...testCase,
-        content: `${testCase.layer} boundary memory`,
+        content,
         evidenceQuote,
         importance: "medium",
       })],
@@ -134,6 +135,16 @@ describe("createMemoryManager", () => {
       skippedCount: 0,
       writes: [testCase.write],
     });
+
+    const stored = await store.load();
+    if (testCase.layer === "L0") {
+      expect(stored.l0.occupation).toBe(content);
+    } else if (testCase.layer === "L1") {
+      expect(stored.l1.currentProject).toBe(content);
+    } else {
+      expect(stored.l2).toHaveLength(1);
+      expect(stored.l2[0]).toMatchObject({ content, confidence: 0.80 });
+    }
   });
 
   it.each([
@@ -143,9 +154,19 @@ describe("createMemoryManager", () => {
       evidenceQuote: "the value is shown here",
     },
     {
+      label: "secret-looking content after a leading underscore",
+      content: "_sk-example-secret-value",
+      evidenceQuote: "the underscored value is shown here",
+    },
+    {
       label: "API key evidence",
       content: "example-only",
       evidenceQuote: "my api key is sk-example-secret-value",
+    },
+    {
+      label: "dot-separated API key evidence",
+      content: "example-only",
+      evidenceQuote: "api.key: example-only",
     },
     {
       label: "password evidence",
@@ -158,9 +179,34 @@ describe("createMemoryManager", () => {
       evidenceQuote: "access token: example-only",
     },
     {
+      label: "slash-separated access-token evidence",
+      content: "example-only",
+      evidenceQuote: "access/token: example-only",
+    },
+    {
+      label: "Unicode-hyphen access-token evidence",
+      content: "example-only",
+      evidenceQuote: "access\u2011token: example-only",
+    },
+    {
+      label: "zero-width-obscured API key evidence",
+      content: "example-only",
+      evidenceQuote: "api\u200B.key: example-only",
+    },
+    {
+      label: "Unicode-hyphen secret-looking candidate content",
+      content: "sk\u2010example-secret-value",
+      evidenceQuote: "the Unicode-hyphen value is shown here",
+    },
+    {
       label: "bank-card evidence",
       content: "example-only",
       evidenceQuote: "银行卡号 6222020000000000",
+    },
+    {
+      label: "punctuation-separated bank-card-like evidence",
+      content: "example-only",
+      evidenceQuote: "number 6222.0200/0000-0000",
     },
     {
       label: "Chinese password evidence",
@@ -218,11 +264,40 @@ describe("createMemoryManager", () => {
     expect((await store.load()).l0.longTermInterests).toEqual(["TypeScript"]);
   });
 
+  it("case-folds Unicode expansions when deduplicating array values", async () => {
+    const { manager, store } = await createHarness();
+
+    await manager.writeCandidates({
+      userMessage: "I enjoy Straße",
+      candidates: [candidate({
+        field: "longTermInterests",
+        content: "Straße",
+        evidenceQuote: "I enjoy Straße",
+      })],
+    });
+    const duplicateSummary = await manager.writeCandidates({
+      userMessage: "I still enjoy STRASSE",
+      candidates: [candidate({
+        field: "longTermInterests",
+        content: "STRASSE",
+        evidenceQuote: "I still enjoy STRASSE",
+      })],
+    });
+
+    expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expect((await store.load()).l0.longTermInterests).toEqual(["Straße"]);
+  });
+
   it("normalizes and deduplicates active L2 content case-insensitively", async () => {
+    const idFactory = vi.fn()
+      .mockReturnValueOnce("memory-1")
+      .mockReturnValueOnce("memory-2");
+    const now = vi.fn()
+      .mockReturnValueOnce(new Date("2026-07-14T08:00:00.000Z"))
+      .mockReturnValueOnce(new Date("2026-07-14T09:00:00.000Z"));
     const { manager, store } = await createHarness({
-      idFactory: vi.fn()
-        .mockReturnValueOnce("memory-1")
-        .mockReturnValueOnce("memory-2"),
+      idFactory,
+      now,
     });
 
     await manager.writeCandidates({
@@ -231,6 +306,7 @@ describe("createMemoryManager", () => {
         layer: "L2",
         field: undefined,
         content: "Finished Phase 7A",
+        confidence: 0.91,
         evidenceQuote: "I finished Phase 7A",
         importance: "medium",
       })],
@@ -241,13 +317,74 @@ describe("createMemoryManager", () => {
         layer: "L2",
         field: undefined,
         content: "  finished   phase 7a  ",
+        confidence: 0.99,
         evidenceQuote: "I FINISHED phase 7a",
         importance: "high",
       })],
     });
 
     expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
-    expect((await store.load()).l2).toHaveLength(1);
+    expect(idFactory).toHaveBeenCalledOnce();
+    expect((await store.load()).l2).toEqual([{
+      id: "memory-1",
+      content: "Finished Phase 7A",
+      confidence: 0.91,
+      evidence: {
+        userQuote: "I finished Phase 7A",
+        capturedAt: "2026-07-14T08:00:00.000Z",
+      },
+      importance: "medium",
+      createdAt: "2026-07-14T08:00:00.000Z",
+      status: "active",
+    }]);
+  });
+
+  it("case-folds Unicode expansions while preserving the original L2 record", async () => {
+    const idFactory = vi.fn()
+      .mockReturnValueOnce("memory-1")
+      .mockReturnValueOnce("memory-2");
+    const { manager, store } = await createHarness({
+      idFactory,
+      now: () => new Date("2026-07-14T08:00:00.000Z"),
+    });
+
+    await manager.writeCandidates({
+      userMessage: "I visited Straße",
+      candidates: [candidate({
+        layer: "L2",
+        field: undefined,
+        content: "Visited Straße",
+        confidence: 0.91,
+        evidenceQuote: "I visited Straße",
+        importance: "medium",
+      })],
+    });
+    const duplicateSummary = await manager.writeCandidates({
+      userMessage: "I visited STRASSE",
+      candidates: [candidate({
+        layer: "L2",
+        field: undefined,
+        content: "VISITED STRASSE",
+        confidence: 0.99,
+        evidenceQuote: "I visited STRASSE",
+        importance: "high",
+      })],
+    });
+
+    expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expect(idFactory).toHaveBeenCalledOnce();
+    expect((await store.load()).l2).toEqual([{
+      id: "memory-1",
+      content: "Visited Straße",
+      confidence: 0.91,
+      evidence: {
+        userQuote: "I visited Straße",
+        capturedAt: "2026-07-14T08:00:00.000Z",
+      },
+      importance: "medium",
+      createdAt: "2026-07-14T08:00:00.000Z",
+      status: "active",
+    }]);
   });
 
   it("injects deterministic L2 identity and time without persisting reason", async () => {
@@ -347,6 +484,36 @@ describe("createMemoryManager", () => {
       skippedCount: 6,
       writes: [],
     });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    { label: "content", content: "\u200B", evidenceQuote: "zero-width content" },
+    { label: "evidence", content: "Alex", evidenceQuote: "\u200B" },
+  ])("rejects format-only Unicode $label as blank", async ({ content, evidenceQuote }) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage: `User text ${evidenceQuote}`,
+      candidates: [candidate({ content, evidenceQuote })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    { label: "missing", reason: undefined as unknown as string },
+    { label: "non-string", reason: 42 as unknown as string },
+  ])("rejects a runtime candidate with a $label reason", async ({ reason }) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage: "Call me Alex",
+      candidates: [candidate({ reason })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
     expectEmptyMemory(await store.load());
   });
 
