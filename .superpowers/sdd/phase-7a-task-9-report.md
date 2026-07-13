@@ -67,9 +67,48 @@ The same test proves the judge receives `{ userMessage: "Call me Alex", assistan
 
 - Recall failures degrade to persona-only chat and expose only the generic factory message.
 - Main Agent failure leaves the transition pending and schedules no memory work or scheduled event.
-- The original overlapping transition test remains unchanged and runs through injected empty recall; the new deferred-recall test covers the added latency window.
+- Existing overlapping transition coverage still verifies request-local transition use, and the deferred-recall test covers the added latency window.
 - Session replacement still filters every system message, and New Chat removes first-turn history while recalling long-term memory for both user messages.
 - Throwing event senders are absorbed for recall, Agent, scheduling, judge, and write events without stopping chat or queue completion.
 - Factory filtering is exercised with an unsafe manager write string and secret-bearing raw errors; neither appears in emitted payloads.
 
 Concerns: no blocking concerns. When recall succeeds without an explicit optional `retrievalMode` (the normal empty-L2 path), the lifecycle event reports `vector`; an explicit keyword fallback result remains reported as `keyword-fallback`.
+
+## Shared Session Race Review Hardening
+
+Status: complete
+Commit: `fix: serialize chat session operations`
+
+### Root Cause
+
+All Chat IPC handlers shared one mutable `ChatSession`, but only the memory services had serial execution. A second send could append and snapshot history while the first send awaited recall or the main model, then either completion could replace the whole session. Likewise, `clearSession` could clear immediately and later be undone by an older model completion, while `setStyle` persistence and transition mutation could interleave with a send.
+
+The fix creates one registration-scoped serial executor and routes the complete send session operation, clear, style mutation, and style reads through it. Each send captures its text, sender, and run ID before enqueueing; append, recall, prompt/model execution, session replacement, transition acknowledgement, and background-write scheduling then execute as one ordered operation. The executor resets its tail after both fulfillment and rejection so a failed model request or style save cannot poison later operations.
+
+Serialization ends when `ChatSendResult` is ready. It does not await `MemoryJudge`, `MemoryManager`, or queue flush: the background write is scheduled before the session operation resolves and continues on the independent `MemoryWriteQueue`.
+
+### Deterministic RED
+
+- Command: `npx.cmd vitest run tests/main/register-chat-ipc.test.ts`
+- Result: 1 file failed; 3 failed and 18 passed out of 21 tests.
+- Concurrent sends: the second recall had already started before the first model was released (`2` calls instead of `1`), demonstrating that both requests could snapshot shared history concurrently.
+- Deferred clear: `clearSession` settled before the older model completed (`true` instead of `false`), allowing stale completion to restore cleared messages.
+- Deferred style change: style persistence settled while the older request still awaited recall (`true` instead of `false`), proving mutation ordering was not shared with sends.
+- All gates used controlled promises and microtask checkpoints; no timers were used.
+
+### Focused GREEN
+
+- `npx.cmd vitest run tests/main/register-chat-ipc.test.ts` passed, 1 file and 21 tests.
+- `npx.cmd vitest run tests/main/register-chat-ipc.test.ts tests/main/chat-session.test.ts tests/prompts/prompt-composer.test.ts` passed, 3 files and 33 tests.
+- `npm.cmd run typecheck` passed.
+- Full suite, run once: `npx.cmd vitest run` passed, 43 files and 305 tests.
+
+### Concurrency Evidence
+
+- Two sends invoked together retain invocation-order run IDs. Before the first deferred model resolves, only the first recall and model have started. The second model then receives the first user message, first assistant reply, and second user message; the pending style transition appears only on the first request.
+- Clear requested during a deferred send remains pending. After the older send commits, clear runs and a following send receives no old chat history.
+- Style change requested during deferred recall remains pending. The older request uses its original style, then the queued style save/mutation creates the transition consumed by the next send.
+- While the first turn's `MemoryJudge` remains deferred, a second send reaches recall and the main model and returns. Queue flush later completes both judge tasks, proving session serialization does not include background memory execution.
+- Memory failure events still use the Task 8 factories, safe sender delivery remains isolated, and judge/write failures still cannot poison later queued work.
+
+Remaining Low: default service assembly is still primarily covered through injected seams and typechecking. The review's default-assembly coverage note is recorded here and intentionally not expanded as part of the shared-session race fix.

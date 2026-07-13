@@ -499,6 +499,154 @@ describe("registerChatIpc", () => {
     expect(runtime.pendingBackgroundTaskCount()).toBe(0);
   });
 
+  it("serializes overlapping sends and preserves committed history and one transition", async () => {
+    const firstAgentStarted = createDeferred<void>();
+    const finishFirstAgent = createDeferred<void>();
+    const memoryRecall = { recall: vi.fn(async () => emptyRecall()) };
+    const runAgent = vi.fn()
+      .mockImplementationOnce(async ({ messages }: { messages: ChatMessage[] }) => {
+        firstAgentStarted.resolve();
+        await finishFirstAgent.promise;
+        return {
+          reply: "first reply",
+          messages: [
+            ...messages,
+            { role: "assistant" as const, content: "first reply" },
+          ],
+          toolResults: [],
+        };
+      })
+      .mockImplementationOnce(async ({ messages }: { messages: ChatMessage[] }) => ({
+        reply: "second reply",
+        messages: [
+          ...messages,
+          { role: "assistant" as const, content: "second reply" },
+        ],
+        toolResults: [],
+      }));
+    const deps = createFakeDeps(runAgent, { memoryRecall });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+    const setStyle = deps.ipcMain.handlers.get(IPC_CHANNELS.persona.setStyle)!;
+    await setStyle({ sender }, "healing");
+
+    const firstRequest = send({ sender }, "first turn");
+    await firstAgentStarted.promise;
+    const secondRequest = send({ sender }, "second turn");
+    await Promise.resolve();
+    await Promise.resolve();
+    const recallCountBeforeFirstCompletion = memoryRecall.recall.mock.calls.length;
+    const agentCountBeforeFirstCompletion = runAgent.mock.calls.length;
+
+    finishFirstAgent.resolve();
+    const [firstResult, secondResult] = await Promise.all([
+      firstRequest,
+      secondRequest,
+    ]);
+
+    expect(recallCountBeforeFirstCompletion).toBe(1);
+    expect(agentCountBeforeFirstCompletion).toBe(1);
+    expect(memoryRecall.recall.mock.calls).toEqual([["first turn"], ["second turn"]]);
+    expect(runAgent.mock.calls[0]?.[0].messages[0]).toEqual({
+      role: "system",
+      content: "system:healing:default->healing",
+    });
+    expect(runAgent.mock.calls[1]?.[0].messages).toEqual([
+      { role: "system", content: "system:healing:steady" },
+      { role: "user", content: "first turn" },
+      { role: "assistant", content: "first reply" },
+      { role: "user", content: "second turn" },
+    ]);
+    expect(firstResult).toMatchObject({ reply: "first reply", runId: "run_1" });
+    expect(secondResult).toMatchObject({ reply: "second reply", runId: "run_2" });
+  });
+
+  it("runs clear after an in-flight send and prevents stale history restoration", async () => {
+    const firstAgentStarted = createDeferred<void>();
+    const finishFirstAgent = createDeferred<void>();
+    const runAgent = vi.fn()
+      .mockImplementationOnce(async ({ messages }: { messages: ChatMessage[] }) => {
+        firstAgentStarted.resolve();
+        await finishFirstAgent.promise;
+        return {
+          reply: "old reply",
+          messages: [
+            ...messages,
+            { role: "assistant" as const, content: "old reply" },
+          ],
+          toolResults: [],
+        };
+      })
+      .mockImplementationOnce(async ({ messages }: { messages: ChatMessage[] }) => ({
+        reply: "new reply",
+        messages: [
+          ...messages,
+          { role: "assistant" as const, content: "new reply" },
+        ],
+        toolResults: [],
+      }));
+    const deps = createFakeDeps(runAgent);
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+    const clear = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.clearSession)!;
+
+    const oldRequest = send({ sender }, "old turn");
+    await firstAgentStarted.promise;
+    let clearSettled = false;
+    const clearRequest = clear({ sender }).then((result) => {
+      clearSettled = true;
+      return result;
+    });
+    await Promise.resolve();
+    const clearSettledBeforeOldCompletion = clearSettled;
+
+    finishFirstAgent.resolve();
+    await oldRequest;
+    const clearResult = await clearRequest;
+    await send({ sender }, "new turn");
+
+    expect(clearSettledBeforeOldCompletion).toBe(false);
+    expect(clearResult).toEqual({ cleared: true, messageCount: 0 });
+    expect(runAgent.mock.calls[1]?.[0].messages).toEqual([
+      { role: "system", content: "system:default:steady" },
+      { role: "user", content: "new turn" },
+    ]);
+  });
+
+  it("releases session serialization before a deferred MemoryJudge completes", async () => {
+    const judgeDeferred = createDeferred<MemoryCandidate[]>();
+    const memoryRecall = { recall: vi.fn(async () => emptyRecall()) };
+    const memoryJudge = {
+      judge: vi.fn()
+        .mockImplementationOnce(() => judgeDeferred.promise)
+        .mockResolvedValueOnce([]),
+    };
+    const memoryWriteQueue = createMemoryWriteQueue();
+    const runAgent = successfulAgent();
+    const deps = createFakeDeps(runAgent, {
+      memoryRecall,
+      memoryJudge,
+      memoryWriteQueue,
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "first turn");
+    const secondResult = await send({ sender }, "second turn");
+
+    expect(secondResult).toMatchObject({ reply: "reply", runId: "run_2" });
+    expect(memoryRecall.recall).toHaveBeenCalledTimes(2);
+    expect(runAgent).toHaveBeenCalledTimes(2);
+    expect(memoryJudge.judge).toHaveBeenCalledOnce();
+
+    judgeDeferred.resolve([]);
+    await runtime.flushBackgroundTasks();
+    expect(memoryJudge.judge).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps the request style stable while deferred recall is running", async () => {
     const recallDeferred = createDeferred<MemoryRecallResult>();
     const memoryRecall = { recall: vi.fn(() => recallDeferred.promise) };
@@ -511,11 +659,20 @@ describe("registerChatIpc", () => {
 
     const olderRequest = send({ sender }, "started before the style change");
     await Promise.resolve();
-    await setStyle({ sender }, "healing");
+    let styleSettled = false;
+    const styleChange = setStyle({ sender }, "healing").then((result) => {
+      styleSettled = true;
+      return result;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    const styleSettledBeforeRecall = styleSettled;
     recallDeferred.resolve(emptyRecall());
     await olderRequest;
+    await styleChange;
     await send({ sender }, "use the new style");
 
+    expect(styleSettledBeforeRecall).toBe(false);
     expect(runAgent.mock.calls[0]?.[0].messages[0]).toEqual({
       role: "system",
       content: "system:default:steady",
@@ -629,9 +786,10 @@ describe("registerChatIpc", () => {
     const setStyle = deps.ipcMain.handlers.get(IPC_CHANNELS.persona.setStyle)!;
 
     const olderRequest = send({ sender }, "started before the style change");
-    await setStyle({ sender }, "healing");
+    const styleChange = setStyle({ sender }, "healing");
     finishFirstRun();
     await olderRequest;
+    await styleChange;
     await send({ sender }, "use the new style");
 
     expect(runAgent.mock.calls[0]?.[0].messages[0]).toEqual({
