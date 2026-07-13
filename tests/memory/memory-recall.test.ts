@@ -94,6 +94,14 @@ function createFakeKnowledgeBase(
   };
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 describe("createMemoryRecallService", () => {
   it("returns defensive L0 and L1 copies when the store shares objects", async () => {
     const source = createMemoryFile();
@@ -194,6 +202,115 @@ describe("createMemoryRecallService", () => {
     expect(createKnowledgeBaseFactory).not.toHaveBeenCalled();
     expect(knowledgeBases[0].search).not.toHaveBeenCalled();
   });
+
+  it("serializes populated index writes before a later empty-corpus prune", async () => {
+    const memory = createMemory("memory-1");
+    const files = [createMemoryFile([memory]), createMemoryFile()];
+    const store: MemoryStore = {
+      load: vi.fn(async () => structuredClone(files.shift()!)),
+      update: vi.fn(async () => createMemoryFile()),
+    };
+    const embeddingStarted = createDeferred<void>();
+    const releaseEmbedding = createDeferred<void>();
+    const embeddingProvider: EmbeddingProvider = {
+      id: "fake-provider",
+      model: "fake-model",
+      embedDocuments: vi.fn(async () => {
+        embeddingStarted.resolve();
+        await releaseEmbedding.promise;
+        return [[1, 0]];
+      }),
+      embedQuery: vi.fn(async () => [1, 0]),
+    };
+    const vectorIndex = createInMemoryVectorIndex();
+    const operations: string[] = [];
+    const originalAddMany = vectorIndex.addMany.bind(vectorIndex);
+    const originalPrune = vectorIndex.prune.bind(vectorIndex);
+    vi.spyOn(vectorIndex, "addMany").mockImplementation(async (entries) => {
+      await originalAddMany(entries);
+      operations.push("add");
+    });
+    vi.spyOn(vectorIndex, "prune").mockImplementation(async (entries) => {
+      const removed = await originalPrune(entries);
+      operations.push(entries.length === 0 ? "prune-empty" : "prune-populated");
+      return removed;
+    });
+    const service = createMemoryRecallService({
+      store,
+      embeddingProvider,
+      vectorIndex,
+    });
+
+    const populatedRecall = service.recall("query");
+    await embeddingStarted.promise;
+    const emptyRecall = service.recall("query");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    releaseEmbedding.resolve();
+
+    await Promise.all([populatedRecall, emptyRecall]);
+
+    expect(operations).toEqual(["prune-populated", "add", "prune-empty"]);
+    expect(vectorIndex.has("memory-1_chunk_0", hashText(memory.content))).toBe(false);
+  });
+
+  it.each(["initialize", "prune"] as const)(
+    "contains empty-corpus index %s failures without model work",
+    async (failurePoint) => {
+      const file = createMemoryFile();
+      const embeddingProvider: EmbeddingProvider = {
+        id: "fake-provider",
+        model: "fake-model",
+        embedDocuments: vi.fn(async () => []),
+        embedQuery: vi.fn(async () => []),
+      };
+      const vectorIndex = createInMemoryVectorIndex();
+      const initialize = vi.spyOn(vectorIndex, "initialize");
+      const prune = vi.spyOn(vectorIndex, "prune");
+      const failure = new Error(`sensitive ${failurePoint} detail`);
+      if (failurePoint === "initialize") {
+        initialize.mockRejectedValue(failure);
+      } else {
+        prune.mockRejectedValue(failure);
+      }
+      const vectorRetriever = createRetriever();
+      const knowledgeBase = createFakeKnowledgeBase({
+        mode: "vector",
+        results: [],
+      });
+      const createKnowledgeBaseFactory = vi.fn(() => knowledgeBase);
+      const logger = vi.fn();
+      const service = createMemoryRecallService({
+        store: createStore(file),
+        embeddingProvider,
+        vectorIndex,
+        vectorRetriever,
+        createKnowledgeBase: createKnowledgeBaseFactory,
+        logger,
+      });
+
+      const result = await service.recall("query");
+
+      expect(result).toEqual({
+        l0: file.l0,
+        l1: file.l1,
+        l2: [],
+        warning: "Memory index cleanup failed; recall continued without L2 results",
+      });
+      expect(result.l0).not.toBe(file.l0);
+      expect(result.l1).not.toBe(file.l1);
+      expect(initialize).toHaveBeenCalledOnce();
+      expect(prune).toHaveBeenCalledTimes(failurePoint === "prune" ? 1 : 0);
+      expect(embeddingProvider.embedDocuments).not.toHaveBeenCalled();
+      expect(embeddingProvider.embedQuery).not.toHaveBeenCalled();
+      expect(vectorRetriever.retrieve).not.toHaveBeenCalled();
+      expect(createKnowledgeBaseFactory).not.toHaveBeenCalled();
+      expect(knowledgeBase.search).not.toHaveBeenCalled();
+      expect(logger).toHaveBeenCalledWith(
+        `[Memory] Memory index cleanup failed: sensitive ${failurePoint} detail`,
+      );
+      expect(result.warning).not.toContain("sensitive");
+    },
+  );
 
   it("indexes L2 documents with memory IDs and maps chunks back to memories", async () => {
     const memory1 = createMemory("memory-1");
