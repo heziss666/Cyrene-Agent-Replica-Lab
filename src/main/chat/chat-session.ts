@@ -13,7 +13,7 @@ export interface ChatSession {
   getStyle: () => StyleId;
   setStyle: (styleId: StyleId) => void;
   getPendingStyleTransition: () => StyleTransition | undefined;
-  acknowledgeStyleTransition: () => void;
+  acknowledgeStyleTransition: (transition: StyleTransition | undefined) => void;
 }
 
 function cloneMessage(message: ChatMessage): ChatMessage {
@@ -62,8 +62,14 @@ export function createChatSession(input: { styleId: StyleId }): ChatSession {
     getPendingStyleTransition: () => pendingTransition
       ? { ...pendingTransition }
       : undefined,
-    acknowledgeStyleTransition: () => {
-      pendingTransition = undefined;
+    acknowledgeStyleTransition: (transition) => {
+      if (
+        transition
+        && pendingTransition?.from === transition.from
+        && pendingTransition.to === transition.to
+      ) {
+        pendingTransition = undefined;
+      }
     },
   };
 }

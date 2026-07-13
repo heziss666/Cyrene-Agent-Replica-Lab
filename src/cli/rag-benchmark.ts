@@ -143,6 +143,18 @@ function createDefaultDependencies(): RagBenchmarkDependencies {
   };
 }
 
+function requireVectorResponse(
+  response: KnowledgeSearchResponse,
+  phase: string,
+): KnowledgeSearchResponse {
+  if (response.mode !== "vector") {
+    throw new Error(
+      `RAG benchmark requires vector retrieval during ${phase}; received ${response.mode}`,
+    );
+  }
+  return response;
+}
+
 export async function runRagBenchmark(options: {
   evaluationCases?: RagEvaluationCase[];
   dependencies?: RagBenchmarkDependencies;
@@ -160,19 +172,28 @@ export async function runRagBenchmark(options: {
 
     const coldKnowledgeBase = dependencies.createKnowledgeBase(vectorIndexPath);
     const coldStarted = dependencies.now();
-    await coldKnowledgeBase.search(warmupQuestion, 5);
+    requireVectorResponse(
+      await coldKnowledgeBase.search(warmupQuestion, 5),
+      "cold build",
+    );
     const coldBuildMs = dependencies.now() - coldStarted;
 
     const warmKnowledgeBase = dependencies.createKnowledgeBase(vectorIndexPath);
     const warmStarted = dependencies.now();
-    await warmKnowledgeBase.search(warmupQuestion, 5);
+    requireVectorResponse(
+      await warmKnowledgeBase.search(warmupQuestion, 5),
+      "warm load",
+    );
     const warmLoadMs = dependencies.now() - warmStarted;
 
     const recallResults: RecallEvaluationResult[] = [];
     const queryTimes: number[] = [];
     for (const evaluationCase of evaluationCases) {
       const queryStarted = dependencies.now();
-      const response = await warmKnowledgeBase.search(evaluationCase.question, 5);
+      const response = requireVectorResponse(
+        await warmKnowledgeBase.search(evaluationCase.question, 5),
+        `evaluation query: ${evaluationCase.question}`,
+      );
       queryTimes.push(dependencies.now() - queryStarted);
       recallResults.push({
         expectedDocumentIds: evaluationCase.expectedDocumentIds,

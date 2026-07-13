@@ -78,11 +78,12 @@ export async function registerChatIpc(deps: RegisterChatIpcDeps): Promise<void> 
       const runId = `run_${nextRunNumber}`;
       nextRunNumber += 1;
       const history = session.appendUserMessage(text);
+      const transition = session.getPendingStyleTransition();
       const systemMessage: ChatMessage = {
         role: "system",
         content: promptComposer.composeSystemPrompt({
           styleId: session.getStyle(),
-          transition: session.getPendingStyleTransition(),
+          transition,
         }),
       };
       const result: ToolAgentResult = await runAgent({
@@ -96,7 +97,7 @@ export async function registerChatIpc(deps: RegisterChatIpcDeps): Promise<void> 
       });
       const persistedMessages = withoutSystemMessages(result.messages);
       session.replaceMessages(persistedMessages);
-      session.acknowledgeStyleTransition();
+      session.acknowledgeStyleTransition(transition);
 
       return {
         reply: result.reply,

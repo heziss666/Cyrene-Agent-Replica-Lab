@@ -55,11 +55,20 @@ describe("createChatSession", () => {
     });
   });
 
-  it("acknowledges a transition only when requested", () => {
+  it("acknowledges only the transition used by the completed request", () => {
     const session = createChatSession({ styleId: "default" });
     session.setStyle("healing");
+    const usedTransition = session.getPendingStyleTransition();
 
-    session.acknowledgeStyleTransition();
+    session.setStyle("sweet");
+    session.acknowledgeStyleTransition(usedTransition);
+
+    expect(session.getPendingStyleTransition()).toEqual({
+      from: "default",
+      to: "sweet",
+    });
+
+    session.acknowledgeStyleTransition(session.getPendingStyleTransition());
 
     expect(session.getPendingStyleTransition()).toBeUndefined();
   });

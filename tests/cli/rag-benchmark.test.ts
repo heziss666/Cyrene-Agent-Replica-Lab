@@ -96,6 +96,36 @@ describe("runRagBenchmark", () => {
     expect(createKnowledgeBase).toHaveBeenCalledTimes(2);
     expect(removeTemporaryDirectory).toHaveBeenCalledWith("C:/temp/rag-benchmark");
   });
+
+  it("rejects keyword fallback instead of reporting it as vector performance", async () => {
+    const vectorSession: Pick<KnowledgeBase, "search"> = {
+      search: vi.fn(async () => response([])),
+    };
+    const fallbackSession: Pick<KnowledgeBase, "search"> = {
+      search: vi.fn(async () => ({
+        ...response([]),
+        mode: "keyword-fallback" as const,
+        model: undefined,
+      })),
+    };
+    const removeTemporaryDirectory = vi.fn(async () => undefined);
+    const dependencies: RagBenchmarkDependencies = {
+      createTemporaryDirectory: async () => "C:/temp/rag-benchmark",
+      removeTemporaryDirectory,
+      createKnowledgeBase: vi.fn()
+        .mockReturnValueOnce(vectorSession)
+        .mockReturnValueOnce(fallbackSession),
+      loadDocuments: () => [],
+      countMarkdownFiles: () => 0,
+      readIndexStats: async () => ({ vectorDimensions: 3, indexBytes: 512 }),
+      now: () => 0,
+    };
+
+    await expect(runRagBenchmark({ evaluationCases, dependencies })).rejects.toThrow(
+      "requires vector retrieval",
+    );
+    expect(removeTemporaryDirectory).toHaveBeenCalledWith("C:/temp/rag-benchmark");
+  });
 });
 
 describe("formatRagBenchmarkReport", () => {

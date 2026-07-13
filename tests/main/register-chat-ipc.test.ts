@@ -174,6 +174,43 @@ describe("registerChatIpc", () => {
     });
   });
 
+  it("does not let an older request clear a transition created while it runs", async () => {
+    let finishFirstRun!: () => void;
+    const firstRunFinished = new Promise<void>((resolve) => {
+      finishFirstRun = resolve;
+    });
+    const runAgent = vi.fn()
+      .mockImplementationOnce(async ({ messages }: { messages: ChatMessage[] }) => {
+        await firstRunFinished;
+        return {
+          reply: "old reply",
+          messages: [...messages, { role: "assistant" as const, content: "old reply" }],
+          toolResults: [],
+        };
+      })
+      .mockImplementation(successfulAgent());
+    const deps = createFakeDeps(runAgent);
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+    const setStyle = deps.ipcMain.handlers.get(IPC_CHANNELS.persona.setStyle)!;
+
+    const olderRequest = send({ sender }, "started before the style change");
+    await setStyle({ sender }, "healing");
+    finishFirstRun();
+    await olderRequest;
+    await send({ sender }, "use the new style");
+
+    expect(runAgent.mock.calls[0]?.[0].messages[0]).toEqual({
+      role: "system",
+      content: "system:default:steady",
+    });
+    expect(runAgent.mock.calls[1]?.[0].messages[0]).toEqual({
+      role: "system",
+      content: "system:healing:default->healing",
+    });
+  });
+
   it("rejects unknown styles without saving or changing state", async () => {
     const savePersonaConfig = vi.fn(async () => undefined);
     const deps = createFakeDeps(successfulAgent(), { savePersonaConfig });
