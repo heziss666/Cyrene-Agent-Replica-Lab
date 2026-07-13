@@ -73,6 +73,12 @@ describe("createMemoryJudge", () => {
       .resolves.toEqual([]);
   });
 
+  it("rejects an envelope with extra top-level keys", async () => {
+    const { judge } = judgeReturning('{"candidates":[],"unexpected":true}');
+    await expect(judge.judge({ userMessage: "Hi", assistantReply: "Hello" }))
+      .rejects.toThrow("Invalid memory judge response");
+  });
+
   it("rejects malformed JSON", async () => {
     const { judge } = judgeReturning("not-json");
     await expect(judge.judge({ userMessage: "Hi", assistantReply: "Hello" }))

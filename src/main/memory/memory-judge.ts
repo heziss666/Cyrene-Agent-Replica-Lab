@@ -70,7 +70,10 @@ function parseCandidates(text: string): MemoryCandidate[] {
     throw new Error("Invalid memory judge response");
   }
 
-  if (!isRecord(parsed) || !Array.isArray(parsed.candidates)) {
+  if (!isRecord(parsed)
+    || Object.keys(parsed).length !== 1
+    || !Object.hasOwn(parsed, "candidates")
+    || !Array.isArray(parsed.candidates)) {
     throw new Error("Invalid memory judge response");
   }
 
