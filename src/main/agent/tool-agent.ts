@@ -3,6 +3,7 @@ import type { AgentEvent } from "./agent-events.js";
 import type { ModelConfig } from "../config/model-config.js";
 import type { ToolCall, ToolExecutionResult } from "../tools/tool-types.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
+import { requestChatCompletion } from "../vendors/chat-completion-client.js";
 import type { VendorAdapter } from "../vendors/types.js";
 
 const DEFAULT_MAX_ROUNDS = 5;
@@ -74,7 +75,6 @@ async function executeToolCall(
 }
 
 export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentResult> {
-  const fetchImpl = input.fetchImpl ?? fetch;
   const maxRounds = input.maxRounds ?? DEFAULT_MAX_ROUNDS;
   let conversation = input.messages.map((message) => ({ ...message }));
   const allToolResults: ToolExecutionResult[] = [];
@@ -108,28 +108,13 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         toolCount: tools.length,
       });
 
-      const request = input.adapter.buildRequest(
-        {
-          messages: conversation,
-          tools,
-        },
-        input.config,
-      );
-
-      const response = await fetchImpl(request.url, {
-        method: request.method,
-        headers: request.headers,
-        body: request.body,
+      const completion = await requestChatCompletion({
+        messages: conversation,
+        tools,
+        config: input.config,
+        adapter: input.adapter,
+        fetchImpl: input.fetchImpl,
       });
-
-      if (!response.ok) {
-        const body = await response.text().catch(() => "");
-        const detail = body ? ` - ${body.slice(0, 200)}` : "";
-        throw new Error(`Model request failed: HTTP ${response.status}${detail}`);
-      }
-
-      const data = await response.json();
-      const completion = input.adapter.parseResponse(data);
       emit({
         type: "model_call_finished",
         round: roundNumber,
