@@ -2,10 +2,9 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { createMainWindow } from "./create-window.js";
 import { registerChatIpc } from "./register-chat-ipc.js";
 
-registerChatIpc({ ipcMain });
-
 async function boot(): Promise<void> {
   await app.whenReady();
+  await registerChatIpc({ ipcMain });
   await createMainWindow();
 
   app.on("activate", async () => {

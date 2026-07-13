@@ -21,6 +21,14 @@ const api: CyreneApi = {
       };
     },
   },
+  persona: {
+    getStyle: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.persona.getStyle);
+    },
+    setStyle: async (styleId) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.persona.setStyle, styleId);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("cyrene", api);
