@@ -82,6 +82,75 @@ describe("createMemoryWriteQueue", () => {
     expect(queue.pendingCount()).toBe(0);
   });
 
+  it("absorbs an async onError rejection without blocking later work", async () => {
+    const queue = createMemoryWriteQueue();
+    const taskFailure = new Error("task failed");
+    const callbackFailure = new Error("callback failed");
+    const onError = vi.fn(async () => {
+      throw callbackFailure;
+    });
+    const laterWork = vi.fn();
+
+    queue.schedule(async () => {
+      throw taskFailure;
+    }, onError);
+    queue.schedule(async () => {
+      laterWork();
+    });
+
+    await expect(queue.flush()).resolves.toBeUndefined();
+    expect(onError).toHaveBeenCalledWith(taskFailure);
+    expect(laterWork).toHaveBeenCalledOnce();
+    expect(queue.pendingCount()).toBe(0);
+  });
+
+  it("observes a rejecting onError thenable without blocking later work", async () => {
+    const queue = createMemoryWriteQueue();
+    const callbackFailure = new Error("thenable callback failed");
+    let observed = false;
+    const rejectedThenable = {
+      then: (_resolve: () => void, reject: (reason: unknown) => void) => {
+        observed = true;
+        reject(callbackFailure);
+        return Promise.resolve();
+      },
+    } as PromiseLike<void>;
+    const laterWork = vi.fn();
+
+    queue.schedule(async () => {
+      throw new Error("task failed");
+    }, () => rejectedThenable);
+    queue.schedule(async () => {
+      laterWork();
+    });
+
+    await queue.flush();
+    await Promise.resolve();
+
+    expect(observed).toBe(true);
+    expect(laterWork).toHaveBeenCalledOnce();
+    expect(queue.pendingCount()).toBe(0);
+  });
+
+  it("handles a synchronously thrown task and continues with later work", async () => {
+    const queue = createMemoryWriteQueue();
+    const taskFailure = new Error("task failed synchronously");
+    const onError = vi.fn();
+    const laterWork = vi.fn();
+
+    queue.schedule(() => {
+      throw taskFailure;
+    }, onError);
+    queue.schedule(async () => {
+      laterWork();
+    });
+
+    await expect(queue.flush()).resolves.toBeUndefined();
+    expect(onError).toHaveBeenCalledWith(taskFailure);
+    expect(laterWork).toHaveBeenCalledOnce();
+    expect(queue.pendingCount()).toBe(0);
+  });
+
   it("flush waits only for the tail that exists when it is called", async () => {
     const queue = createMemoryWriteQueue();
     const firstGate = createDeferred();

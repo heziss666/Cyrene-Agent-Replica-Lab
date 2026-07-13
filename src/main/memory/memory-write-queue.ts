@@ -15,7 +15,7 @@ export function createMemoryWriteQueue(): MemoryWriteQueue {
         .then(task)
         .catch((error: unknown) => {
           try {
-            onError?.(error);
+            void Promise.resolve(onError?.(error)).catch(() => {});
           } catch {
             // Error reporting must not poison later memory writes.
           }
