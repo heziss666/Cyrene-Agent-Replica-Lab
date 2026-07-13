@@ -182,6 +182,7 @@ export function createMemoryStore(
   const now = options.now ?? Date.now;
   const serializeUpdate = createSerialExecutor();
   let cache: MemoryFile | undefined;
+  let initializationPromise: Promise<MemoryFile> | undefined;
 
   async function archiveCorruptFile(): Promise<void> {
     const corruptPath = join(
@@ -209,8 +210,16 @@ export function createMemoryStore(
   }
 
   async function ensureCache(): Promise<MemoryFile> {
-    if (!cache) cache = await loadFromDisk();
-    return cache;
+    if (cache) return cache;
+    initializationPromise ??= loadFromDisk()
+      .then((loaded) => {
+        cache ??= loaded;
+        return cache;
+      })
+      .finally(() => {
+        initializationPromise = undefined;
+      });
+    return initializationPromise;
   }
 
   return {

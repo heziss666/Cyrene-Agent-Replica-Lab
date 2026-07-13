@@ -8,6 +8,21 @@ import {
   defaultMemoryPath,
 } from "../../src/main/memory/memory-store.js";
 
+const fileSystem = vi.hoisted(() => ({
+  controlledRead: undefined as undefined | ((...args: any[]) => Promise<any>),
+}));
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const original = await importOriginal<typeof import("node:fs/promises")>();
+  const originalReadFile = original.readFile as (...args: any[]) => Promise<any>;
+  return {
+    ...original,
+    readFile: (...args: any[]) => fileSystem.controlledRead
+      ? fileSystem.controlledRead(...args)
+      : originalReadFile(...args),
+  };
+});
+
 const directories: string[] = [];
 
 async function createFilePath(): Promise<string> {
@@ -28,6 +43,7 @@ function deferred(): {
 }
 
 afterEach(async () => {
+  fileSystem.controlledRead = undefined;
   await Promise.all(
     directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })),
   );
@@ -120,6 +136,49 @@ describe("createMemoryStore", () => {
     await Promise.all([first, second]);
 
     expect((await store.load()).l1.recentGoals).toEqual(["first", "second"]);
+  });
+
+  it("does not let a cold load overwrite a committed update", async () => {
+    const filePath = await createFilePath();
+    const staleFile = JSON.stringify({
+      schemaVersion: 1,
+      l0: { longTermInterests: [], permanentNotes: [] },
+      l1: {
+        currentProject: "stale project",
+        recentGoals: [],
+        recentPreferences: [],
+      },
+      l2: [],
+    });
+    const firstReadStarted = deferred();
+    const releaseFirstRead = deferred();
+    let reads = 0;
+    fileSystem.controlledRead = async () => {
+      reads += 1;
+      if (reads === 1) {
+        firstReadStarted.resolve();
+        await releaseFirstRead.promise;
+      }
+      return staleFile;
+    };
+    const store = createMemoryStore({
+      filePath,
+      atomicWrite: vi.fn(async () => undefined),
+    });
+
+    const load = store.load();
+    await firstReadStarted.promise;
+
+    const update = store.update((draft) => {
+      draft.l1.currentProject = "committed project";
+    });
+    for (let turn = 0; turn < 10; turn += 1) {
+      await Promise.resolve();
+    }
+    releaseFirstRead.resolve();
+    await Promise.all([load, update]);
+
+    expect((await store.load()).l1.currentProject).toBe("committed project");
   });
 
   it("archives corrupt JSON without creating a replacement file", async () => {
