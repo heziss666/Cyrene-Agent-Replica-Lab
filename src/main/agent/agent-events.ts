@@ -34,7 +34,7 @@ function isSafeMemoryWriteKey(value: string): value is SafeMemoryWriteKey {
 
 export function filterSafeMemoryWriteKeys(
   writes: readonly string[],
-): SafeMemoryWriteKey[] {
+): readonly SafeMemoryWriteKey[] {
   const safeWrites: SafeMemoryWriteKey[] = [];
   const seen = new Set<SafeMemoryWriteKey>();
   for (const write of writes) {
@@ -56,6 +56,19 @@ export function getSafeMemoryWriteFailureMessage(
     case "write":
       return "Memory write unavailable";
   }
+}
+
+export interface MemoryWriteFinishedEvent {
+  readonly type: "memory_write_finished";
+  readonly writtenCount: number;
+  readonly skippedCount: number;
+  readonly writes: readonly SafeMemoryWriteKey[];
+}
+
+export interface MemoryWriteFailedEvent {
+  readonly type: "memory_write_failed";
+  readonly stage: MemoryWriteFailureStage;
+  readonly message: MemoryWriteFailureMessage;
 }
 
 export type AgentEvent =
@@ -125,17 +138,37 @@ export type AgentEvent =
       type: "memory_judge_finished";
       candidateCount: number;
     }
-  | {
-      type: "memory_write_finished";
-      writtenCount: number;
-      skippedCount: number;
-      writes: SafeMemoryWriteKey[];
-    }
-  | {
-      type: "memory_write_failed";
-      stage: MemoryWriteFailureStage;
-      message: MemoryWriteFailureMessage;
-    };
+  | MemoryWriteFinishedEvent
+  | MemoryWriteFailedEvent;
+
+export interface CreateMemoryWriteFinishedEventInput {
+  writtenCount: number;
+  skippedCount: number;
+  writes: readonly string[];
+}
+
+export function createMemoryWriteFinishedEvent(
+  input: CreateMemoryWriteFinishedEventInput,
+): MemoryWriteFinishedEvent {
+  const writes = Object.freeze([...filterSafeMemoryWriteKeys(input.writes)]);
+  return Object.freeze({
+    type: "memory_write_finished" as const,
+    writtenCount: input.writtenCount,
+    skippedCount: input.skippedCount,
+    writes,
+  });
+}
+
+export function createMemoryWriteFailedEvent(
+  stage: MemoryWriteFailureStage,
+  _error?: unknown,
+): MemoryWriteFailedEvent {
+  return Object.freeze({
+    type: "memory_write_failed" as const,
+    stage,
+    message: getSafeMemoryWriteFailureMessage(stage),
+  });
+}
 
 export interface AgentTraceCollector {
   events: AgentEvent[];

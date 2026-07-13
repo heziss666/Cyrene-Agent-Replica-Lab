@@ -6,6 +6,8 @@ import type {
 } from "../../src/main/agent/agent-events.js";
 import {
   createAgentTraceCollector,
+  createMemoryWriteFailedEvent,
+  createMemoryWriteFinishedEvent,
   filterSafeMemoryWriteKeys,
   formatAgentEventForTerminal,
   getSafeMemoryWriteFailureMessage,
@@ -142,6 +144,45 @@ describe("formatAgentEventForTerminal", () => {
     ]);
   });
 
+  it("constructs frozen memory events that cannot be changed through aliases", () => {
+    const originalWrites = ["L1.currentProject", "candidate secret"];
+    const finished = createMemoryWriteFinishedEvent({
+      writtenCount: 1,
+      skippedCount: 0,
+      writes: originalWrites,
+    });
+    const failed = createMemoryWriteFailedEvent(
+      "judge",
+      new Error("API_KEY=secret"),
+    );
+
+    originalWrites[0] = "L2";
+    originalWrites.push("sentinel-after-construction");
+
+    const mutableAlias = finished.writes as unknown as SafeMemoryWriteKey[];
+    expect(Object.isFrozen(finished)).toBe(true);
+    expect(Object.isFrozen(finished.writes)).toBe(true);
+    expect(Object.isFrozen(failed)).toBe(true);
+    expect(() => mutableAlias.push("L2")).toThrow(TypeError);
+    expect(finished.writes).toEqual(["L1.currentProject"]);
+    expect(failed.message).toBe("Memory judge unavailable");
+    expect(JSON.stringify([finished, failed])).not.toContain("secret");
+    expect(JSON.stringify([finished, failed])).not.toContain(
+      "sentinel-after-construction",
+    );
+  });
+
+  it("accepts readonly event payloads through a compile-time satisfies check", () => {
+    const readonlyPayload = {
+      type: "memory_write_finished",
+      writtenCount: 1,
+      skippedCount: 0,
+      writes: ["L0.language"] as const,
+    } satisfies AgentEvent;
+
+    expect(readonlyPayload.writes).toEqual(["L0.language"]);
+  });
+
   it("formats memory lifecycle events without exposing memory contents", () => {
     const untrustedWrites = [
       "L1.currentProject",
@@ -150,8 +191,12 @@ describe("formatAgentEventForTerminal", () => {
       "candidate secret",
       "L1.currentProject=API_KEY=secret",
     ];
-    const safeWrites = filterSafeMemoryWriteKeys(untrustedWrites);
-    const safeFailureMessage = getSafeMemoryWriteFailureMessage("judge");
+    const finished = createMemoryWriteFinishedEvent({
+      writtenCount: 1,
+      skippedCount: 1,
+      writes: untrustedWrites,
+    });
+    const failed = createMemoryWriteFailedEvent("judge");
     const events: AgentEvent[] = [
       { type: "memory_recall_started" },
       {
@@ -164,17 +209,8 @@ describe("formatAgentEventForTerminal", () => {
       { type: "memory_write_scheduled", pendingCount: 1 },
       { type: "memory_judge_started" },
       { type: "memory_judge_finished", candidateCount: 2 },
-      {
-        type: "memory_write_finished",
-        writtenCount: 1,
-        skippedCount: 1,
-        writes: safeWrites,
-      },
-      {
-        type: "memory_write_failed",
-        stage: "judge",
-        message: safeFailureMessage,
-      },
+      finished,
+      failed,
     ];
 
     expect(events.map(formatAgentEventForTerminal)).toEqual([

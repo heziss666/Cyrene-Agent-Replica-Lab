@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import {
-  filterSafeMemoryWriteKeys,
-  getSafeMemoryWriteFailureMessage,
+  createMemoryWriteFailedEvent,
+  createMemoryWriteFinishedEvent,
 } from "../../src/main/agent/agent-events.js";
 import {
   formatRendererErrorMessage,
@@ -47,8 +47,12 @@ describe("formatRendererEvent", () => {
       "candidate secret",
       "L1.currentProject=API_KEY=secret",
     ];
-    const safeWrites = filterSafeMemoryWriteKeys(untrustedWrites);
-    const safeFailureMessage = getSafeMemoryWriteFailureMessage("judge");
+    const finished = createMemoryWriteFinishedEvent({
+      writtenCount: 1,
+      skippedCount: 1,
+      writes: untrustedWrites,
+    });
+    const failed = createMemoryWriteFailedEvent("judge");
     const events: AgentEvent[] = [
       { type: "memory_recall_started" },
       {
@@ -61,17 +65,8 @@ describe("formatRendererEvent", () => {
       { type: "memory_write_scheduled", pendingCount: 1 },
       { type: "memory_judge_started" },
       { type: "memory_judge_finished", candidateCount: 2 },
-      {
-        type: "memory_write_finished",
-        writtenCount: 1,
-        skippedCount: 1,
-        writes: safeWrites,
-      },
-      {
-        type: "memory_write_failed",
-        stage: "judge",
-        message: safeFailureMessage,
-      },
+      finished,
+      failed,
     ];
 
     expect(events.map(formatRendererEvent)).toEqual([

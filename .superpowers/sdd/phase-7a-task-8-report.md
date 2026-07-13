@@ -28,3 +28,17 @@ Tests:
 - Full suite: `npx.cmd vitest run` passed, 43 files and 290 tests.
 
 The tests assert that rejected write strings and secret-bearing raw errors are absent from both the event payload and terminal/renderer output, while safe keys and generic failure messages remain visible.
+
+## Alias-Mutation Re-review
+
+Status: complete
+
+The safe write-key helper and event payload now use readonly arrays. `createMemoryWriteFinishedEvent` copies, filters, deduplicates, freezes the stored key array, and freezes the event object. `createMemoryWriteFailedEvent` derives the fixed message from stage and ignores any supplied raw error.
+
+Tests:
+
+- RED: focused tests failed with `createMemoryWriteFinishedEvent is not a function` before the construction helpers existed.
+- GREEN: `npx.cmd vitest run tests/agent/agent-events.test.ts tests/renderer/renderer-events.test.ts` passed, 12 tests.
+- Typecheck: `npm.cmd run typecheck` passed.
+
+Runtime coverage mutates the original input, attempts a push through a cast alias, verifies both event objects and the key array are frozen, and checks that sentinels and secret-bearing errors never enter the constructed payload.
