@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   STYLE_OPTIONS,
   getStyleOption,
@@ -25,6 +25,10 @@ export interface CreatePromptComposerOptions {
   readPrompt?: PromptReader;
 }
 
+export function defaultCyrenePromptDir(): string {
+  return fileURLToPath(new URL("../../../resources/cyrene/prompts/", import.meta.url));
+}
+
 function buildTransitionPrompt(transition: StyleTransition): string {
   const from = getStyleOption(transition.from).label;
   const to = getStyleOption(transition.to).label;
@@ -39,8 +43,7 @@ function buildTransitionPrompt(transition: StyleTransition): string {
 export function createPromptComposer(
   options: CreatePromptComposerOptions = {},
 ): PromptComposer {
-  const resourceDir = options.resourceDir
-    ?? resolve(process.cwd(), "resources", "cyrene", "prompts");
+  const resourceDir = options.resourceDir ?? defaultCyrenePromptDir();
   const readPrompt = options.readPrompt ?? createFilePromptReader(resourceDir);
   const core = [
     "runtime-system.md",

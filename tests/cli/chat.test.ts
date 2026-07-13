@@ -3,10 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createInitialHistory,
+  buildModelMessages,
+  createRuntimePromptComposer,
   createRuntimeToolRegistry,
   loadRuntimeModelConfig,
-  SYSTEM_PROMPT,
 } from "../../src/cli/chat.js";
 
 const originalCwd = process.cwd();
@@ -27,23 +27,36 @@ afterEach(() => {
   }
 });
 
-describe("createInitialHistory", () => {
-  it("starts the CLI conversation with one system message", () => {
-    expect(createInitialHistory()).toEqual([
-      {
-        role: "system",
-        content: [
-          "You are Cyrene Replica Lab, a minimal learning agent.",
-          "Answer clearly and briefly.",
-          "When explaining technical ideas, use beginner-friendly wording.",
-        ].join("\n"),
-      },
-    ]);
+describe("CLI persona prompt", () => {
+  it("uses the shared default Cyrene persona", () => {
+    const prompt = createRuntimePromptComposer().composeSystemPrompt({
+      styleId: "default",
+    });
+
+    expect(prompt).toContain("昔涟");
+    expect(prompt).toContain("风格：温柔");
+    expect(prompt).not.toContain("disconnected keyword list");
   });
 
-  it("keeps tool-specific query rules out of the system prompt", () => {
-    expect(SYSTEM_PROMPT).not.toContain("search_knowledge");
-    expect(SYSTEM_PROMPT).not.toContain("disconnected keyword list");
+  it("resolves prompt resources independently from process.cwd", () => {
+    const directory = mkdtempSync(join(tmpdir(), "cyrene-cli-prompt-cwd-"));
+    try {
+      process.chdir(directory);
+      expect(createRuntimePromptComposer().composeSystemPrompt({ styleId: "healing" }))
+        .toContain("风格：治愈");
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("prepends one system message to history for a model request", () => {
+    expect(buildModelMessages("dynamic system", [
+      { role: "user", content: "hello" },
+    ])).toEqual([
+      { role: "system", content: "dynamic system" },
+      { role: "user", content: "hello" },
+    ]);
   });
 });
 
