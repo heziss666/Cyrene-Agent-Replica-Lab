@@ -557,6 +557,7 @@ src/main/memory/memory-recall.ts
 src/main/memory/memory-context.ts
 src/main/memory/memory-write-queue.ts
 src/main/vendors/chat-completion-client.ts
+src/main/app/background-memory-shutdown.ts
 ```
 
 `chat-completion-client.ts` 提供：
@@ -572,6 +573,8 @@ requestChatCompletion(input: {
 ```
 
 它只负责构建一次 HTTP 请求、检查 HTTP 状态、解析 JSON 并调用 `adapter.parseResponse()`。`runToolAgent` 继续负责多轮循环和工具执行，MemoryJudge 只调用一次 `requestChatCompletion()`。
+
+`background-memory-shutdown.ts` 只负责监听 Electron 的 `before-quit` 事件，在仍有后台记忆任务时等待队列完成。它不导入或启动 Electron，因此可以在 Vitest 中独立测试，避免测试 `main.ts` 时触发应用启动副作用。
 
 修改：
 
