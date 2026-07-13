@@ -70,6 +70,27 @@ describe("createMemoryManager", () => {
     expect((await store.load()).l0.preferredName).toBe("小明");
   });
 
+  it("preserves meaningful ZWJ, ZWNJ, and variation selectors in stored content", async () => {
+    const { manager, store } = await createHarness();
+    const womanTechnologist = "\u{1F469}\u200D\u{1F4BB}";
+    const persianWithZwnj = "\u0645\u06cc\u200C\u0631\u0648\u0645";
+    const airplaneEmoji = "\u2708\uFE0F";
+    const values = [womanTechnologist, persianWithZwnj, airplaneEmoji];
+
+    const summary = await manager.writeCandidates({
+      userMessage: values.join(" | "),
+      candidates: values.map((content) => candidate({
+        field: "longTermInterests",
+        content,
+        evidenceQuote: content,
+      })),
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 3, skippedCount: 0 });
+    expect((await store.load()).l0.longTermInterests).toEqual(values);
+    expect((await store.load()).l0.longTermInterests[0]).toBe("👩‍💻");
+  });
+
   it("requires the evidence quote to be an exact user-message substring", async () => {
     const { manager, store } = await createHarness();
 
@@ -194,6 +215,11 @@ describe("createMemoryManager", () => {
       evidenceQuote: "api\u200B.key: example-only",
     },
     {
+      label: "variation-selector-obscured API key evidence",
+      content: "example-only",
+      evidenceQuote: "api\uFE0F.key: example-only",
+    },
+    {
       label: "Unicode-hyphen secret-looking candidate content",
       content: "sk\u2010example-secret-value",
       evidenceQuote: "the Unicode-hyphen value is shown here",
@@ -207,6 +233,11 @@ describe("createMemoryManager", () => {
       label: "punctuation-separated bank-card-like evidence",
       content: "example-only",
       evidenceQuote: "number 6222.0200/0000-0000",
+    },
+    {
+      label: "punctuation-separated Arabic-Indic bank-card-like evidence",
+      content: "example-only",
+      evidenceQuote: "number \u0661\u0662\u0663\u0664.\u0665\u0666\u0667\u0668/\u0669\u0660\u0661\u0662-\u0663\u0664\u0665\u0666",
     },
     {
       label: "Chinese password evidence",
@@ -286,6 +317,32 @@ describe("createMemoryManager", () => {
 
     expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
     expect((await store.load()).l0.longTermInterests).toEqual(["Straße"]);
+  });
+
+  it("renormalizes after case mapping when deduplicating array values", async () => {
+    const { manager, store } = await createHarness();
+    const composed = "\u0130";
+    const canonicallyEquivalent = "i\u0307";
+
+    await manager.writeCandidates({
+      userMessage: composed,
+      candidates: [candidate({
+        field: "longTermInterests",
+        content: composed,
+        evidenceQuote: composed,
+      })],
+    });
+    const duplicateSummary = await manager.writeCandidates({
+      userMessage: canonicallyEquivalent,
+      candidates: [candidate({
+        field: "longTermInterests",
+        content: canonicallyEquivalent,
+        evidenceQuote: canonicallyEquivalent,
+      })],
+    });
+
+    expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expect((await store.load()).l0.longTermInterests).toEqual([composed]);
   });
 
   it("normalizes and deduplicates active L2 content case-insensitively", async () => {
@@ -379,6 +436,56 @@ describe("createMemoryManager", () => {
       confidence: 0.91,
       evidence: {
         userQuote: "I visited Straße",
+        capturedAt: "2026-07-14T08:00:00.000Z",
+      },
+      importance: "medium",
+      createdAt: "2026-07-14T08:00:00.000Z",
+      status: "active",
+    }]);
+  });
+
+  it("renormalizes after case mapping while preserving the original L2 record", async () => {
+    const idFactory = vi.fn()
+      .mockReturnValueOnce("memory-1")
+      .mockReturnValueOnce("memory-2");
+    const { manager, store } = await createHarness({
+      idFactory,
+      now: () => new Date("2026-07-14T08:00:00.000Z"),
+    });
+    const composed = "\u0130";
+    const canonicallyEquivalent = "i\u0307";
+
+    await manager.writeCandidates({
+      userMessage: composed,
+      candidates: [candidate({
+        layer: "L2",
+        field: undefined,
+        content: composed,
+        confidence: 0.91,
+        evidenceQuote: composed,
+        importance: "medium",
+      })],
+    });
+    const duplicateSummary = await manager.writeCandidates({
+      userMessage: canonicallyEquivalent,
+      candidates: [candidate({
+        layer: "L2",
+        field: undefined,
+        content: canonicallyEquivalent,
+        confidence: 0.99,
+        evidenceQuote: canonicallyEquivalent,
+        importance: "high",
+      })],
+    });
+
+    expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expect(idFactory).toHaveBeenCalledOnce();
+    expect((await store.load()).l2).toEqual([{
+      id: "memory-1",
+      content: composed,
+      confidence: 0.91,
+      evidence: {
+        userQuote: composed,
         capturedAt: "2026-07-14T08:00:00.000Z",
       },
       importance: "medium",
@@ -490,6 +597,8 @@ describe("createMemoryManager", () => {
   it.each([
     { label: "content", content: "\u200B", evidenceQuote: "zero-width content" },
     { label: "evidence", content: "Alex", evidenceQuote: "\u200B" },
+    { label: "variation-selector content", content: "\uFE0F", evidenceQuote: "variation-selector content" },
+    { label: "variation-selector evidence", content: "Alex", evidenceQuote: "\uFE0F" },
   ])("rejects format-only Unicode $label as blank", async ({ content, evidenceQuote }) => {
     const { manager, store } = await createHarness();
 

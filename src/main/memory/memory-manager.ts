@@ -51,7 +51,7 @@ const sensitiveCompactLabels = [
   "\u7cbe\u786e\u5730\u5740",
 ];
 const secretLikePattern = /(?<![\p{L}\p{N}])sk[\s\p{P}\u2212]+[\p{L}\p{N}]/iu;
-const bankCardLikePattern = /(?:\d[\s\p{P}\u2212]*){12,18}\d/u;
+const bankCardLikePattern = /(?:\p{Nd}[\s\p{P}\u2212]*){12,18}\p{Nd}/u;
 
 interface ValidatedCandidateBase {
   content: string;
@@ -122,14 +122,14 @@ function validateCandidate(
     || typeof value.importance !== "string"
     || !importanceValues.has(value.importance)
     || typeof value.evidenceQuote !== "string"
-    || normalizeContent(value.evidenceQuote).length === 0
+    || normalizeForInspection(value.evidenceQuote).length === 0
     || typeof value.reason !== "string"
     || !userMessage.includes(value.evidenceQuote)) {
     return undefined;
   }
 
   const content = normalizeContent(value.content);
-  if (content.length === 0
+  if (normalizeForInspection(content).length === 0
     || containsSensitiveData(content)
     || containsSensitiveData(value.evidenceQuote)) {
     return undefined;
@@ -246,24 +246,28 @@ function appendUnique(values: string[], content: string): boolean {
 }
 
 function normalizeContent(value: string): string {
-  return normalizeUnicode(value).trim().replace(/\s+/gu, " ");
+  return value.normalize("NFKC").trim().replace(/\s+/gu, " ");
 }
 
 function dedupeKey(value: string): string {
   // Uppercasing uses built-in multi-character expansions such as ß -> SS.
-  return normalizeContent(value).toUpperCase();
+  return normalizeContent(normalizeContent(value).toUpperCase());
 }
 
 function containsSensitiveData(value: string): boolean {
-  const normalized = normalizeUnicode(value);
+  const normalized = normalizeForInspection(value);
   const compact = normalized.replace(/[\s\p{P}\u2212]+/gu, "").toLowerCase();
   return secretLikePattern.test(normalized)
     || bankCardLikePattern.test(normalized)
     || sensitiveCompactLabels.some((label) => compact.includes(label));
 }
 
-function normalizeUnicode(value: string): string {
-  return value.normalize("NFKC").replace(/\p{Cf}/gu, "");
+function normalizeForInspection(value: string): string {
+  return value
+    .normalize("NFKC")
+    .replace(/\p{Default_Ignorable_Code_Point}/gu, "")
+    .trim()
+    .replace(/\s+/gu, " ");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
