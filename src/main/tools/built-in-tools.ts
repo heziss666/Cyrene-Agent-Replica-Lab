@@ -1,10 +1,15 @@
 import { createDefaultKnowledgeBase } from "../rag/default-knowledge.js";
 import type { EmbeddingProvider } from "../rag/embedding-provider.js";
+import type { VectorIndex } from "../rag/vector-index-types.js";
+import type { RagStorageConfig } from "../config/rag-storage-config.js";
 import { ToolRegistry } from "./tool-registry.js";
 import type { ToolDefinition } from "./tool-types.js";
 
 export interface CreateDefaultToolRegistryOptions {
   embeddingProvider?: EmbeddingProvider;
+  vectorIndex?: VectorIndex;
+  storageConfig?: RagStorageConfig;
+  logger?: (message: string) => void;
 }
 
 function stringifyArg(value: unknown): string {
@@ -81,17 +86,24 @@ const echoTool: ToolDefinition = {
 export function createDefaultToolRegistry(
   options: CreateDefaultToolRegistryOptions = {},
 ): ToolRegistry {
-  const knowledgeBase = createDefaultKnowledgeBase(options.embeddingProvider);
+  const knowledgeBase = createDefaultKnowledgeBase({
+    embeddingProvider: options.embeddingProvider,
+    vectorIndex: options.vectorIndex,
+    storageConfig: options.storageConfig,
+    logger: options.logger,
+  });
   const registry = new ToolRegistry();
   const searchKnowledgeTool: ToolDefinition = {
     id: "search_knowledge",
-    description: "Search the local knowledge base for relevant text snippets.",
+    description:
+      "Search the local knowledge base for relevant text snippets. Formulate the query as a concise, standalone natural-language question rather than a keyword list.",
     parameters: {
       type: "object",
       properties: {
         query: {
           type: "string",
-          description: "Search query describing what knowledge to retrieve.",
+          description:
+            "A concise, standalone natural-language question for semantic vector search. Preserve important entities, actions, relationships, constraints, and relevant conversation context. Do not output a disconnected keyword list.",
         },
         topK: {
           type: "number",

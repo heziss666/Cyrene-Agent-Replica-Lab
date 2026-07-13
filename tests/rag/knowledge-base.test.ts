@@ -55,7 +55,7 @@ describe("createKnowledgeBase", () => {
   });
 
   it("clears documents and vector state", async () => {
-    const clear = vi.fn();
+    const clear = vi.fn(async () => undefined);
     const vectorRetriever = {
       model: "fake-model",
       retrieve: vi.fn(async () => []),
@@ -68,11 +68,29 @@ describe("createKnowledgeBase", () => {
       source: "test",
     });
 
-    knowledgeBase.clear();
+    await knowledgeBase.clear();
     const response = await knowledgeBase.search("disappear");
 
     expect(clear).toHaveBeenCalledOnce();
     expect(response.results).toEqual([]);
+  });
+
+  it("waits for asynchronous vector cleanup", async () => {
+    let clearFinished = false;
+    const knowledgeBase = createKnowledgeBase([], undefined, {
+      vectorRetriever: {
+        model: "fake-model",
+        retrieve: vi.fn(async () => []),
+        clear: vi.fn(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          clearFinished = true;
+        }),
+      },
+    });
+
+    await knowledgeBase.clear();
+
+    expect(clearFinished).toBe(true);
   });
 
   it("creates stable generated document ids", () => {
@@ -114,6 +132,29 @@ describe("createKnowledgeBase", () => {
 
     expect(response.mode).toBe("keyword-fallback");
     expect(response.warning).toBe("Ollama is offline");
+    expect(response.results).toHaveLength(1);
+  });
+
+  it("falls back to keywords when persistent index access fails", async () => {
+    const knowledgeBase = createKnowledgeBase([], undefined, {
+      vectorRetriever: {
+        model: "fake-model",
+        retrieve: vi.fn(async () => {
+          throw new Error("Cannot write vector index");
+        }),
+        clear: vi.fn(async () => undefined),
+      },
+    });
+    knowledgeBase.addDocument({
+      title: "ToolRegistry",
+      text: "ToolRegistry registers tools.",
+      source: "test",
+    });
+
+    const response = await knowledgeBase.search("ToolRegistry");
+
+    expect(response.mode).toBe("keyword-fallback");
+    expect(response.warning).toBe("Cannot write vector index");
     expect(response.results).toHaveLength(1);
   });
 });

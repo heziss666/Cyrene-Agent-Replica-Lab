@@ -6,6 +6,7 @@ import {
   createInitialHistory,
   createRuntimeToolRegistry,
   loadRuntimeModelConfig,
+  SYSTEM_PROMPT,
 } from "../../src/cli/chat.js";
 
 const originalCwd = process.cwd();
@@ -38,6 +39,11 @@ describe("createInitialHistory", () => {
         ].join("\n"),
       },
     ]);
+  });
+
+  it("keeps tool-specific query rules out of the system prompt", () => {
+    expect(SYSTEM_PROMPT).not.toContain("search_knowledge");
+    expect(SYSTEM_PROMPT).not.toContain("disconnected keyword list");
   });
 });
 

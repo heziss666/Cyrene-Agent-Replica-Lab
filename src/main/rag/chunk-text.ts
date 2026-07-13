@@ -5,8 +5,8 @@ export interface ChunkDocumentOptions {
   overlapChars?: number;
 }
 
-const DEFAULT_CHUNK_SIZE_CHARS = 600;
-const DEFAULT_OVERLAP_CHARS = 120;
+export const DEFAULT_CHUNK_SIZE_CHARS = 600;
+export const DEFAULT_OVERLAP_CHARS = 120;
 
 export function chunkDocument(
   document: KnowledgeDocument,
