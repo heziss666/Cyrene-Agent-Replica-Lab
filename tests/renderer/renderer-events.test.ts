@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import {
+  filterSafeMemoryWriteKeys,
+  getSafeMemoryWriteFailureMessage,
+} from "../../src/main/agent/agent-events.js";
+import {
   formatRendererErrorMessage,
   formatRendererEvent,
   formatRendererEventPayload,
@@ -36,6 +40,15 @@ describe("formatRendererEvent", () => {
   });
 
   it("formats memory lifecycle events without exposing memory contents", () => {
+    const untrustedWrites = [
+      "L1.currentProject",
+      "L1.currentProject",
+      "L2",
+      "candidate secret",
+      "L1.currentProject=API_KEY=secret",
+    ];
+    const safeWrites = filterSafeMemoryWriteKeys(untrustedWrites);
+    const safeFailureMessage = getSafeMemoryWriteFailureMessage("judge");
     const events: AgentEvent[] = [
       { type: "memory_recall_started" },
       {
@@ -52,12 +65,12 @@ describe("formatRendererEvent", () => {
         type: "memory_write_finished",
         writtenCount: 1,
         skippedCount: 1,
-        writes: ["L1.currentProject", "API_KEY=secret"],
+        writes: safeWrites,
       },
       {
         type: "memory_write_failed",
         stage: "judge",
-        message: "model unavailable; evidence=private note",
+        message: safeFailureMessage,
       },
     ];
 
@@ -67,13 +80,18 @@ describe("formatRendererEvent", () => {
       "Memory write scheduled: 1 pending",
       "Memory judge started",
       "Memory judge finished: 2 candidates",
-      "Memory write finished: 1 written, 1 skipped",
-      "Memory write failed during judge",
+      "Memory write finished: 1 written, 1 skipped (keys: L1.currentProject, L2)",
+      "Memory write failed during judge: Memory judge unavailable",
     ]);
 
+    const payload = JSON.stringify(events);
     const output = events.map(formatRendererEvent).join("\n");
+    expect(payload).not.toContain("candidate secret");
+    expect(payload).not.toContain("API_KEY=secret");
+    expect(output).not.toContain("candidate secret");
     expect(output).not.toContain("API_KEY=secret");
-    expect(output).not.toContain("private note");
+    expect(output).not.toContain("evidence");
+    expect(output.length).toBeLessThan(400);
   });
 });
 

@@ -1,4 +1,8 @@
-import type { AgentEvent } from "../../main/agent/agent-events.js";
+import {
+  filterSafeMemoryWriteKeys,
+  getSafeMemoryWriteFailureMessage,
+  type AgentEvent,
+} from "../../main/agent/agent-events.js";
 import type { ChatAgentEventPayload } from "../../shared/electron-api.js";
 
 export function formatRendererEvent(event: AgentEvent): string {
@@ -29,10 +33,12 @@ export function formatRendererEvent(event: AgentEvent): string {
       return "Memory judge started";
     case "memory_judge_finished":
       return `Memory judge finished: ${event.candidateCount} candidates`;
-    case "memory_write_finished":
-      return `Memory write finished: ${event.writtenCount} written, ${event.skippedCount} skipped`;
+    case "memory_write_finished": {
+      const writes = filterSafeMemoryWriteKeys(event.writes);
+      return `Memory write finished: ${event.writtenCount} written, ${event.skippedCount} skipped (keys: ${writes.join(", ") || "none"})`;
+    }
     case "memory_write_failed":
-      return `Memory write failed during ${event.stage}`;
+      return `Memory write failed during ${event.stage}: ${getSafeMemoryWriteFailureMessage(event.stage)}`;
   }
 }
 

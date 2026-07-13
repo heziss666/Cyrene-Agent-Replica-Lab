@@ -1,3 +1,63 @@
+export type SafeMemoryWriteKey =
+  | "L0.preferredName"
+  | "L0.occupation"
+  | "L0.longTermInterests"
+  | "L0.language"
+  | "L0.permanentNotes"
+  | "L1.currentProject"
+  | "L1.recentGoals"
+  | "L1.recentPreferences"
+  | "L2";
+
+export type MemoryWriteFailureStage = "recall" | "judge" | "write";
+
+export type MemoryWriteFailureMessage =
+  | "Memory recall unavailable"
+  | "Memory judge unavailable"
+  | "Memory write unavailable";
+
+const SAFE_MEMORY_WRITE_KEYS: ReadonlySet<string> = new Set([
+  "L0.preferredName",
+  "L0.occupation",
+  "L0.longTermInterests",
+  "L0.language",
+  "L0.permanentNotes",
+  "L1.currentProject",
+  "L1.recentGoals",
+  "L1.recentPreferences",
+  "L2",
+]);
+
+function isSafeMemoryWriteKey(value: string): value is SafeMemoryWriteKey {
+  return SAFE_MEMORY_WRITE_KEYS.has(value);
+}
+
+export function filterSafeMemoryWriteKeys(
+  writes: readonly string[],
+): SafeMemoryWriteKey[] {
+  const safeWrites: SafeMemoryWriteKey[] = [];
+  const seen = new Set<SafeMemoryWriteKey>();
+  for (const write of writes) {
+    if (!isSafeMemoryWriteKey(write) || seen.has(write)) continue;
+    seen.add(write);
+    safeWrites.push(write);
+  }
+  return safeWrites;
+}
+
+export function getSafeMemoryWriteFailureMessage(
+  stage: MemoryWriteFailureStage,
+): MemoryWriteFailureMessage {
+  switch (stage) {
+    case "recall":
+      return "Memory recall unavailable";
+    case "judge":
+      return "Memory judge unavailable";
+    case "write":
+      return "Memory write unavailable";
+  }
+}
+
 export type AgentEvent =
   | {
       type: "run_started";
@@ -69,12 +129,12 @@ export type AgentEvent =
       type: "memory_write_finished";
       writtenCount: number;
       skippedCount: number;
-      writes: string[];
+      writes: SafeMemoryWriteKey[];
     }
   | {
       type: "memory_write_failed";
-      stage: "recall" | "judge" | "write";
-      message: string;
+      stage: MemoryWriteFailureStage;
+      message: MemoryWriteFailureMessage;
     };
 
 export interface AgentTraceCollector {
@@ -115,10 +175,12 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return "[memory] judge started";
     case "memory_judge_finished":
       return `[memory] judge finished candidates=${event.candidateCount}`;
-    case "memory_write_finished":
-      return `[memory] write finished written=${event.writtenCount} skipped=${event.skippedCount}`;
+    case "memory_write_finished": {
+      const writes = filterSafeMemoryWriteKeys(event.writes);
+      return `[memory] write finished written=${event.writtenCount} skipped=${event.skippedCount} keys=${writes.join(",") || "none"}`;
+    }
     case "memory_write_failed":
-      return `[memory] write failed stage=${event.stage}`;
+      return `[memory] write failed stage=${event.stage} message=${getSafeMemoryWriteFailureMessage(event.stage)}`;
   }
 }
 

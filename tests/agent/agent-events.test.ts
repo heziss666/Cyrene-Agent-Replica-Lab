@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { AgentEvent } from "../../src/main/agent/agent-events.js";
+import type {
+  AgentEvent,
+  MemoryWriteFailureMessage,
+  SafeMemoryWriteKey,
+} from "../../src/main/agent/agent-events.js";
 import {
   createAgentTraceCollector,
+  filterSafeMemoryWriteKeys,
   formatAgentEventForTerminal,
+  getSafeMemoryWriteFailureMessage,
 } from "../../src/main/agent/agent-events.js";
 
 describe("formatAgentEventForTerminal", () => {
@@ -79,7 +85,73 @@ describe("formatAgentEventForTerminal", () => {
     ).toBe(`[run] error first line ${"x".repeat(144)}...`);
   });
 
+  it("filters and deduplicates memory write keys and maps failure stages safely", () => {
+    expect(
+      filterSafeMemoryWriteKeys([
+        "L0.preferredName",
+        "L0.occupation",
+        "L0.longTermInterests",
+        "L0.language",
+        "L0.permanentNotes",
+        "L1.currentProject",
+        "L1.recentGoals",
+        "L1.recentPreferences",
+        "L2",
+        "L2",
+        "L0.preferredName",
+        "candidate secret",
+        "L1.currentProject=API_KEY=secret",
+      ]),
+    ).toEqual([
+      "L0.preferredName",
+      "L0.occupation",
+      "L0.longTermInterests",
+      "L0.language",
+      "L0.permanentNotes",
+      "L1.currentProject",
+      "L1.recentGoals",
+      "L1.recentPreferences",
+      "L2",
+    ]);
+
+    expect(
+      (["recall", "judge", "write"] as const).map(
+        getSafeMemoryWriteFailureMessage,
+      ),
+    ).toEqual([
+      "Memory recall unavailable",
+      "Memory judge unavailable",
+      "Memory write unavailable",
+    ]);
+  });
+
+  it("rejects unsafe memory event payload values at the type boundary", () => {
+    const safeKey: SafeMemoryWriteKey = "L0.preferredName";
+    const safeMessage: MemoryWriteFailureMessage = "Memory write unavailable";
+
+    // @ts-expect-error Arbitrary write keys must not cross the event boundary.
+    const unsafeKey: SafeMemoryWriteKey = "L0.secret";
+    // @ts-expect-error Raw exception text must not cross the event boundary.
+    const unsafeMessage: MemoryWriteFailureMessage = "API_KEY=secret";
+
+    expect([safeKey, safeMessage, unsafeKey, unsafeMessage]).toEqual([
+      "L0.preferredName",
+      "Memory write unavailable",
+      "L0.secret",
+      "API_KEY=secret",
+    ]);
+  });
+
   it("formats memory lifecycle events without exposing memory contents", () => {
+    const untrustedWrites = [
+      "L1.currentProject",
+      "L1.currentProject",
+      "L2",
+      "candidate secret",
+      "L1.currentProject=API_KEY=secret",
+    ];
+    const safeWrites = filterSafeMemoryWriteKeys(untrustedWrites);
+    const safeFailureMessage = getSafeMemoryWriteFailureMessage("judge");
     const events: AgentEvent[] = [
       { type: "memory_recall_started" },
       {
@@ -96,12 +168,12 @@ describe("formatAgentEventForTerminal", () => {
         type: "memory_write_finished",
         writtenCount: 1,
         skippedCount: 1,
-        writes: ["L1.currentProject", "API_KEY=secret"],
+        writes: safeWrites,
       },
       {
         type: "memory_write_failed",
         stage: "judge",
-        message: "model unavailable; evidence=private note",
+        message: safeFailureMessage,
       },
     ];
 
@@ -111,13 +183,17 @@ describe("formatAgentEventForTerminal", () => {
       "[memory] write scheduled pending=1",
       "[memory] judge started",
       "[memory] judge finished candidates=2",
-      "[memory] write finished written=1 skipped=1",
-      "[memory] write failed stage=judge",
+      "[memory] write finished written=1 skipped=1 keys=L1.currentProject,L2",
+      "[memory] write failed stage=judge message=Memory judge unavailable",
     ]);
 
+    const payload = JSON.stringify(events);
     const output = events.map(formatAgentEventForTerminal).join("\n");
+    expect(payload).not.toContain("candidate secret");
+    expect(payload).not.toContain("API_KEY=secret");
+    expect(output).not.toContain("candidate secret");
     expect(output).not.toContain("API_KEY=secret");
-    expect(output).not.toContain("private note");
+    expect(output).not.toContain("evidence");
   });
 });
 
