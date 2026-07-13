@@ -19,6 +19,20 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `Run finished: ${event.roundsUsed} rounds, ${event.toolResultCount} tool results`;
     case "run_error":
       return `Run failed: ${event.message}`;
+    case "memory_recall_started":
+      return "Memory recall started";
+    case "memory_recall_finished":
+      return `Memory recall finished: mode=${event.mode}, L0=${event.l0Included ? "yes" : "no"}, L1=${event.l1Included ? "yes" : "no"}, L2=${event.l2Count}`;
+    case "memory_write_scheduled":
+      return `Memory write scheduled: ${event.pendingCount} pending`;
+    case "memory_judge_started":
+      return "Memory judge started";
+    case "memory_judge_finished":
+      return `Memory judge finished: ${event.candidateCount} candidates`;
+    case "memory_write_finished":
+      return `Memory write finished: ${event.writtenCount} written, ${event.skippedCount} skipped`;
+    case "memory_write_failed":
+      return `Memory write failed during ${event.stage}`;
   }
 }
 

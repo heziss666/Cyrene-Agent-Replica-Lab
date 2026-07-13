@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import {
   createAgentTraceCollector,
   formatAgentEventForTerminal,
@@ -76,6 +77,47 @@ describe("formatAgentEventForTerminal", () => {
         message: `first line\n${"x".repeat(200)}`,
       }),
     ).toBe(`[run] error first line ${"x".repeat(144)}...`);
+  });
+
+  it("formats memory lifecycle events without exposing memory contents", () => {
+    const events: AgentEvent[] = [
+      { type: "memory_recall_started" },
+      {
+        type: "memory_recall_finished",
+        l0Included: true,
+        l1Included: true,
+        l2Count: 2,
+        mode: "vector",
+      },
+      { type: "memory_write_scheduled", pendingCount: 1 },
+      { type: "memory_judge_started" },
+      { type: "memory_judge_finished", candidateCount: 2 },
+      {
+        type: "memory_write_finished",
+        writtenCount: 1,
+        skippedCount: 1,
+        writes: ["L1.currentProject", "API_KEY=secret"],
+      },
+      {
+        type: "memory_write_failed",
+        stage: "judge",
+        message: "model unavailable; evidence=private note",
+      },
+    ];
+
+    expect(events.map(formatAgentEventForTerminal)).toEqual([
+      "[memory] recall started",
+      "[memory] recall finished mode=vector l0=true l1=true l2=2",
+      "[memory] write scheduled pending=1",
+      "[memory] judge started",
+      "[memory] judge finished candidates=2",
+      "[memory] write finished written=1 skipped=1",
+      "[memory] write failed stage=judge",
+    ]);
+
+    const output = events.map(formatAgentEventForTerminal).join("\n");
+    expect(output).not.toContain("API_KEY=secret");
+    expect(output).not.toContain("private note");
   });
 });
 

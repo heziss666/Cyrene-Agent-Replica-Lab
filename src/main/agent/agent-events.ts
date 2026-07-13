@@ -43,6 +43,38 @@ export type AgentEvent =
   | {
       type: "run_error";
       message: string;
+    }
+  | {
+      type: "memory_recall_started";
+    }
+  | {
+      type: "memory_recall_finished";
+      l0Included: boolean;
+      l1Included: boolean;
+      l2Count: number;
+      mode: "vector" | "keyword-fallback";
+    }
+  | {
+      type: "memory_write_scheduled";
+      pendingCount: number;
+    }
+  | {
+      type: "memory_judge_started";
+    }
+  | {
+      type: "memory_judge_finished";
+      candidateCount: number;
+    }
+  | {
+      type: "memory_write_finished";
+      writtenCount: number;
+      skippedCount: number;
+      writes: string[];
+    }
+  | {
+      type: "memory_write_failed";
+      stage: "recall" | "judge" | "write";
+      message: string;
     };
 
 export interface AgentTraceCollector {
@@ -73,6 +105,20 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[run] finished rounds=${event.roundsUsed} toolResults=${event.toolResultCount}`;
     case "run_error":
       return `[run] error ${preview(event.message)}`;
+    case "memory_recall_started":
+      return "[memory] recall started";
+    case "memory_recall_finished":
+      return `[memory] recall finished mode=${event.mode} l0=${event.l0Included} l1=${event.l1Included} l2=${event.l2Count}`;
+    case "memory_write_scheduled":
+      return `[memory] write scheduled pending=${event.pendingCount}`;
+    case "memory_judge_started":
+      return "[memory] judge started";
+    case "memory_judge_finished":
+      return `[memory] judge finished candidates=${event.candidateCount}`;
+    case "memory_write_finished":
+      return `[memory] write finished written=${event.writtenCount} skipped=${event.skippedCount}`;
+    case "memory_write_failed":
+      return `[memory] write failed stage=${event.stage}`;
   }
 }
 

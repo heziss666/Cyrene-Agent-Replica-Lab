@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import {
   formatRendererErrorMessage,
   formatRendererEvent,
@@ -32,6 +33,47 @@ describe("formatRendererEvent", () => {
         message: "Model request failed",
       }),
     ).toBe("Run failed: Model request failed");
+  });
+
+  it("formats memory lifecycle events without exposing memory contents", () => {
+    const events: AgentEvent[] = [
+      { type: "memory_recall_started" },
+      {
+        type: "memory_recall_finished",
+        l0Included: true,
+        l1Included: true,
+        l2Count: 2,
+        mode: "vector",
+      },
+      { type: "memory_write_scheduled", pendingCount: 1 },
+      { type: "memory_judge_started" },
+      { type: "memory_judge_finished", candidateCount: 2 },
+      {
+        type: "memory_write_finished",
+        writtenCount: 1,
+        skippedCount: 1,
+        writes: ["L1.currentProject", "API_KEY=secret"],
+      },
+      {
+        type: "memory_write_failed",
+        stage: "judge",
+        message: "model unavailable; evidence=private note",
+      },
+    ];
+
+    expect(events.map(formatRendererEvent)).toEqual([
+      "Memory recall started",
+      "Memory recall finished: mode=vector, L0=yes, L1=yes, L2=2",
+      "Memory write scheduled: 1 pending",
+      "Memory judge started",
+      "Memory judge finished: 2 candidates",
+      "Memory write finished: 1 written, 1 skipped",
+      "Memory write failed during judge",
+    ]);
+
+    const output = events.map(formatRendererEvent).join("\n");
+    expect(output).not.toContain("API_KEY=secret");
+    expect(output).not.toContain("private note");
   });
 });
 
