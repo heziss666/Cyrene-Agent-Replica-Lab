@@ -16,6 +16,11 @@ export type MemoryWriteFailureMessage =
   | "Memory judge unavailable"
   | "Memory write unavailable";
 
+declare const memoryWriteEventBrand: unique symbol;
+type MemoryWriteEventBrand = {
+  readonly [memoryWriteEventBrand]: true;
+};
+
 const SAFE_MEMORY_WRITE_KEYS: ReadonlySet<string> = new Set([
   "L0.preferredName",
   "L0.occupation",
@@ -58,18 +63,18 @@ export function getSafeMemoryWriteFailureMessage(
   }
 }
 
-export interface MemoryWriteFinishedEvent {
+type MemoryWriteFinishedEvent = {
   readonly type: "memory_write_finished";
   readonly writtenCount: number;
   readonly skippedCount: number;
   readonly writes: readonly SafeMemoryWriteKey[];
-}
+} & MemoryWriteEventBrand;
 
-export interface MemoryWriteFailedEvent {
+type MemoryWriteFailedEvent = {
   readonly type: "memory_write_failed";
   readonly stage: MemoryWriteFailureStage;
   readonly message: MemoryWriteFailureMessage;
-}
+} & MemoryWriteEventBrand;
 
 export type AgentEvent =
   | {
@@ -156,7 +161,7 @@ export function createMemoryWriteFinishedEvent(
     writtenCount: input.writtenCount,
     skippedCount: input.skippedCount,
     writes,
-  });
+  }) as MemoryWriteFinishedEvent;
 }
 
 export function createMemoryWriteFailedEvent(
@@ -167,7 +172,7 @@ export function createMemoryWriteFailedEvent(
     type: "memory_write_failed" as const,
     stage,
     message: getSafeMemoryWriteFailureMessage(stage),
-  });
+  }) as MemoryWriteFailedEvent;
 }
 
 export interface AgentTraceCollector {

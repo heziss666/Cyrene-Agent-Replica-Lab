@@ -172,15 +172,23 @@ describe("formatAgentEventForTerminal", () => {
     );
   });
 
-  it("accepts readonly event payloads through a compile-time satisfies check", () => {
-    const readonlyPayload = {
+  it("rejects direct structural construction of branded memory events", () => {
+    const directFinished = {
       type: "memory_write_finished",
       writtenCount: 1,
       skippedCount: 0,
       writes: ["L0.language"] as const,
+      // @ts-expect-error Memory write events must be created by the factory.
+    } satisfies AgentEvent;
+    const directFailed = {
+      type: "memory_write_failed",
+      stage: "judge",
+      message: "Memory judge unavailable",
+      // @ts-expect-error Memory failure events must be created by the factory.
     } satisfies AgentEvent;
 
-    expect(readonlyPayload.writes).toEqual(["L0.language"]);
+    expect(directFinished.writes).toEqual(["L0.language"]);
+    expect(directFailed.message).toBe("Memory judge unavailable");
   });
 
   it("formats memory lifecycle events without exposing memory contents", () => {
@@ -191,10 +199,16 @@ describe("formatAgentEventForTerminal", () => {
       "candidate secret",
       "L1.currentProject=API_KEY=secret",
     ];
+    const readonlyWrites = ["L0.language"] as const satisfies readonly string[];
     const finished = createMemoryWriteFinishedEvent({
       writtenCount: 1,
       skippedCount: 1,
       writes: untrustedWrites,
+    });
+    const readonlyFinished = createMemoryWriteFinishedEvent({
+      writtenCount: 1,
+      skippedCount: 0,
+      writes: readonlyWrites,
     });
     const failed = createMemoryWriteFailedEvent("judge");
     const events: AgentEvent[] = [
@@ -230,6 +244,7 @@ describe("formatAgentEventForTerminal", () => {
     expect(output).not.toContain("candidate secret");
     expect(output).not.toContain("API_KEY=secret");
     expect(output).not.toContain("evidence");
+    expect(readonlyFinished.writes).toEqual(["L0.language"]);
   });
 });
 

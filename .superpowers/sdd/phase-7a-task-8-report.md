@@ -42,3 +42,15 @@ Tests:
 - Typecheck: `npm.cmd run typecheck` passed.
 
 Runtime coverage mutates the original input, attempts a push through a cast alias, verifies both event objects and the key array are frozen, and checks that sentinels and secret-bearing errors never enter the constructed payload.
+
+## Factory-Only Construction Re-review
+
+Status: complete
+
+Added a module-private type-only `unique symbol` brand to the finished and failed memory event variants. The brand is not exported or emitted, so factory-created IPC data contains only the public safe fields. Direct structural object literals with otherwise safe fields are rejected by TypeScript; only the two exported factories return branded variants.
+
+Tests:
+
+- RED: `npm.cmd run typecheck` failed with both new `@ts-expect-error` directives unused before branding.
+- GREEN: `npx.cmd vitest run tests/agent/agent-events.test.ts tests/renderer/renderer-events.test.ts` passed, 12 tests.
+- Typecheck: `npm.cmd run typecheck` passed with both expectations active.
