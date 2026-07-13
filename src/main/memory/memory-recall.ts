@@ -38,6 +38,7 @@ export interface MemoryRecallService {
 export interface CreateMemoryRecallServiceOptions {
   store: MemoryStore;
   embeddingProvider?: EmbeddingProvider;
+  /** The memory index lifecycle owner when supplied, including with an injected retriever. */
   vectorIndex?: VectorIndex;
   vectorRetriever?: VectorRetriever;
   createVectorIndex?: typeof createJsonVectorIndex;
@@ -48,9 +49,21 @@ export interface CreateMemoryRecallServiceOptions {
   logger?: (message: string) => void;
 }
 
-function createDefaultVectorRetriever(
+interface MemoryVectorDependencies {
+  vectorRetriever: VectorRetriever;
+  memoryVectorIndex?: VectorIndex;
+}
+
+function resolveMemoryVectorDependencies(
   options: CreateMemoryRecallServiceOptions,
-): VectorRetriever {
+): MemoryVectorDependencies {
+  if (options.vectorRetriever) {
+    return {
+      vectorRetriever: options.vectorRetriever,
+      memoryVectorIndex: options.vectorIndex,
+    };
+  }
+
   const embeddingProvider = options.embeddingProvider
     ?? createOllamaEmbeddingProvider(loadEmbeddingConfig());
   const storageConfig = options.storageConfig ?? loadRagStorageConfig();
@@ -67,7 +80,10 @@ function createDefaultVectorRetriever(
       logger: options.logger,
     });
 
-  return createVectorRetriever(embeddingProvider, vectorIndex);
+  return {
+    vectorRetriever: createVectorRetriever(embeddingProvider, vectorIndex),
+    memoryVectorIndex: vectorIndex,
+  };
 }
 
 function memoryDocuments(
@@ -84,8 +100,8 @@ function memoryDocuments(
 export function createMemoryRecallService(
   options: CreateMemoryRecallServiceOptions,
 ): MemoryRecallService {
-  const vectorRetriever = options.vectorRetriever
-    ?? createDefaultVectorRetriever(options);
+  const { vectorRetriever, memoryVectorIndex } =
+    resolveMemoryVectorDependencies(options);
   const createKnowledgeBaseFactory = options.createKnowledgeBase
     ?? createKnowledgeBase;
   const minScore = options.minScore ?? DEFAULT_MIN_SCORE;
@@ -94,8 +110,14 @@ export function createMemoryRecallService(
   return {
     async recall(query): Promise<MemoryRecallResult> {
       const memoryFile = await options.store.load();
+      const l0 = structuredClone(memoryFile.l0);
+      const l1 = structuredClone(memoryFile.l1);
       if (memoryFile.l2.length === 0) {
-        return { l0: memoryFile.l0, l1: memoryFile.l1, l2: [] };
+        if (memoryVectorIndex) {
+          await memoryVectorIndex.initialize();
+          await memoryVectorIndex.prune([]);
+        }
+        return { l0, l1, l2: [] };
       }
 
       const knowledgeBase: KnowledgeBase = createKnowledgeBaseFactory(
@@ -123,10 +145,13 @@ export function createMemoryRecallService(
       }
 
       const recallResult: MemoryRecallResult = {
-        l0: memoryFile.l0,
-        l1: memoryFile.l1,
+        l0,
+        l1,
         l2: [...highestByMemoryId.values()]
-          .sort((left, right) => right.score - left.score)
+          .sort(
+            (left, right) => right.score - left.score
+              || left.memory.id.localeCompare(right.memory.id),
+          )
           .slice(0, maxResults),
         retrievalMode: response.mode,
       };

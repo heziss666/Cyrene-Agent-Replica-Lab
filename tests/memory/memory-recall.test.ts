@@ -18,7 +18,11 @@ import type {
   KnowledgeChunk,
   KnowledgeSearchResponse,
 } from "../../src/main/rag/rag-types.js";
-import type { VectorRetriever } from "../../src/main/rag/vector-retriever.js";
+import { hashText } from "../../src/main/rag/text-hash.js";
+import {
+  createVectorRetriever,
+  type VectorRetriever,
+} from "../../src/main/rag/vector-retriever.js";
 
 function createMemory(id: string, content = `Content for ${id}`): L2Memory {
   return {
@@ -91,6 +95,32 @@ function createFakeKnowledgeBase(
 }
 
 describe("createMemoryRecallService", () => {
+  it("returns defensive L0 and L1 copies when the store shares objects", async () => {
+    const source = createMemoryFile();
+    const store: MemoryStore = {
+      load: vi.fn(async () => source),
+      update: vi.fn(async () => source),
+    };
+    const service = createMemoryRecallService({
+      store,
+      vectorRetriever: createRetriever(),
+    });
+
+    const first = await service.recall("query");
+    first.l0.longTermInterests.push("mutated");
+    first.l1.recentGoals.push("mutated");
+    const second = await service.recall("query");
+
+    expect(source.l0.longTermInterests).toEqual(["agents"]);
+    expect(source.l1.recentGoals).toEqual(["ship recall"]);
+    expect(second.l0.longTermInterests).toEqual(["agents"]);
+    expect(second.l1.recentGoals).toEqual(["ship recall"]);
+    expect(first.l0).not.toBe(source.l0);
+    expect(first.l1).not.toBe(source.l1);
+    expect(second.l0).not.toBe(first.l0);
+    expect(second.l1).not.toBe(first.l1);
+  });
+
   it("returns L0 and L1 without invoking retrieval when L2 is empty", async () => {
     const file = createMemoryFile();
     const retriever = createRetriever();
@@ -103,6 +133,66 @@ describe("createMemoryRecallService", () => {
 
     expect(result).toEqual({ l0: file.l0, l1: file.l1, l2: [] });
     expect(retriever.retrieve).not.toHaveBeenCalled();
+  });
+
+  it("prunes the memory index directly when authoritative L2 becomes empty", async () => {
+    const memory = createMemory("memory-1");
+    const files = [createMemoryFile([memory]), createMemoryFile()];
+    const store: MemoryStore = {
+      load: vi.fn(async () => structuredClone(files.shift()!)),
+      update: vi.fn(async () => createMemoryFile()),
+    };
+    const embeddingProvider: EmbeddingProvider = {
+      id: "fake-provider",
+      model: "fake-model",
+      embedDocuments: vi.fn(async () => [[1, 0]]),
+      embedQuery: vi.fn(async () => [1, 0]),
+    };
+    const vectorIndex = createInMemoryVectorIndex();
+    const initialize = vi.spyOn(vectorIndex, "initialize");
+    const prune = vi.spyOn(vectorIndex, "prune");
+    const vectorRetriever = createVectorRetriever(embeddingProvider, vectorIndex);
+    const retrieve = vi.spyOn(vectorRetriever, "retrieve");
+    const knowledgeBases: KnowledgeBase[] = [];
+    const createKnowledgeBaseFactory = vi.fn(
+      (...args: Parameters<typeof createKnowledgeBase>) => {
+        const knowledgeBase = createKnowledgeBase(...args);
+        vi.spyOn(knowledgeBase, "search");
+        knowledgeBases.push(knowledgeBase);
+        return knowledgeBase;
+      },
+    );
+    const service = createMemoryRecallService({
+      store,
+      embeddingProvider,
+      vectorIndex,
+      vectorRetriever,
+      createKnowledgeBase: createKnowledgeBaseFactory,
+    });
+
+    await service.recall("query");
+    expect(vectorIndex.has("memory-1_chunk_0", hashText(memory.content))).toBe(true);
+
+    vi.mocked(embeddingProvider.embedDocuments).mockClear();
+    vi.mocked(embeddingProvider.embedQuery).mockClear();
+    initialize.mockClear();
+    prune.mockClear();
+    retrieve.mockClear();
+    createKnowledgeBaseFactory.mockClear();
+    vi.mocked(knowledgeBases[0].search).mockClear();
+
+    const result = await service.recall("query");
+
+    expect(result.l2).toEqual([]);
+    expect(initialize).toHaveBeenCalledOnce();
+    expect(prune).toHaveBeenCalledOnce();
+    expect(prune).toHaveBeenCalledWith([]);
+    expect(vectorIndex.has("memory-1_chunk_0", hashText(memory.content))).toBe(false);
+    expect(embeddingProvider.embedDocuments).not.toHaveBeenCalled();
+    expect(embeddingProvider.embedQuery).not.toHaveBeenCalled();
+    expect(retrieve).not.toHaveBeenCalled();
+    expect(createKnowledgeBaseFactory).not.toHaveBeenCalled();
+    expect(knowledgeBases[0].search).not.toHaveBeenCalled();
   });
 
   it("indexes L2 documents with memory IDs and maps chunks back to memories", async () => {
@@ -163,6 +253,30 @@ describe("createMemoryRecallService", () => {
 
     expect(knowledgeBase.search).toHaveBeenCalledWith("query", 5);
     expect(result.l2.map(({ score }) => score)).toEqual([0.91, 0.70, 0.50]);
+  });
+
+  it("breaks equal-score ties by memory ID regardless of input order", async () => {
+    const memory1 = createMemory("memory-1");
+    const memory2 = createMemory("memory-2");
+    const knowledgeBase = createFakeKnowledgeBase({
+      mode: "vector",
+      results: [
+        { chunk: createChunk(memory2), score: 0.8 },
+        { chunk: createChunk(memory1), score: 0.8 },
+      ],
+    });
+    const service = createMemoryRecallService({
+      store: createStore(createMemoryFile([memory2, memory1])),
+      vectorRetriever: createRetriever(),
+      createKnowledgeBase: vi.fn(() => knowledgeBase),
+    });
+
+    const result = await service.recall("query");
+
+    expect(result.l2.map(({ memory }) => memory.id)).toEqual([
+      "memory-1",
+      "memory-2",
+    ]);
   });
 
   it("propagates keyword fallback metadata while mapping known memory IDs", async () => {
