@@ -53,6 +53,39 @@ export function auditMemoryFile(memory: MemoryFile): MemoryAuditReport {
         }
       }
     }
+
+    const sourceIds = new Set(item.sourceMemoryIds);
+    const snapshotIds = new Set(item.sourceSnapshots.map((snapshot) => snapshot.memoryId));
+    for (const snapshot of item.sourceSnapshots) {
+      if (!memoriesById.has(snapshot.memoryId)) {
+        findings.push(finding(
+          "source_snapshot_missing",
+          "error",
+          item.id,
+          snapshot.memoryId,
+        ));
+      }
+    }
+    for (const sourceId of item.sourceMemoryIds) {
+      if (!snapshotIds.has(sourceId)) {
+        findings.push(finding(
+          "source_snapshot_mismatch",
+          "error",
+          item.id,
+          sourceId,
+        ));
+      }
+    }
+    for (const snapshotId of snapshotIds) {
+      if (!sourceIds.has(snapshotId)) {
+        findings.push(finding(
+          "source_snapshot_mismatch",
+          "error",
+          item.id,
+          snapshotId,
+        ));
+      }
+    }
   }
 
   return { ok: findings.length === 0, findings };

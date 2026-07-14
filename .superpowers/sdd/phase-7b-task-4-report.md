@@ -58,3 +58,46 @@ PASS
 ## Concerns
 
 None. IPC, UI, conflict detection/resolution, lifecycle, and scheduling remain intentionally out of scope.
+
+## Review Hardening
+
+Status: DONE
+
+### RED Evidence
+
+```text
+npx.cmd vitest run tests/memory/memory-governance.test.ts tests/memory/memory-audit.test.ts
+FAIL: 9 tests
+- queued enable, pin, edit, and clear observed stale pre-transaction state
+- empty L2 did not clean orphan Evidence or executable conflict logs
+- sourceSnapshots were not filtered or audited independently
+- Store write errors escaped with private path/content
+
+npm.cmd run typecheck
+FAIL: all 6 legacy mutation result aliases differed from MemoryMutationResult
+```
+
+### GREEN Evidence
+
+```text
+npx.cmd vitest run tests/memory/memory-governance.test.ts tests/memory/memory-audit.test.ts tests/memory/memory-store.test.ts
+PASS: 3 files, 54 tests
+
+npm.cmd run typecheck
+PASS
+
+npm.cmd test
+PASS: 49 files, 469 tests
+```
+
+### Review Resolution
+
+- Linearizability: mutation methods perform only shape/content validation before `store.update()`. Existence, no-op, restorable-state, and layer-cleanup decisions now run on the serialized draft. A focused private L2 mutation helper centralizes lookup, timestamp, audit metadata, and error handling.
+- Clear L2: orphan Evidence, reflection source references, and every queued/processing/uncertain conflict log are cleaned even with no live L2 rows. Resolved/failed logs remain content-free history.
+- Shared contracts: profile update, L2 update, delete, pin, enable, and clear result aliases all resolve to `MemoryMutationResult`.
+- Source snapshot integrity: deletion filters source IDs and snapshots independently, disables drifted summaries whose snapshot source disappears, and audit reports missing snapshot targets plus set mismatches.
+- Store failures: initialization/update/validation/write rejection through the transaction boundary resolves to fixed `invalid_state` metadata. Store messages and causes are never included, and rejected writes do not commit Evidence or audit entries.
+
+### Review Concerns
+
+None.

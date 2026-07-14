@@ -3,7 +3,10 @@ import {
   createMemoryGovernanceService,
   type MemoryGovernanceService,
 } from "../../src/main/memory/memory-governance.js";
-import type { MemoryStore } from "../../src/main/memory/memory-store.js";
+import {
+  createMemoryStore,
+  type MemoryStore,
+} from "../../src/main/memory/memory-store.js";
 import {
   createEmptyMemoryFileV2,
   isRecallableL2,
@@ -11,7 +14,16 @@ import {
   type L2MemoryV2,
   type MemoryFile,
 } from "../../src/main/memory/memory-types.js";
-import type { UpdateProfileFieldInput } from "../../src/shared/memory-api-types.js";
+import type {
+  MemoryClearLayerResult,
+  MemoryDeleteFieldResult,
+  MemoryEnableResult,
+  MemoryMutationResult,
+  MemoryPinResult,
+  MemoryUpdateL2Result,
+  MemoryUpdateProfileResult,
+  UpdateProfileFieldInput,
+} from "../../src/shared/memory-api-types.js";
 
 const INITIAL_TIME = "2026-07-13T00:00:00.000Z";
 const MUTATION_TIME = "2026-07-14T01:02:03.004Z";
@@ -83,6 +95,12 @@ interface TestStore extends MemoryStore {
   mutateBeforeNextUpdate(mutator: (draft: MemoryFile) => void): void;
 }
 
+interface PendingFirstUpdateStore extends MemoryStore {
+  firstUpdateStarted: Promise<void>;
+  releaseFirstUpdate(): void;
+  read(): MemoryFile;
+}
+
 function createStore(initial: MemoryFile): TestStore {
   let file = structuredClone(initial);
   let beforeNextUpdate: ((draft: MemoryFile) => void) | undefined;
@@ -108,6 +126,46 @@ function createStore(initial: MemoryFile): TestStore {
     },
   };
   return store;
+}
+
+function createPendingFirstUpdateStore(initial: MemoryFile): PendingFirstUpdateStore {
+  let file = structuredClone(initial);
+  let updateNumber = 0;
+  let tail = Promise.resolve();
+  let signalFirstStarted!: () => void;
+  let releaseFirst!: () => void;
+  const firstUpdateStarted = new Promise<void>((resolve) => {
+    signalFirstStarted = resolve;
+  });
+  const firstRelease = new Promise<void>((resolve) => {
+    releaseFirst = resolve;
+  });
+
+  return {
+    firstUpdateStarted,
+    releaseFirstUpdate: () => releaseFirst(),
+    read: () => structuredClone(file),
+    load: vi.fn(async () => structuredClone(file)),
+    update(mutator) {
+      updateNumber += 1;
+      const currentUpdate = updateNumber;
+      const operation = tail.then(async () => {
+        const draft = structuredClone(file);
+        mutator(draft);
+        if (currentUpdate === 1) {
+          signalFirstStarted();
+          await firstRelease;
+        }
+        file = draft;
+        return structuredClone(file);
+      });
+      tail = operation.then(
+        () => undefined,
+        () => undefined,
+      );
+      return operation;
+    },
+  };
 }
 
 function createService(
@@ -170,7 +228,7 @@ describe("MemoryGovernanceService profile governance", () => {
     expect(store.read().auditLogs).toEqual([]);
   });
 
-  it("returns invalid_state for no-op and stale profile writes without a success log", async () => {
+  it("checks profile no-op and current state inside the serialized transaction", async () => {
     const file = createFile();
     file.l0.preferredName = "Alex";
     file.l0.fieldMetadata = {
@@ -184,7 +242,7 @@ describe("MemoryGovernanceService profile governance", () => {
       field: "preferredName",
       value: "Alex",
     })).resolves.toMatchObject({ ok: false, code: "invalid_state" });
-    expect(store.updateCalls).toBe(0);
+    expect(store.updateCalls).toBe(1);
 
     store.mutateBeforeNextUpdate((draft) => {
       draft.l0.preferredName = "Concurrent value";
@@ -197,11 +255,11 @@ describe("MemoryGovernanceService profile governance", () => {
       layer: "L0",
       field: "preferredName",
       value: "New value",
-    })).resolves.toMatchObject({ ok: false, code: "invalid_state" });
+    })).resolves.toMatchObject({ ok: true });
 
-    expect(store.updateCalls).toBe(1);
-    expect(store.read().l0.preferredName).toBe("Concurrent value");
-    expect(store.read().auditLogs).toEqual([]);
+    expect(store.updateCalls).toBe(2);
+    expect(store.read().l0.preferredName).toBe("New value");
+    expect(store.read().auditLogs).toHaveLength(1);
   });
 
   it("deletes a profile field and clears a populated profile layer", async () => {
@@ -389,7 +447,7 @@ describe("MemoryGovernanceService L2 governance", () => {
     expect(serializedHistory).not.toContain("private second");
   });
 
-  it("rejects invalid, missing, no-op, and stale L2 writes without success logs", async () => {
+  it("validates content early and checks missing, no-op, and current L2 state in transactions", async () => {
     const memory = createMemory("memory-1");
     const store = createStore(createFile([memory]));
     const service = createService(store);
@@ -404,18 +462,201 @@ describe("MemoryGovernanceService L2 governance", () => {
       ok: false,
       code: "invalid_state",
     });
-    expect(store.updateCalls).toBe(0);
+    expect(store.updateCalls).toBe(2);
 
     store.mutateBeforeNextUpdate((draft) => {
       draft.l2[0].content = "Concurrent edit";
       draft.l2[0].updatedAt = "2026-07-14T00:59:00.000Z";
     });
     await expect(service.updateL2({ id: memory.id, content: "Stale edit" }))
-      .resolves.toMatchObject({ ok: false, code: "invalid_state" });
+      .resolves.toMatchObject({ ok: true });
 
-    expect(store.updateCalls).toBe(1);
-    expect(store.read().l2[0].content).toBe("Concurrent edit");
-    expect(store.read().auditLogs).toEqual([]);
+    expect(store.updateCalls).toBe(3);
+    expect(store.read().l2[0].content).toBe("Stale edit");
+    expect(store.read().auditLogs).toHaveLength(1);
+  });
+
+  it("applies a queued enable after observing the preceding disable", async () => {
+    const memory = createMemory("memory-1", { isEnabled: true });
+    const store = createPendingFirstUpdateStore(createFile([memory]));
+    const service = createService(store);
+
+    const disable = service.setL2Enabled({ id: memory.id, enabled: false });
+    await store.firstUpdateStarted;
+    const enable = service.setL2Enabled({ id: memory.id, enabled: true });
+    store.releaseFirstUpdate();
+
+    expect((await disable).ok).toBe(true);
+    expect((await enable).ok).toBe(true);
+    expect(store.read().l2[0].isEnabled).toBe(true);
+    expect(store.read().auditLogs).toHaveLength(2);
+  });
+
+  it("applies a queued unpin after observing the preceding pin", async () => {
+    const memory = createMemory("memory-1", { isPinned: false });
+    const store = createPendingFirstUpdateStore(createFile([memory]));
+    const service = createService(store);
+
+    const pin = service.setL2Pinned({ id: memory.id, pinned: true });
+    await store.firstUpdateStarted;
+    const unpin = service.setL2Pinned({ id: memory.id, pinned: false });
+    store.releaseFirstUpdate();
+
+    expect((await pin).ok).toBe(true);
+    expect((await unpin).ok).toBe(true);
+    expect(store.read().l2[0]).toMatchObject({ isPinned: false, weight: 1 });
+    expect(store.read().auditLogs).toHaveLength(2);
+  });
+
+  it("applies a queued edit after observing the preceding edit", async () => {
+    const memory = createMemory("memory-1", { content: "Original content" });
+    const store = createPendingFirstUpdateStore(createFile([memory]));
+    const service = createService(store, [
+      "first-evidence",
+      "first-audit",
+      "second-evidence",
+      "second-audit",
+    ]);
+
+    const firstEdit = service.updateL2({ id: memory.id, content: "First queued edit" });
+    await store.firstUpdateStarted;
+    const secondEdit = service.updateL2({ id: memory.id, content: "Original content" });
+    store.releaseFirstUpdate();
+
+    expect((await firstEdit).ok).toBe(true);
+    expect((await secondEdit).ok).toBe(true);
+    expect(store.read().l2[0]).toMatchObject({
+      content: "Original content",
+      evidenceIds: ["second-evidence"],
+    });
+    expect(store.read().auditLogs).toHaveLength(2);
+  });
+
+  it("queues clear behind a pending insertion and clears the committed state", async () => {
+    const memory = createMemory("queued-memory");
+    const store = createPendingFirstUpdateStore(createFile());
+    const service = createService(store);
+
+    const insertion = store.update((draft) => {
+      const inserted = createFile([memory]);
+      draft.l2 = inserted.l2;
+      draft.evidence = inserted.evidence;
+    });
+    await store.firstUpdateStarted;
+    const clear = service.clearLayer("L2");
+    store.releaseFirstUpdate();
+
+    await insertion;
+    expect((await clear).ok).toBe(true);
+    expect(store.read().l2).toEqual([]);
+    expect(store.read().evidence).toEqual([]);
+  });
+
+  it("clears orphan evidence and every executable conflict log when L2 is empty", async () => {
+    const file = createFile();
+    file.evidence = [{
+      id: "orphan-evidence",
+      memoryId: "missing-memory",
+      quote: "private orphan quote",
+      capturedAt: INITIAL_TIME,
+      source: "conversation",
+      sourceMemoryIds: ["missing-source"],
+    }];
+    file.conflictLogs = (["queued", "processing", "uncertain", "resolved", "failed"] as const)
+      .map((status, index) => createConflict(
+        `conflict-${index}`,
+        `missing-source-${index}`,
+        `missing-target-${index}`,
+        status,
+      ));
+    file.reflectionLogs = [{
+      id: "reflection-with-orphan-refs",
+      createdAt: INITIAL_TIME,
+      type: "compression",
+      sourceMemoryIds: ["missing-source"],
+      acceptedCount: 1,
+      skippedCount: 0,
+    }];
+    const store = createStore(file);
+    const service = createService(store);
+
+    const result = await service.clearLayer("L2");
+
+    expect(result.ok).toBe(true);
+    expect(store.read().evidence).toEqual([]);
+    expect(store.read().reflectionLogs[0].sourceMemoryIds).toEqual([]);
+    expect(store.read().conflictLogs.map((log) => log.status)).toEqual([
+      "failed",
+      "failed",
+      "failed",
+      "resolved",
+      "failed",
+    ]);
+    expect(store.read().conflictLogs.slice(0, 3).every((log) => (
+      log.finishedAt === MUTATION_TIME
+    ))).toBe(true);
+    expect(JSON.stringify(store.read().conflictLogs)).not.toContain("private orphan quote");
+    expect(store.read().auditLogs).toHaveLength(1);
+
+    await expect(service.clearLayer("L2")).resolves.toMatchObject({
+      ok: false,
+      code: "invalid_state",
+    });
+    expect(store.read().auditLogs).toHaveLength(1);
+  });
+
+  it("filters source snapshots even when sourceMemoryIds already drifted", async () => {
+    const source = createMemory("source");
+    const driftedSummary = createMemory("summary", {
+      isSummary: true,
+      sourceMemoryIds: [],
+      sourceSnapshots: [{ memoryId: "source", updatedAt: INITIAL_TIME }],
+    });
+    const store = createStore(createFile([source, driftedSummary]));
+    const service = createService(store);
+
+    expect((await service.deleteL2("source")).ok).toBe(true);
+
+    expect(store.read().l2[0]).toMatchObject({
+      id: "summary",
+      sourceMemoryIds: [],
+      sourceSnapshots: [],
+      isEnabled: false,
+      syncStatus: "sync_failed",
+    });
+  });
+
+  it("maps a real Store write rejection to a fixed typed failure without partial state", async () => {
+    const sensitivePath = "C:\\private\\memory.json";
+    const sensitiveContent = "private rejected edit";
+    let rejectWrites = false;
+    const store = createMemoryStore({
+      filePath: sensitivePath,
+      atomicWrite: vi.fn(async () => {
+        if (rejectWrites) {
+          throw new Error(`Cannot write ${sensitivePath}: ${sensitiveContent}`);
+        }
+      }),
+    });
+    const memory = createMemory("memory-1", { content: "Original content" });
+    const seeded = createFile([memory]);
+    await store.update((draft) => Object.assign(draft, seeded));
+    rejectWrites = true;
+    const service = createService(store, ["rejected-evidence", "rejected-audit"]);
+
+    const result = await service.updateL2({ id: memory.id, content: sensitiveContent });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "invalid_state",
+      message: "Memory operation could not be completed",
+    });
+    expect(JSON.stringify(result)).not.toContain(sensitivePath);
+    expect(JSON.stringify(result)).not.toContain(sensitiveContent);
+    const after = await store.load();
+    expect(after.l2[0].content).toBe("Original content");
+    expect(after.evidence).toEqual(seeded.evidence);
+    expect(after.auditLogs).toEqual([]);
   });
 });
 
@@ -484,5 +725,14 @@ describe("MemoryGovernanceService audit metadata and snapshots", () => {
     expect(snapshot.conflicts[0]).not.toHaveProperty("signals");
     expect(snapshot.conflicts[0]).not.toHaveProperty("resolutionReason");
     expect(JSON.stringify(snapshot)).not.toContain("raw model output");
+  });
+
+  it("uses one mutation result contract for every legacy IPC result alias", () => {
+    expectTypeOf<MemoryUpdateProfileResult>().toEqualTypeOf<MemoryMutationResult>();
+    expectTypeOf<MemoryUpdateL2Result>().toEqualTypeOf<MemoryMutationResult>();
+    expectTypeOf<MemoryDeleteFieldResult>().toEqualTypeOf<MemoryMutationResult>();
+    expectTypeOf<MemoryPinResult>().toEqualTypeOf<MemoryMutationResult>();
+    expectTypeOf<MemoryEnableResult>().toEqualTypeOf<MemoryMutationResult>();
+    expectTypeOf<MemoryClearLayerResult>().toEqualTypeOf<MemoryMutationResult>();
   });
 });

@@ -105,25 +105,14 @@ export type UpdateProfileFieldInput =
 
 export type UpdateProfileInput = UpdateProfileFieldInput;
 
-export interface UpdateProfileResult {
-  success: boolean;
-  layer: MemoryProfileLayer;
-  field: string;
-  updatedAt?: string;
-  code?: string;
-}
+export type UpdateProfileResult = MemoryMutationResult;
 
 export interface UpdateL2Input {
   id: string;
   content: string;
 }
 
-export interface UpdateL2Result {
-  success: boolean;
-  id: string;
-  updatedAt?: string;
-  code?: string;
-}
+export type UpdateL2Result = MemoryMutationResult;
 
 export type DeleteProfileFieldInput =
   | { layer: "L0"; field: L0Field }
@@ -131,47 +120,27 @@ export type DeleteProfileFieldInput =
 
 export type DeleteFieldInput = DeleteProfileFieldInput;
 
-export interface DeleteFieldResult {
-  success: boolean;
-  layer: MemoryProfileLayer;
-  field: string;
-  code?: string;
-}
+export type DeleteFieldResult = MemoryMutationResult;
 
 export interface SetPinnedInput {
   id: string;
   pinned: boolean;
 }
 
-export interface PinMemoryResult {
-  success: boolean;
-  id: string;
-  isPinned: boolean;
-  code?: string;
-}
+export type PinMemoryResult = MemoryMutationResult;
 
 export interface SetEnabledInput {
   id: string;
   enabled: boolean;
 }
 
-export interface EnableMemoryResult {
-  success: boolean;
-  id: string;
-  isEnabled: boolean;
-  code?: string;
-}
+export type EnableMemoryResult = MemoryMutationResult;
 
 export interface ClearLayerInput {
   layer: MemoryLayer;
 }
 
-export interface ClearLayerResult {
-  success: boolean;
-  layer: MemoryLayer;
-  clearedCount?: number;
-  code?: string;
-}
+export type ClearLayerResult = MemoryMutationResult;
 
 export interface MaintenanceResult {
   success: boolean;
@@ -197,7 +166,9 @@ export type MemoryAuditFindingCode =
   | "broken_superseded_by"
   | "broken_merged_into"
   | "active_conflict_without_live_log"
-  | "summary_source_missing";
+  | "summary_source_missing"
+  | "source_snapshot_missing"
+  | "source_snapshot_mismatch";
 
 export interface MemoryAuditFinding {
   code: MemoryAuditFindingCode;

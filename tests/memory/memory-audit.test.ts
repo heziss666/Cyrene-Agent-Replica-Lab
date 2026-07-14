@@ -155,6 +155,12 @@ describe("auditMemoryFile", () => {
         targetId: "summary",
         relatedId: "missing-source",
       },
+      {
+        code: "source_snapshot_mismatch",
+        severity: "error",
+        targetId: "summary",
+        relatedId: "missing-source",
+      },
     ]);
   });
 
@@ -193,6 +199,54 @@ describe("auditMemoryFile", () => {
         severity: "warning",
         targetId: "second",
         relatedId: "first",
+      },
+    ]);
+  });
+
+  it("flags source snapshots that point to missing memories", () => {
+    const summary = createMemory("summary", {
+      isSummary: true,
+      sourceMemoryIds: ["missing-source"],
+      sourceSnapshots: [{ memoryId: "missing-source", updatedAt: TIME }],
+    });
+
+    expect(auditMemoryFile(createFile([summary])).findings).toEqual([
+      {
+        code: "summary_source_missing",
+        severity: "error",
+        targetId: "summary",
+        relatedId: "missing-source",
+      },
+      {
+        code: "source_snapshot_missing",
+        severity: "error",
+        targetId: "summary",
+        relatedId: "missing-source",
+      },
+    ]);
+  });
+
+  it("flags drift between sourceMemoryIds and sourceSnapshots independently", () => {
+    const sourceA = createMemory("source-a");
+    const sourceB = createMemory("source-b");
+    const summary = createMemory("summary", {
+      isSummary: true,
+      sourceMemoryIds: ["source-a"],
+      sourceSnapshots: [{ memoryId: "source-b", updatedAt: TIME }],
+    });
+
+    expect(auditMemoryFile(createFile([sourceA, sourceB, summary])).findings).toEqual([
+      {
+        code: "source_snapshot_mismatch",
+        severity: "error",
+        targetId: "summary",
+        relatedId: "source-a",
+      },
+      {
+        code: "source_snapshot_mismatch",
+        severity: "error",
+        targetId: "summary",
+        relatedId: "source-b",
       },
     ]);
   });

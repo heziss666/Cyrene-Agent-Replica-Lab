@@ -62,14 +62,18 @@ interface MutationAuditMetadata {
   field?: string;
 }
 
-interface CommitMutationOptions {
-  timestamp: string;
-  isCurrent(draft: MemoryFile): boolean;
-  mutate(draft: MemoryFile): void;
-  audit: MutationAuditMetadata;
-}
-
 type ProfileValue = string | string[];
+type StoreMutation = (
+  draft: MemoryFile,
+  timestamp: string,
+) => MutationAuditMetadata;
+type L2Mutation = (
+  memory: L2MemoryV2,
+  draft: MemoryFile,
+  timestamp: string,
+) => void;
+
+const STORE_FAILURE_MESSAGE = "Memory operation could not be completed";
 
 export interface MemoryGovernanceService {
   snapshot(): Promise<MemorySnapshot>;
@@ -101,25 +105,34 @@ export function createMemoryGovernanceService(
   const now = options.now ?? Date.now;
   const idFactory = options.idFactory ?? randomUUID;
 
-  async function commitMutation(
-    mutation: CommitMutationOptions,
-  ): Promise<MemoryMutationResult> {
+  async function commitMutation(mutate: StoreMutation): Promise<MemoryMutationResult> {
     try {
       const updated = await store.update((draft) => {
-        if (!mutation.isCurrent(draft)) {
-          throw new MutationRejected(
-            "invalid_state",
-            "Memory changed before the operation could be applied",
-          );
-        }
-        mutation.mutate(draft);
-        appendSuccessAudit(draft, mutation.timestamp, idFactory, mutation.audit);
+        const timestamp = new Date(now()).toISOString();
+        const audit = mutate(draft, timestamp);
+        appendSuccessAudit(draft, timestamp, idFactory, audit);
       });
       return { ok: true, snapshot: toMemorySnapshot(updated) };
     } catch (error) {
       if (error instanceof MutationRejected) return failure(error.code, error.message);
-      throw error;
+      return failure("invalid_state", STORE_FAILURE_MESSAGE);
     }
+  }
+
+  async function commitL2Mutation(
+    id: string,
+    operation: string,
+    mutate: L2Mutation,
+  ): Promise<MemoryMutationResult> {
+    return commitMutation((draft, timestamp) => {
+      const memory = requireMemory(draft, id);
+      mutate(memory, draft, timestamp);
+      return {
+        operation,
+        targetType: "L2",
+        targetId: id,
+      };
+    });
   }
 
   return {
@@ -131,36 +144,28 @@ export function createMemoryGovernanceService(
       const parsed = validateProfileUpdate(input);
       if (!parsed.ok) return parsed.result;
 
-      const before = await store.load();
-      const profile = profileForLayer(before, input.layer);
-      const currentValue = profile[input.field as keyof typeof profile];
-      if (profileValuesEqual(currentValue, parsed.value)) {
-        return failure("invalid_state", "Memory field already has that value");
-      }
-      const fingerprint = profileFingerprint(profile);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => (
-          profileFingerprint(profileForLayer(draft, input.layer)) === fingerprint
-        ),
-        mutate: (draft) => {
-          const target = profileForLayer(draft, input.layer) as L0Profile & L1Profile;
-          (target as unknown as Record<string, unknown>)[input.field] = structuredClone(parsed.value);
-          target.updatedAt = timestamp;
-          target.fieldMetadata ??= {};
-          (target.fieldMetadata as Record<string, unknown>)[input.field] = {
-            updatedAt: timestamp,
-            source: "user_edit",
-          };
-        },
-        audit: {
+      return commitMutation((draft, timestamp) => {
+        const target = profileForLayer(draft, input.layer) as L0Profile & L1Profile;
+        const currentValue = target[input.field as keyof typeof target];
+        if (profileValuesEqual(currentValue, parsed.value)) {
+          throw new MutationRejected(
+            "invalid_state",
+            "Memory field already has that value",
+          );
+        }
+        (target as unknown as Record<string, unknown>)[input.field] = structuredClone(parsed.value);
+        target.updatedAt = timestamp;
+        target.fieldMetadata ??= {};
+        (target.fieldMetadata as Record<string, unknown>)[input.field] = {
+          updatedAt: timestamp,
+          source: "user_edit",
+        };
+        return {
           operation: "update_profile_field",
           targetType: input.layer,
           targetId: input.layer,
           field: input.field,
-        },
+        };
       });
     },
 
@@ -171,23 +176,13 @@ export function createMemoryGovernanceService(
       const contentResult = validateUserEditedMemoryContent(input.content);
       if (!contentResult.ok) return contentFailure(contentResult.code);
 
-      const before = await store.load();
-      const existing = before.l2.find((item) => item.id === input.id);
-      if (!existing) return failure("not_found", "Memory was not found");
-      if (existing.content === contentResult.content) {
-        return failure("invalid_state", "Memory already has that content");
-      }
-      const fingerprint = memoryFingerprint(existing);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => {
-          const current = draft.l2.find((item) => item.id === input.id);
-          return current !== undefined && memoryFingerprint(current) === fingerprint;
-        },
-        mutate: (draft) => {
-          const current = requireMemory(draft, input.id);
+      return commitL2Mutation(input.id, "update_l2", (current, draft, timestamp) => {
+          if (current.content === contentResult.content) {
+            throw new MutationRejected(
+              "invalid_state",
+              "Memory already has that content",
+            );
+          }
           const removedEvidenceIds = new Set(current.evidenceIds);
           draft.evidence = draft.evidence.filter((evidence) => (
             evidence.memoryId !== current.id && !removedEvidenceIds.has(evidence.id)
@@ -211,12 +206,6 @@ export function createMemoryGovernanceService(
             source: "user_edit",
             sourceMemoryIds: [],
           });
-        },
-        audit: {
-          operation: "update_l2",
-          targetType: "L2",
-          targetId: input.id,
-        },
       });
     },
 
@@ -224,60 +213,33 @@ export function createMemoryGovernanceService(
       if (!isValidProfileField(input)) {
         return failure("invalid_content", "Memory field payload is invalid");
       }
-      const before = await store.load();
-      const profile = profileForLayer(before, input.layer);
-      if (!profileFieldHasValue(profile, input.field)) {
-        return failure("not_found", "Memory field was not found");
-      }
-      const fingerprint = profileFingerprint(profile);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => (
-          profileFingerprint(profileForLayer(draft, input.layer)) === fingerprint
-        ),
-        mutate: (draft) => {
-          const target = profileForLayer(draft, input.layer) as L0Profile & L1Profile;
-          if (isArrayProfileField(input.layer, input.field)) {
-            (target as unknown as Record<string, unknown>)[input.field] = [];
-          } else {
-            delete (target as unknown as Record<string, unknown>)[input.field];
-          }
-          target.updatedAt = timestamp;
-          if (target.fieldMetadata) {
-            delete (target.fieldMetadata as Record<string, unknown>)[input.field];
-          }
-        },
-        audit: {
+      return commitMutation((draft, timestamp) => {
+        const target = profileForLayer(draft, input.layer) as L0Profile & L1Profile;
+        if (!profileFieldHasValue(target, input.field)) {
+          throw new MutationRejected("not_found", "Memory field was not found");
+        }
+        if (isArrayProfileField(input.layer, input.field)) {
+          (target as unknown as Record<string, unknown>)[input.field] = [];
+        } else {
+          delete (target as unknown as Record<string, unknown>)[input.field];
+        }
+        target.updatedAt = timestamp;
+        if (target.fieldMetadata) {
+          delete (target.fieldMetadata as Record<string, unknown>)[input.field];
+        }
+        return {
           operation: "delete_profile_field",
           targetType: input.layer,
           targetId: input.layer,
           field: input.field,
-        },
+        };
       });
     },
 
     async deleteL2(id): Promise<MemoryMutationResult> {
       if (!isNonEmptyString(id)) return failure("invalid_content", "Memory ID is invalid");
-      const before = await store.load();
-      const existing = before.l2.find((item) => item.id === id);
-      if (!existing) return failure("not_found", "Memory was not found");
-      const fingerprint = memoryFingerprint(existing);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => {
-          const current = draft.l2.find((item) => item.id === id);
-          return current !== undefined && memoryFingerprint(current) === fingerprint;
-        },
-        mutate: (draft) => deleteMemoryCascade(draft, existing.id, timestamp),
-        audit: {
-          operation: "delete_l2",
-          targetType: "L2",
-          targetId: id,
-        },
+      return commitL2Mutation(id, "delete_l2", (_memory, draft, timestamp) => {
+        deleteMemoryCascade(draft, id, timestamp);
       });
     },
 
@@ -285,28 +247,15 @@ export function createMemoryGovernanceService(
       if (!isRecord(input) || !isNonEmptyString(input.id) || typeof input.pinned !== "boolean") {
         return failure("invalid_content", "Pin payload is invalid");
       }
-      const before = await store.load();
-      const existing = before.l2.find((item) => item.id === input.id);
-      if (!existing) return failure("not_found", "Memory was not found");
-      if (existing.isPinned === input.pinned) {
-        return failure("invalid_state", "Memory already has that pin state");
-      }
-      const fingerprint = memoryFingerprint(existing);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => currentMemoryMatches(draft, input.id, fingerprint),
-        mutate: (draft) => {
-          const current = requireMemory(draft, input.id);
-          current.isPinned = input.pinned;
-          if (input.pinned) current.weight = 1;
-        },
-        audit: {
-          operation: "set_l2_pinned",
-          targetType: "L2",
-          targetId: input.id,
-        },
+      return commitL2Mutation(input.id, "set_l2_pinned", (current) => {
+        if (current.isPinned === input.pinned) {
+          throw new MutationRejected(
+            "invalid_state",
+            "Memory already has that pin state",
+          );
+        }
+        current.isPinned = input.pinned;
+        if (input.pinned) current.weight = 1;
       });
     },
 
@@ -314,51 +263,26 @@ export function createMemoryGovernanceService(
       if (!isRecord(input) || !isNonEmptyString(input.id) || typeof input.enabled !== "boolean") {
         return failure("invalid_content", "Enable payload is invalid");
       }
-      const before = await store.load();
-      const existing = before.l2.find((item) => item.id === input.id);
-      if (!existing) return failure("not_found", "Memory was not found");
-      if (existing.isEnabled === input.enabled) {
-        return failure("invalid_state", "Memory already has that enabled state");
-      }
-      const fingerprint = memoryFingerprint(existing);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => currentMemoryMatches(draft, input.id, fingerprint),
-        mutate: (draft) => {
-          requireMemory(draft, input.id).isEnabled = input.enabled;
-        },
-        audit: {
-          operation: "set_l2_enabled",
-          targetType: "L2",
-          targetId: input.id,
-        },
+      return commitL2Mutation(input.id, "set_l2_enabled", (current) => {
+        if (current.isEnabled === input.enabled) {
+          throw new MutationRejected(
+            "invalid_state",
+            "Memory already has that enabled state",
+          );
+        }
+        current.isEnabled = input.enabled;
       });
     },
 
     async restoreL2(id): Promise<MemoryMutationResult> {
       if (!isNonEmptyString(id)) return failure("invalid_content", "Memory ID is invalid");
-      const before = await store.load();
-      const existing = before.l2.find((item) => item.id === id);
-      if (!existing) return failure("not_found", "Memory was not found");
-      if (!(["archived", "superseded", "merged"] as const).includes(
-        existing.status as "archived" | "superseded" | "merged",
-      )) {
-        return failure("invalid_state", "Memory is not restorable");
-      }
-      const fingerprint = memoryFingerprint(existing);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => currentMemoryMatches(draft, id, fingerprint),
-        mutate: (draft) => restoreMemory(draft, id, timestamp),
-        audit: {
-          operation: "restore_l2",
-          targetType: "L2",
-          targetId: id,
-        },
+      return commitL2Mutation(id, "restore_l2", (memory, draft, timestamp) => {
+        if (!(["archived", "superseded", "merged"] as const).includes(
+          memory.status as "archived" | "superseded" | "merged",
+        )) {
+          throw new MutationRejected("invalid_state", "Memory is not restorable");
+        }
+        restoreMemory(draft, id, timestamp);
       });
     },
 
@@ -366,22 +290,16 @@ export function createMemoryGovernanceService(
       if (layer !== "L0" && layer !== "L1" && layer !== "L2") {
         return failure("invalid_content", "Memory layer is invalid");
       }
-      const before = await store.load();
-      if (!layerHasContent(before, layer)) {
-        return failure("invalid_state", "Memory layer is already empty");
-      }
-      const fingerprint = layerFingerprint(before, layer);
-      const timestamp = new Date(now()).toISOString();
-
-      return commitMutation({
-        timestamp,
-        isCurrent: (draft) => layerFingerprint(draft, layer) === fingerprint,
-        mutate: (draft) => clearMemoryLayer(draft, layer, timestamp),
-        audit: {
+      return commitMutation((draft, timestamp) => {
+        if (!layerNeedsCleanup(draft, layer)) {
+          throw new MutationRejected("invalid_state", "Memory layer is already empty");
+        }
+        clearMemoryLayer(draft, layer, timestamp);
+        return {
           operation: "clear_layer",
           targetType: layer,
           targetId: layer,
-        },
+        };
       });
     },
 
@@ -548,24 +466,11 @@ function profileValuesEqual(current: unknown, next: ProfileValue): boolean {
   return JSON.stringify(current) === JSON.stringify(next);
 }
 
-function profileFingerprint(profile: L0Profile | L1Profile): string {
-  return JSON.stringify(profile);
-}
-
 function profileForLayer(
   memory: MemoryFile,
   layer: "L0" | "L1",
 ): L0Profile | L1Profile {
   return layer === "L0" ? memory.l0 : memory.l1;
-}
-
-function memoryFingerprint(memory: L2MemoryV2): string {
-  return JSON.stringify(memory);
-}
-
-function currentMemoryMatches(draft: MemoryFile, id: string, fingerprint: string): boolean {
-  const current = draft.l2.find((item) => item.id === id);
-  return current !== undefined && memoryFingerprint(current) === fingerprint;
 }
 
 function requireMemory(draft: MemoryFile, id: string): L2MemoryV2 {
@@ -589,14 +494,16 @@ function deleteMemoryCascade(draft: MemoryFile, id: string, timestamp: string): 
     memory.conflictWith = memory.conflictWith.filter((relatedId) => relatedId !== id);
     if (memory.supersededBy === id) delete memory.supersededBy;
     if (memory.mergedInto === id) delete memory.mergedInto;
-    if (memory.sourceMemoryIds.includes(id)) {
-      memory.sourceMemoryIds = memory.sourceMemoryIds.filter((sourceId) => sourceId !== id);
-      memory.sourceSnapshots = memory.sourceSnapshots.filter((snapshot) => snapshot.memoryId !== id);
-      if (memory.isSummary) {
-        memory.isEnabled = false;
-        memory.syncStatus = "sync_failed";
-        memory.updatedAt = timestamp;
-      }
+    const removedSourceId = memory.sourceMemoryIds.includes(id);
+    const removedSourceSnapshot = memory.sourceSnapshots.some((snapshot) => (
+      snapshot.memoryId === id
+    ));
+    memory.sourceMemoryIds = memory.sourceMemoryIds.filter((sourceId) => sourceId !== id);
+    memory.sourceSnapshots = memory.sourceSnapshots.filter((snapshot) => snapshot.memoryId !== id);
+    if (memory.isSummary && (removedSourceId || removedSourceSnapshot)) {
+      memory.isEnabled = false;
+      memory.syncStatus = "sync_failed";
+      memory.updatedAt = timestamp;
     }
   }
 
@@ -638,24 +545,17 @@ function makeConflictHistoryNonExecutable(
   }
 }
 
-function layerHasContent(memory: MemoryFile, layer: "L0" | "L1" | "L2"): boolean {
-  if (layer === "L2") return memory.l2.length > 0;
+function layerNeedsCleanup(memory: MemoryFile, layer: "L0" | "L1" | "L2"): boolean {
+  if (layer === "L2") {
+    return memory.l2.length > 0
+      || memory.evidence.length > 0
+      || memory.conflictLogs.some((log) => EXECUTABLE_CONFLICT_STATUSES.has(log.status))
+      || memory.reflectionLogs.some((log) => log.sourceMemoryIds.length > 0);
+  }
   const profile = profileForLayer(memory, layer);
   return Object.entries(profile).some(([field, value]) => {
     if (field === "updatedAt" || field === "fieldMetadata") return false;
     return typeof value === "string" ? value.length > 0 : Array.isArray(value) && value.length > 0;
-  });
-}
-
-function layerFingerprint(memory: MemoryFile, layer: "L0" | "L1" | "L2"): string {
-  if (layer === "L0" || layer === "L1") {
-    return profileFingerprint(profileForLayer(memory, layer));
-  }
-  return JSON.stringify({
-    l2: memory.l2,
-    evidence: memory.evidence,
-    conflictLogs: memory.conflictLogs,
-    reflectionLogs: memory.reflectionLogs,
   });
 }
 
@@ -683,13 +583,17 @@ function clearMemoryLayer(
     return;
   }
 
-  const removedIds = new Set(draft.l2.map((memory) => memory.id));
   draft.l2 = [];
   draft.evidence = [];
   for (const reflection of draft.reflectionLogs) {
-    reflection.sourceMemoryIds = reflection.sourceMemoryIds.filter((id) => !removedIds.has(id));
+    reflection.sourceMemoryIds = [];
   }
-  makeConflictHistoryNonExecutable(draft, removedIds, timestamp);
+  for (const conflict of draft.conflictLogs) {
+    if (EXECUTABLE_CONFLICT_STATUSES.has(conflict.status)) {
+      conflict.status = "failed";
+      conflict.finishedAt = timestamp;
+    }
+  }
 }
 
 function failure(code: MemoryMutationErrorCode, message: string): MemoryMutationResult {
