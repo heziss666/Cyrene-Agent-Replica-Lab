@@ -1,4 +1,5 @@
 import type { AgentEvent } from "../main/agent/agent-events.js";
+import type { MemoryApi } from "./memory-api-types.js";
 import type { StyleId } from "./persona-types.js";
 
 export interface ChatSendResult {
@@ -34,4 +35,5 @@ export interface CyreneApi {
     getStyle: () => Promise<PersonaStyleResult>;
     setStyle: (styleId: StyleId) => Promise<PersonaStyleResult>;
   };
+  memory: MemoryApi;
 }

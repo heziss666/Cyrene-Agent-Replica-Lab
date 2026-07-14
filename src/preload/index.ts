@@ -29,6 +29,38 @@ const api: CyreneApi = {
       return ipcRenderer.invoke(IPC_CHANNELS.persona.setStyle, styleId);
     },
   },
+  memory: {
+    getSnapshot: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.getSnapshot);
+    },
+    updateProfileField: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.updateProfileField, input);
+    },
+    updateL2: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.updateL2, input);
+    },
+    deleteProfileField: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.deleteProfileField, input);
+    },
+    deleteL2: async (id) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.deleteL2, id);
+    },
+    setL2Pinned: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.setPinned, input);
+    },
+    setL2Enabled: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.setEnabled, input);
+    },
+    restoreL2: async (id) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.restoreL2, id);
+    },
+    clearLayer: async (layer) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.clearLayer, layer);
+    },
+    getAuditReport: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.getAuditReport);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("cyrene", api);

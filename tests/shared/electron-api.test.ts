@@ -3,6 +3,12 @@ import type {
   CyreneApi,
   PersonaStyleResult,
 } from "../../src/shared/electron-api.js";
+import type {
+  MemoryApi,
+  MemoryAuditReport,
+  MemoryMutationResult,
+  MemorySnapshot,
+} from "../../src/shared/memory-api-types.js";
 
 describe("CyreneApi persona contract", () => {
   it("uses a validated style id for get and set results", async () => {
@@ -14,5 +20,41 @@ describe("CyreneApi persona contract", () => {
 
     await expect(persona.getStyle()).resolves.toEqual({ styleId: "healing" });
     await expect(persona.setStyle("sweet")).resolves.toEqual({ styleId: "sweet" });
+  });
+});
+
+describe("CyreneApi memory contract", () => {
+  it("exposes only the ten Phase 7B governance methods", async () => {
+    const snapshot = { l2: [] } as unknown as MemorySnapshot;
+    const mutation = { ok: true, snapshot } satisfies MemoryMutationResult;
+    const audit = { ok: true, findings: [] } satisfies MemoryAuditReport;
+    const memory = {
+      getSnapshot: async () => snapshot,
+      updateProfileField: async () => mutation,
+      updateL2: async () => mutation,
+      deleteProfileField: async () => mutation,
+      deleteL2: async () => mutation,
+      setL2Pinned: async () => mutation,
+      setL2Enabled: async () => mutation,
+      restoreL2: async () => mutation,
+      clearLayer: async () => mutation,
+      getAuditReport: async () => audit,
+    } satisfies MemoryApi;
+    const apiMemory: CyreneApi["memory"] = memory;
+
+    expect(Object.keys(apiMemory)).toEqual([
+      "getSnapshot",
+      "updateProfileField",
+      "updateL2",
+      "deleteProfileField",
+      "deleteL2",
+      "setL2Pinned",
+      "setL2Enabled",
+      "restoreL2",
+      "clearLayer",
+      "getAuditReport",
+    ]);
+    await expect(apiMemory.getSnapshot()).resolves.toBe(snapshot);
+    await expect(apiMemory.getAuditReport()).resolves.toBe(audit);
   });
 });

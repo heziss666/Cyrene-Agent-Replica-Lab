@@ -182,6 +182,19 @@ export interface MemoryAuditReport {
   findings: MemoryAuditFinding[];
 }
 
+export interface MemoryApi {
+  getSnapshot(): Promise<MemorySnapshot>;
+  updateProfileField(input: UpdateProfileFieldInput): Promise<MemoryMutationResult>;
+  updateL2(input: UpdateL2Input): Promise<MemoryMutationResult>;
+  deleteProfileField(input: DeleteProfileFieldInput): Promise<MemoryMutationResult>;
+  deleteL2(id: string): Promise<MemoryMutationResult>;
+  setL2Pinned(input: SetPinnedInput): Promise<MemoryMutationResult>;
+  setL2Enabled(input: SetEnabledInput): Promise<MemoryMutationResult>;
+  restoreL2(id: string): Promise<MemoryMutationResult>;
+  clearLayer(layer: MemoryLayer): Promise<MemoryMutationResult>;
+  getAuditReport(): Promise<MemoryAuditReport>;
+}
+
 export type MemoryUpdateProfileInput = UpdateProfileInput;
 export type MemoryUpdateProfileResult = UpdateProfileResult;
 export type MemoryUpdateL2Input = UpdateL2Input;
