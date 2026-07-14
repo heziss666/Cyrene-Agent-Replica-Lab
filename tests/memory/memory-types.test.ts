@@ -10,6 +10,7 @@ import {
   type L2MemoryV2,
   type MemoryFile,
   type MemoryFileV1,
+  type MemoryFileV2,
   type MemorySourceSnapshot,
 } from "../../src/main/memory/memory-types.js";
 import type {
@@ -59,9 +60,31 @@ describe("v2 memory types", () => {
     expect(initialMemoryWeight("high", 2)).toBe(1);
   });
 
-  it("keeps the public memory aliases on the v1 shapes", () => {
-    expectTypeOf<L2Memory>().toEqualTypeOf<L2MemoryV1>();
-    expectTypeOf<MemoryFile>().toEqualTypeOf<MemoryFileV1>();
+  it("uses v2 public aliases while retaining explicit v1 migration types", () => {
+    expectTypeOf<L2Memory>().toEqualTypeOf<L2MemoryV2>();
+    expectTypeOf<MemoryFile>().toEqualTypeOf<MemoryFileV2>();
+
+    const legacyMemory = {
+      id: "legacy-memory-1",
+      content: "Legacy content",
+      confidence: 0.9,
+      importance: "high",
+      evidence: {
+        userQuote: "Legacy evidence",
+        capturedAt: "2026-01-01T00:00:00.000Z",
+      },
+      createdAt: "2026-01-01T00:00:00.000Z",
+      status: "active",
+    } satisfies L2MemoryV1;
+    const legacyFile = {
+      schemaVersion: 1,
+      l0: { longTermInterests: [], permanentNotes: [] },
+      l1: { recentGoals: [], recentPreferences: [] },
+      l2: [legacyMemory],
+    } satisfies MemoryFileV1;
+
+    expect(legacyFile.schemaVersion).toBe(1);
+    expect(legacyFile.l2[0]).toBe(legacyMemory);
   });
 
   it("accepts the exact source snapshot and conflict log shapes", () => {
