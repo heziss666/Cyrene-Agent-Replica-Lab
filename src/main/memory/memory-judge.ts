@@ -20,10 +20,17 @@ const importanceValues = new Set(["low", "medium", "high"]);
 const systemPrompt = `You extract durable user memories from a single conversation turn.
 Return JSON only, with exactly this top-level shape: {"candidates":[]}.
 Each candidate has layer, field, content, confidence, importance, evidenceQuote, and reason.
+confidence must be a JSON number from 0 to 1, never a word or string.
+importance must be exactly one of the JSON strings: "low", "medium", or "high".
+L0 stores stable profile facts that are likely to remain useful across many conversations.
+L1 stores current or recent state, goals, projects, and preferences that may change over time.
+L2 stores specific past events or milestones that may be relevant to future questions.
+L2 candidates must omit field.
 Allowed layers and fields:
 - L0: preferredName, occupation, longTermInterests, language, permanentNotes
 - L1: currentProject, recentGoals, recentPreferences
 - L2: no field
+Valid L2 example: {"layer":"L2","content":"Completed milestone Alpha-7","confidence":0.95,"importance":"high","evidenceQuote":"I completed milestone Alpha-7","reason":"A durable past milestone"}
 Only extract user facts supported by an exact evidenceQuote from the user message. Do not save assistant claims, advice, guesses, greetings, credentials, or sensitive information. Return an empty candidates array when there is nothing durable to save.`;
 
 export interface MemoryJudge {
@@ -104,7 +111,7 @@ function parseCandidate(value: unknown): MemoryCandidate | undefined {
   if (value.layer === "L1" && typeof value.field === "string" && l1Fields.has(value.field)) {
     return createCandidate(value, "L1", value.field);
   }
-  if (value.layer === "L2" && value.field === undefined) {
+  if (value.layer === "L2" && (value.field === undefined || value.field === null)) {
     return createCandidate(value, "L2");
   }
   return undefined;

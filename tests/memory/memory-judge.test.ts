@@ -73,6 +73,43 @@ describe("createMemoryJudge", () => {
       .resolves.toEqual([]);
   });
 
+  it("tells the model that importance must use the allowed string enum", async () => {
+    const { judge, requestCompletion } = judgeReturning('{"candidates":[]}');
+
+    await judge.judge({ userMessage: "Call me Alex", assistantReply: "Hello" });
+
+    const systemMessage = requestCompletion.mock.calls[0]![0].messages[0];
+    expect(systemMessage?.content).toContain(
+      'importance must be exactly one of the JSON strings: "low", "medium", or "high"',
+    );
+  });
+
+  it("defines the semantic boundary between L0, L1, and L2", async () => {
+    const { judge, requestCompletion } = judgeReturning('{"candidates":[]}');
+
+    await judge.judge({ userMessage: "I reached a milestone", assistantReply: "Great" });
+
+    const prompt = requestCompletion.mock.calls[0]![0].messages[0]?.content;
+    expect(prompt).toContain("L0 stores stable profile facts");
+    expect(prompt).toContain("L1 stores current or recent state");
+    expect(prompt).toContain("L2 stores specific past events or milestones");
+    expect(prompt).toContain("L2 candidates must omit field");
+  });
+
+  it("requires confidence to be a numeric probability", async () => {
+    const { judge, requestCompletion } = judgeReturning('{"candidates":[]}');
+
+    await judge.judge({ userMessage: "I reached a milestone", assistantReply: "Great" });
+
+    const prompt = requestCompletion.mock.calls[0]![0].messages[0]?.content;
+    expect(prompt).toContain(
+      "confidence must be a JSON number from 0 to 1, never a word or string",
+    );
+    expect(prompt).toContain(
+      '{"layer":"L2","content":"Completed milestone Alpha-7","confidence":0.95',
+    );
+  });
+
   it("rejects an envelope with extra top-level keys", async () => {
     const { judge } = judgeReturning('{"candidates":[],"unexpected":true}');
     await expect(judge.judge({ userMessage: "Hi", assistantReply: "Hello" }))
@@ -95,5 +132,24 @@ describe("createMemoryJudge", () => {
     }));
     await expect(judge.judge({ userMessage: "Call me Alex", assistantReply: "Hello" }))
       .resolves.toEqual([validCandidate]);
+  });
+
+  it("normalizes a null L2 field to an omitted optional field", async () => {
+    const l2Candidate = {
+      layer: "L2",
+      field: null,
+      content: "The user reached milestone Alpha-7",
+      confidence: 0.9,
+      importance: "high",
+      evidenceQuote: "I reached milestone Alpha-7",
+      reason: "A durable past event",
+    };
+    const { judge } = judgeReturning(JSON.stringify({ candidates: [l2Candidate] }));
+    const { field: _field, ...expectedCandidate } = l2Candidate;
+
+    await expect(judge.judge({
+      userMessage: "I reached milestone Alpha-7",
+      assistantReply: "Congratulations",
+    })).resolves.toEqual([expectedCandidate]);
   });
 });
