@@ -559,6 +559,14 @@ src/main/rag/file-ingest.ts
 
 记忆系统是源项目最重要、也最复杂的模块之一。
 
+当前状态：**Phase 7A 最小长期记忆已于 2026-07-14 实现**。已经完成 L0/L1/L2、`memory.json` 原子持久化、MemoryJudge、MemoryManager、安全证据校验、L2 向量召回、后台写队列、记忆事件和退出前 flush。详细讲义：
+
+```text
+docs/learning/phase-07a-minimal-long-term-memory.zh-CN.md
+```
+
+Phase 7B/7C/7D 仍属于未来工作，包括记忆面板、冲突处理、resolver、reflection、过期和压缩。下面的完整目标列表同时包含已经完成的基础与后续能力。
+
 目标拆分：
 
 ```text
@@ -922,26 +930,26 @@ docs/superpowers/plans/phase-7-memory.md
 
 ## 当前下一步
 
-当前下一步是执行：
+当前已经完成到：
 
 ```text
-Phase 0 + Phase 1
+Phase 7A：最小长期记忆
 ```
 
-对应计划：
+对应计划与讲义：
 
 ```text
-docs/superpowers/plans/2026-07-08-phase-0-1-minimal-agent.md
+docs/superpowers/plans/2026-07-14-phase-7a-minimal-long-term-memory.md
+docs/learning/phase-07a-minimal-long-term-memory.zh-CN.md
 ```
 
-完成后你会得到：
+当前项目已经具备：
 
 ```text
-一个可以 npm install 的 TypeScript 项目
-一个可以 npm test 的测试环境
-一个可以 npm run dev:chat 的终端聊天 Agent
-一个 OpenAI-compatible adapter
-一份中文 Phase 1 学习讲义
+跨会话、跨重启的 L0/L1/L2 长期记忆
+有证据与安全过滤的自动记忆写入
+L2 向量召回与独立记忆索引
+后台写入、可观察事件和退出前刷新
 ```
 
-这就是整个复刻项目的第一块地基。
+下一步进入 Phase 7B 的记忆治理能力；Phase 8 及之后的 Skills、MCP、Scheduler、Voice 等阶段保持不变。
