@@ -5,7 +5,7 @@ export interface L0Profile {
   language?: string;
   permanentNotes: string[];
   updatedAt?: string;
-  fieldMetadata?: Record<string, ProfileFieldMetadata>;
+  fieldMetadata?: Partial<Record<L0Field, ProfileFieldMetadata>>;
 }
 
 export interface L1Profile {
@@ -13,7 +13,7 @@ export interface L1Profile {
   recentGoals: string[];
   recentPreferences: string[];
   updatedAt?: string;
-  fieldMetadata?: Record<string, ProfileFieldMetadata>;
+  fieldMetadata?: Partial<Record<L1Field, ProfileFieldMetadata>>;
 }
 
 export interface ProfileFieldMetadata {
@@ -53,10 +53,8 @@ export type L2SyncStatus = "pending_sync" | "synced" | "sync_failed";
 export type L2Importance = "medium" | "high";
 
 export interface MemorySourceSnapshot {
-  content: string;
-  capturedAt: string;
-  id?: string;
-  memoryId?: string;
+  memoryId: string;
+  updatedAt: string;
 }
 
 export interface L2MemoryV2 {
@@ -103,26 +101,27 @@ export type ConflictStatus = "queued" | "processing" | "resolved" | "uncertain" 
 
 export type ConflictPriority = "idle" | "normal" | "high";
 
-export interface ConflictResolutionMetadata {
-  resolvedAt?: string;
-  resolvedBy?: "resolver" | "user" | "system";
-  action?: "keep" | "supersede" | "merge" | "dismiss";
-  note?: string;
-}
+export type ConflictResolutionType =
+  | "unrelated"
+  | "context_difference"
+  | "preference_evolution"
+  | "direct_conflict"
+  | "uncertain";
 
 export interface ConflictLog {
   id: string;
-  memoryId: string;
-  conflictWith: string[];
+  sourceMemoryId: string;
+  targetMemoryId: string;
   createdAt: string;
-  updatedAt: string;
   status: ConflictStatus;
   score: number;
   priority: ConflictPriority;
   attempts: number;
   signals: ConflictSignals;
-  resolution?: ConflictResolutionMetadata;
-  resolutionMetadata?: ConflictResolutionMetadata;
+  resolutionType?: ConflictResolutionType;
+  resolutionReason?: string;
+  resolutionConfidence?: number;
+  finishedAt?: string;
 }
 
 export interface ReflectionLog {
@@ -196,12 +195,12 @@ export function createEmptyMemoryFileV2(): MemoryFileV2 {
 
 export function initialMemoryWeight(
   importance: L2Importance,
+  confidence: number,
   isSummary = false,
-  baseWeight?: number,
 ): number {
-  const base = baseWeight ?? (importance === "high" ? 0.85 : 0.6);
-  const minimum = isSummary ? 0.75 : 0;
-  const weight = Number.isFinite(base) ? Math.max(base, minimum) : minimum;
+  const base = importance === "high" ? 0.85 : 0.6;
+  const weightedConfidence = Number.isFinite(confidence) ? base * confidence : 0;
+  const weight = isSummary ? Math.max(0.75, weightedConfidence) : weightedConfidence;
   return Math.min(1, Math.max(0, weight));
 }
 

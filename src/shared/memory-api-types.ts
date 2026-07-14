@@ -1,6 +1,9 @@
 import type {
   ConflictPriority,
   ConflictStatus,
+  ConflictResolutionType,
+  L0Field,
+  L1Field,
   L2Importance,
   L2MemoryStatus,
   L2SyncStatus,
@@ -21,7 +24,7 @@ export interface MemoryL0Snapshot {
   language?: string;
   permanentNotes: string[];
   updatedAt?: string;
-  fieldMetadata?: Record<string, ProfileFieldMetadata>;
+  fieldMetadata?: Partial<Record<L0Field, ProfileFieldMetadata>>;
 }
 
 export interface MemoryL1Snapshot {
@@ -29,7 +32,7 @@ export interface MemoryL1Snapshot {
   recentGoals: string[];
   recentPreferences: string[];
   updatedAt?: string;
-  fieldMetadata?: Record<string, ProfileFieldMetadata>;
+  fieldMetadata?: Partial<Record<L1Field, ProfileFieldMetadata>>;
 }
 
 export type MemoryProfileSnapshot = MemoryL0Snapshot | MemoryL1Snapshot;
@@ -58,19 +61,17 @@ export interface MemoryL2Row {
 
 export interface MemoryConflictRow {
   id: string;
-  memoryId: string;
-  conflictWith: string[];
+  sourceMemoryId: string;
+  targetMemoryId: string;
   createdAt: string;
-  updatedAt: string;
   status: ConflictStatus;
   score: number;
   priority: ConflictPriority;
   attempts: number;
-  resolution?: {
-    resolvedAt?: string;
-    resolvedBy?: "resolver" | "user" | "system";
-    action?: "keep" | "supersede" | "merge" | "dismiss";
-  };
+  resolutionType?: ConflictResolutionType;
+  resolutionReason?: string;
+  resolutionConfidence?: number;
+  finishedAt?: string;
 }
 
 export interface MemoryReflectionRow {
@@ -99,11 +100,11 @@ export interface MemorySnapshot {
   maintenance: MemoryMaintenanceSnapshot;
 }
 
-export interface UpdateProfileInput {
-  layer: MemoryProfileLayer;
-  field: string;
-  value: string | string[];
-}
+export type UpdateProfileFieldInput =
+  | { layer: "L0"; field: L0Field; value: string | string[] }
+  | { layer: "L1"; field: L1Field; value: string | string[] };
+
+export type UpdateProfileInput = UpdateProfileFieldInput;
 
 export interface UpdateProfileResult {
   success: boolean;
@@ -129,10 +130,11 @@ export interface UpdateL2Result {
   code?: string;
 }
 
-export interface DeleteFieldInput {
-  layer: MemoryProfileLayer;
-  field: string;
-}
+export type DeleteProfileFieldInput =
+  | { layer: "L0"; field: L0Field }
+  | { layer: "L1"; field: L1Field };
+
+export type DeleteFieldInput = DeleteProfileFieldInput;
 
 export interface DeleteFieldResult {
   success: boolean;
