@@ -115,11 +115,7 @@ export interface UpdateProfileResult {
 
 export interface UpdateL2Input {
   id: string;
-  content?: string;
-  confidence?: number;
-  importance?: L2Importance;
-  isSummary?: boolean;
-  sourceMemoryIds?: string[];
+  content: string;
 }
 
 export interface UpdateL2Result {
@@ -142,9 +138,9 @@ export interface DeleteFieldResult {
   code?: string;
 }
 
-export interface PinMemoryInput {
+export interface SetPinnedInput {
   id: string;
-  isPinned: boolean;
+  pinned: boolean;
 }
 
 export interface PinMemoryResult {
@@ -154,9 +150,9 @@ export interface PinMemoryResult {
   code?: string;
 }
 
-export interface EnableMemoryInput {
+export interface SetEnabledInput {
   id: string;
-  isEnabled: boolean;
+  enabled: boolean;
 }
 
 export interface EnableMemoryResult {
@@ -183,12 +179,36 @@ export interface MaintenanceResult {
   code?: string;
 }
 
-export interface AuditReport {
-  entries: MemoryAuditMetadata[];
-  total: number;
-  successCount: number;
-  skippedCount: number;
-  failedCount: number;
+export type MemoryMutationErrorCode =
+  | "not_found"
+  | "invalid_state"
+  | "invalid_content";
+
+export type MemoryMutationResult =
+  | { ok: true; snapshot: MemorySnapshot }
+  | {
+    ok: false;
+    code: MemoryMutationErrorCode;
+    message: string;
+  };
+
+export type MemoryAuditFindingCode =
+  | "missing_evidence"
+  | "broken_superseded_by"
+  | "broken_merged_into"
+  | "active_conflict_without_live_log"
+  | "summary_source_missing";
+
+export interface MemoryAuditFinding {
+  code: MemoryAuditFindingCode;
+  severity: "warning" | "error";
+  targetId: string;
+  relatedId?: string;
+}
+
+export interface MemoryAuditReport {
+  ok: boolean;
+  findings: MemoryAuditFinding[];
 }
 
 export type MemoryUpdateProfileInput = UpdateProfileInput;
@@ -197,13 +217,13 @@ export type MemoryUpdateL2Input = UpdateL2Input;
 export type MemoryUpdateL2Result = UpdateL2Result;
 export type MemoryDeleteFieldInput = DeleteFieldInput;
 export type MemoryDeleteFieldResult = DeleteFieldResult;
-export type MemoryPinInput = PinMemoryInput;
+export type PinMemoryInput = SetPinnedInput;
+export type MemoryPinInput = SetPinnedInput;
 export type MemoryPinResult = PinMemoryResult;
-export type MemoryEnableInput = EnableMemoryInput;
+export type EnableMemoryInput = SetEnabledInput;
+export type MemoryEnableInput = SetEnabledInput;
 export type MemoryEnableResult = EnableMemoryResult;
 export type MemoryClearLayerInput = ClearLayerInput;
 export type MemoryClearLayerResult = ClearLayerResult;
 export type MemoryMaintenanceResult = MaintenanceResult;
-export type MemoryAuditReport = AuditReport;
-
 export type MemoryFieldMetadata = ProfileFieldMetadata;
