@@ -32,8 +32,8 @@
 - Create: `tests/memory/memory-types.test.ts`
 
 **Interfaces:**
-- Produces: `MemoryFileV2`, expanded `L2Memory`, `MemoryEvidence`, `ConflictLog`, `MemoryAuditEntry`, `MemoryMaintenanceState`, and renderer-safe `MemorySnapshot`/mutation inputs.
-- Consumes: existing `L0Profile`, `L1Profile`, and field unions.
+- Produces: parallel `MemoryFileV1`/`MemoryFileV2` and `L2MemoryV1`/`L2MemoryV2` types, `MemoryEvidence`, `ConflictLog`, `MemoryAuditEntry`, `MemoryMaintenanceState`, and renderer-safe `MemorySnapshot`/mutation inputs.
+- Consumes: existing `L0Profile`, `L1Profile`, and field unions. Keep the current `MemoryFile` and `L2Memory` runtime aliases on v1 in this task so the application remains green before migration exists; Task 2 switches the aliases and all consumers to v2 atomically.
 
 - [ ] **Step 1: Verify the clean baseline**
 
@@ -67,7 +67,7 @@ expect(createEmptyMemoryFileV2()).toEqual({
 });
 ```
 
-Also instantiate one `L2Memory` with all required v2 fields, including `sourceSnapshots: []`, and assert `isRecallableL2()` returns true only for enabled `active`/`aging` entries and false for `archived`, `superseded`, `merged`, disabled, or summary entries whose `syncStatus !== "synced"`.
+Also instantiate one `L2MemoryV2` with all required v2 fields, including `sourceSnapshots: []`, and assert `isRecallableL2()` returns true only for enabled `active`/`aging` entries and false for `archived`, `superseded`, `merged`, disabled, or summary entries whose `syncStatus !== "synced"`.
 
 - [ ] **Step 3: Run RED**
 
@@ -83,7 +83,7 @@ Add the schema from the approved design. Required exported helpers:
 
 ```ts
 export function createEmptyMemoryFileV2(): MemoryFile;
-export function isRecallableL2(memory: L2Memory): boolean;
+export function isRecallableL2(memory: L2MemoryV2): boolean;
 export function initialMemoryWeight(
   importance: "medium" | "high",
   confidence: number,
@@ -93,7 +93,7 @@ export function initialMemoryWeight(
 
 `initialMemoryWeight()` returns `Math.min(1, Math.max(0, base * confidence))` with base `0.60` for medium, `0.85` for high, and minimum `0.75` for summaries.
 
-Define renderer-safe DTOs in `src/shared/memory-api-types.ts`; do not export file paths, raw model output, or Store mutators.
+Define renderer-safe DTOs in `src/shared/memory-api-types.ts`; do not export file paths, raw model output, or Store mutators. Do not modify Store, Manager, Recall, or existing v1 fixture behavior in Task 1.
 
 - [ ] **Step 5: Run GREEN and typecheck**
 
@@ -118,11 +118,16 @@ git commit -m "feat: define phase 7 memory schema"
 **Files:**
 - Create: `src/main/memory/memory-migrations.ts`
 - Modify: `src/main/memory/memory-store.ts`
+- Modify: `src/main/memory/memory-manager.ts`
+- Modify: `src/main/memory/memory-recall.ts`
 - Create: `tests/memory/memory-migrations.test.ts`
 - Modify: `tests/memory/memory-store.test.ts`
+- Modify: `tests/memory/memory-manager.test.ts`
+- Modify: `tests/memory/memory-recall.test.ts`
+- Modify: `tests/main/register-chat-ipc.test.ts`
 
 **Interfaces:**
-- Produces: `migrateMemoryFile(value, now, idFactory): MemoryFile` and `migrateMemoryFileOnDisk(options): Promise<MemoryFile>`.
+- Produces: `migrateMemoryFile(value, now, idFactory): MemoryFileV2` and `migrateMemoryFileOnDisk(options): Promise<MemoryFileV2>`; switches the public `MemoryFile`/`L2Memory` aliases and all runtime consumers from v1 to v2 in the same task.
 - Consumes: v1 structural parser retained privately in `memory-store.ts`, `writeFileAtomically()`, and `recoverInterruptedAtomicWrite()`.
 
 - [ ] **Step 1: Write migration tests**
@@ -183,6 +188,8 @@ recoverInterruptedAtomicWrite
 
 Do not overwrite an existing pre-v2 backup with different bytes.
 
+Update MemoryManager so every new L2 creates one Evidence record and all required v2 lifecycle/sync/linkage fields. Update Recall and typed test fixtures to use v2; keep expected user-visible recall behavior unchanged.
+
 - [ ] **Step 5: Run GREEN**
 
 ```powershell
@@ -195,7 +202,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add src/main/memory/memory-migrations.ts src/main/memory/memory-store.ts tests/memory/memory-migrations.test.ts tests/memory/memory-store.test.ts
+git add src/main/memory/memory-migrations.ts src/main/memory/memory-store.ts src/main/memory/memory-manager.ts src/main/memory/memory-recall.ts tests/memory/memory-migrations.test.ts tests/memory/memory-store.test.ts tests/memory/memory-manager.test.ts tests/memory/memory-recall.test.ts tests/main/register-chat-ipc.test.ts
 git commit -m "feat: migrate memory store to schema v2"
 ```
 
