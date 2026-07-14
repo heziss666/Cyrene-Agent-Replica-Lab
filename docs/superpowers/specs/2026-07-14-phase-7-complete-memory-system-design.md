@@ -197,6 +197,7 @@ interface L2Memory {
   syncStatus: "pending_sync" | "synced" | "sync_failed";
   isSummary: boolean;
   sourceMemoryIds: string[];
+  sourceSnapshots: Array<{ memoryId: string; updatedAt: string }>;
   conflictWith: string[];
   supersededBy?: string;
   mergedInto?: string;
@@ -479,7 +480,7 @@ Compressor 输出 summary、sourceMemoryIds、claims 和 evidenceIds。随后使
 
 ## 16. 实体关系图
 
-`entity-graph.json` 是可重建缓存：
+与 `memory.json` 同目录的 `entity-graph.json` 是可重建缓存：
 
 ```ts
 interface EntityNode {
