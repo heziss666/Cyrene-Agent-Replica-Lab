@@ -146,4 +146,95 @@ describe("memory content policy", () => {
         : { ok: false, code: "forbidden_sensitive_data" },
     );
   });
+
+  it.each([
+    ["dot-separated token label", "api.key: example-only", "example-only"],
+    ["slash-separated token label", "access/token: example-only", "example-only"],
+    ["Unicode-hyphen token label", "access\u2011token: example-only", "example-only"],
+    ["zero-width-obscured token label", "api\u200B.key: example-only", "example-only"],
+    ["variation-selector-obscured token label", "api\uFE0F.key: example-only", "example-only"],
+    ["password label", "password: example-only", "example-only"],
+    ["Chinese password label", "\u5bc6\u7801: example-only", "example-only"],
+    ["Chinese verification-code label", "\u9a8c\u8bc1\u7801: 123456", "123456"],
+    ["identity-document label", "ID card number: example-only", "example-only"],
+  ])("rejects obscured or compact sensitive label in model evidence: %s", (_label, evidenceQuote, content) => {
+    expect(validateModelMemoryContent({
+      userMessage: evidenceQuote,
+      evidenceQuote,
+      content,
+    })).toEqual({ ok: false, code: "forbidden_sensitive_data" });
+  });
+
+  it.each([
+    ["obscured API label", "api\u200B.key: example-only"],
+    ["Unicode-hyphen access label", "access\u2011token: example-only"],
+    ["Chinese password label", "\u5bc6\u7801: example-only"],
+    ["identity-document label", "ID card number: example-only"],
+  ])("rejects obscured or compact sensitive label in user edits: %s", (_label, content) => {
+    expect(validateUserEditedMemoryContent(content)).toEqual({
+      ok: false,
+      code: "forbidden_sensitive_data",
+    });
+  });
+
+  it.each([
+    ["JWT with URL-safe ending", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWtlIn0.signature-"],
+    ["AWS access key", "AKIAFAKE000000000000"],
+    ["Arabic-Indic bank-card digits", "number \u0661\u0662\u0663\u0664.\u0665\u0666\u0667\u0668/\u0669\u0660\u0661\u0662-\u0663\u0664\u0665\u0666"],
+  ])("rejects %s in model evidence", (_label, evidenceQuote) => {
+    expect(validateModelMemoryContent({
+      userMessage: evidenceQuote,
+      evidenceQuote,
+      content: evidenceQuote,
+    })).toEqual({ ok: false, code: "forbidden_sensitive_data" });
+  });
+
+  it.each([
+    ["Chinese exact address", "\u6211\u7684\u8be6\u7ec6\u5730\u5740\u662f\u793a\u4f8b\u8def123\u53f7", "forbidden_sensitive_data"],
+    ["Chinese medical privacy", "\u6211\u88ab\u8bca\u65ad\u60a3\u6709\u793a\u4f8b\u75be\u75c5", "privacy_opt_in_required"],
+    ["Chinese legal privacy", "\u6211\u7684\u5f8b\u5e08\u6b63\u5728\u5904\u7406\u79bb\u5a5a\u8bc9\u8bbc", "privacy_opt_in_required"],
+  ])("returns the stable code for %s", (_label, evidenceQuote, code) => {
+    expect(validateModelMemoryContent({
+      userMessage: evidenceQuote,
+      evidenceQuote,
+      content: evidenceQuote,
+    })).toEqual({ ok: false, code });
+  });
+
+  it("checks complete long statements and scopes privacy opt-in to the quoted statement", () => {
+    const longMedicalStatement = `I was diagnosed with ${"details ".repeat(16)}a heart condition`;
+    expect(validateModelMemoryContent({
+      userMessage: longMedicalStatement,
+      evidenceQuote: "a heart condition",
+      content: "a heart condition",
+    })).toEqual({ ok: false, code: "privacy_opt_in_required" });
+
+    expect(validateModelMemoryContent({
+      userMessage: "Please remember that I like blue. I was diagnosed with cancer.",
+      evidenceQuote: "I was diagnosed with cancer",
+      content: "I was diagnosed with cancer",
+    })).toEqual({ ok: false, code: "privacy_opt_in_required" });
+
+    expect(validateModelMemoryContent({
+      userMessage: "Please remember for future conversations that I was diagnosed with cancer.",
+      evidenceQuote: "I was diagnosed with cancer",
+      content: "I was diagnosed with cancer",
+    })).toMatchObject({ ok: true });
+  });
+
+  it("returns identical results across repeated model and user-edit calls", () => {
+    const modelInput = {
+      userMessage: "number 1234.5678/9012-3456",
+      evidenceQuote: "number 1234.5678/9012-3456",
+      content: "number 1234.5678/9012-3456",
+    };
+    const modelExpected = { ok: false, code: "forbidden_sensitive_data" } as const;
+    const userInput = "api\u200B.key: example-only";
+    const userExpected = { ok: false, code: "forbidden_sensitive_data" } as const;
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(validateModelMemoryContent(modelInput)).toEqual(modelExpected);
+      expect(validateUserEditedMemoryContent(userInput)).toEqual(userExpected);
+    }
+  });
 });
