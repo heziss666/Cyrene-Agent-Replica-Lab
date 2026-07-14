@@ -322,6 +322,36 @@ describe("MemoryGovernanceService L2 governance", () => {
     expect(snapshot).not.toHaveProperty("evidence");
   });
 
+  it("removes every evidence row owned by an edited memory and all drifted references", async () => {
+    const edited = createMemory("edited");
+    const other = createMemory("other", {
+      evidenceIds: ["evidence-other", "drifted-owned-evidence"],
+    });
+    const file = createFile([edited, other]);
+    file.evidence.push({
+      id: "drifted-owned-evidence",
+      memoryId: edited.id,
+      quote: "stale private evidence",
+      capturedAt: INITIAL_TIME,
+      source: "conversation",
+      sourceMemoryIds: [],
+    });
+    const store = createStore(file);
+    const service = createService(store, ["replacement-evidence", "edit-audit"]);
+
+    expect((await service.updateL2({
+      id: edited.id,
+      content: "Replacement content",
+    })).ok).toBe(true);
+
+    expect(store.read().evidence.map((evidence) => evidence.id)).toEqual([
+      "evidence-other",
+      "replacement-evidence",
+    ]);
+    expect(store.read().l2.find((memory) => memory.id === "other")?.evidenceIds)
+      .toEqual(["evidence-other"]);
+  });
+
   it("pins at weight 1, keeps explicit governance allowed, and disables without changing lifecycle", async () => {
     const memory = createMemory("memory-1", { status: "aging", weight: 0.2 });
     const store = createStore(createFile([memory]));
@@ -422,6 +452,31 @@ describe("MemoryGovernanceService L2 governance", () => {
     });
     expect(store.read().reflectionLogs[0].sourceMemoryIds).toEqual(["peer"]);
     expect(JSON.stringify(store.read().auditLogs)).not.toContain(source.content);
+  });
+
+  it("removes every evidence row owned by a deleted memory and all drifted references", async () => {
+    const deleted = createMemory("deleted");
+    const survivor = createMemory("survivor", {
+      evidenceIds: ["evidence-survivor", "drifted-owned-evidence"],
+    });
+    const file = createFile([deleted, survivor]);
+    file.evidence.push({
+      id: "drifted-owned-evidence",
+      memoryId: deleted.id,
+      quote: "stale deleted evidence",
+      capturedAt: INITIAL_TIME,
+      source: "conversation",
+      sourceMemoryIds: [],
+    });
+    const store = createStore(file);
+    const service = createService(store);
+
+    expect((await service.deleteL2(deleted.id)).ok).toBe(true);
+
+    expect(store.read().evidence.map((evidence) => evidence.id)).toEqual([
+      "evidence-survivor",
+    ]);
+    expect(store.read().l2[0].evidenceIds).toEqual(["evidence-survivor"]);
   });
 
   it("clears L2 while retaining only non-executable, content-free conflict history", async () => {
@@ -658,6 +713,34 @@ describe("MemoryGovernanceService L2 governance", () => {
     expect(after.evidence).toEqual(seeded.evidence);
     expect(after.auditLogs).toEqual([]);
   });
+
+  it("builds the success snapshot before persistence and aborts if mapping fails", async () => {
+    const memory = createMemory("memory-1", { content: "Original content" });
+    const initial = createFile([memory]);
+    const store = createStore(initial);
+    const service = createMemoryGovernanceService({
+      store,
+      now: () => Date.parse(MUTATION_TIME),
+      idFactory: () => "generated-but-not-committed",
+      snapshotBuilder: () => {
+        throw new Error("C:\\private\\snapshot mapper leaked content");
+      },
+    });
+
+    const result = await service.updateL2({
+      id: memory.id,
+      content: "Uncommitted edit",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "invalid_state",
+      message: "Memory operation could not be completed",
+    });
+    expect(store.read()).toEqual(initial);
+    expect(store.read().auditLogs).toEqual([]);
+    expect(store.read().evidence).toEqual(initial.evidence);
+  });
 });
 
 describe("MemoryGovernanceService audit metadata and snapshots", () => {
@@ -725,6 +808,34 @@ describe("MemoryGovernanceService audit metadata and snapshots", () => {
     expect(snapshot.conflicts[0]).not.toHaveProperty("signals");
     expect(snapshot.conflicts[0]).not.toHaveProperty("resolutionReason");
     expect(JSON.stringify(snapshot)).not.toContain("raw model output");
+  });
+
+  it("sanitizes snapshot and audit load failures without changing their return contracts", async () => {
+    const sensitiveError = new Error(
+      "Cannot load C:\\private\\memory.json containing private memory content",
+    );
+    const store: MemoryStore = {
+      load: vi.fn(async () => Promise.reject(sensitiveError)),
+      update: vi.fn(async () => Promise.reject(sensitiveError)),
+    };
+    const service = createService(store);
+
+    const snapshotError = await service.snapshot().then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    const auditError = await service.audit().then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+
+    for (const error of [snapshotError, auditError]) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe("Memory data could not be loaded");
+      expect(String(error)).not.toContain("C:\\private");
+      expect(String(error)).not.toContain("private memory content");
+      expect((error as Error & { cause?: unknown }).cause).toBeUndefined();
+    }
   });
 
   it("uses one mutation result contract for every legacy IPC result alias", () => {

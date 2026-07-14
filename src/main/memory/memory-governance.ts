@@ -53,6 +53,7 @@ interface CreateMemoryGovernanceServiceOptions {
   store: MemoryStore;
   now?: () => number;
   idFactory?: () => string;
+  snapshotBuilder?: (memory: MemoryFile) => MemorySnapshot;
 }
 
 interface MutationAuditMetadata {
@@ -74,6 +75,7 @@ type L2Mutation = (
 ) => void;
 
 const STORE_FAILURE_MESSAGE = "Memory operation could not be completed";
+const READ_FAILURE_MESSAGE = "Memory data could not be loaded";
 
 export interface MemoryGovernanceService {
   snapshot(): Promise<MemorySnapshot>;
@@ -104,15 +106,20 @@ export function createMemoryGovernanceService(
   const { store } = options;
   const now = options.now ?? Date.now;
   const idFactory = options.idFactory ?? randomUUID;
+  const snapshotBuilder = options.snapshotBuilder ?? toMemorySnapshot;
 
   async function commitMutation(mutate: StoreMutation): Promise<MemoryMutationResult> {
+    let snapshot: MemorySnapshot | undefined;
+
     try {
-      const updated = await store.update((draft) => {
+      await store.update((draft) => {
         const timestamp = new Date(now()).toISOString();
         const audit = mutate(draft, timestamp);
         appendSuccessAudit(draft, timestamp, idFactory, audit);
+        snapshot = snapshotBuilder(draft);
       });
-      return { ok: true, snapshot: toMemorySnapshot(updated) };
+      if (snapshot === undefined) return failure("invalid_state", STORE_FAILURE_MESSAGE);
+      return { ok: true, snapshot };
     } catch (error) {
       if (error instanceof MutationRejected) return failure(error.code, error.message);
       return failure("invalid_state", STORE_FAILURE_MESSAGE);
@@ -137,7 +144,11 @@ export function createMemoryGovernanceService(
 
   return {
     async snapshot(): Promise<MemorySnapshot> {
-      return toMemorySnapshot(await store.load());
+      try {
+        return snapshotBuilder(await store.load());
+      } catch {
+        throw new Error(READ_FAILURE_MESSAGE);
+      }
     },
 
     async updateProfileField(input): Promise<MemoryMutationResult> {
@@ -183,7 +194,7 @@ export function createMemoryGovernanceService(
               "Memory already has that content",
             );
           }
-          const removedEvidenceIds = new Set(current.evidenceIds);
+          const removedEvidenceIds = collectOwnedEvidenceIds(draft, current);
           draft.evidence = draft.evidence.filter((evidence) => (
             evidence.memoryId !== current.id && !removedEvidenceIds.has(evidence.id)
           ));
@@ -304,7 +315,11 @@ export function createMemoryGovernanceService(
     },
 
     async audit(): Promise<MemoryAuditReport> {
-      return auditMemoryFile(await store.load());
+      try {
+        return auditMemoryFile(await store.load());
+      } catch {
+        throw new Error(READ_FAILURE_MESSAGE);
+      }
     },
   };
 }
@@ -481,7 +496,7 @@ function requireMemory(draft: MemoryFile, id: string): L2MemoryV2 {
 
 function deleteMemoryCascade(draft: MemoryFile, id: string, timestamp: string): void {
   const deleted = requireMemory(draft, id);
-  const removedEvidenceIds = new Set(deleted.evidenceIds);
+  const removedEvidenceIds = collectOwnedEvidenceIds(draft, deleted);
   draft.l2 = draft.l2.filter((memory) => memory.id !== id);
   draft.evidence = draft.evidence.filter((evidence) => (
     evidence.memoryId !== id && !removedEvidenceIds.has(evidence.id)
@@ -514,6 +529,14 @@ function deleteMemoryCascade(draft: MemoryFile, id: string, timestamp: string): 
     reflection.sourceMemoryIds = reflection.sourceMemoryIds.filter((sourceId) => sourceId !== id);
   }
   makeConflictHistoryNonExecutable(draft, new Set([id]), timestamp);
+}
+
+function collectOwnedEvidenceIds(draft: MemoryFile, memory: L2MemoryV2): Set<string> {
+  const evidenceIds = new Set(memory.evidenceIds);
+  for (const evidence of draft.evidence) {
+    if (evidence.memoryId === memory.id) evidenceIds.add(evidence.id);
+  }
+  return evidenceIds;
 }
 
 function restoreMemory(draft: MemoryFile, id: string, timestamp: string): void {

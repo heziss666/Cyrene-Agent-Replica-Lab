@@ -47,7 +47,7 @@ PASS
 
 ## Self-Review
 
-- Transaction atomicity: every successful mutation calls `store.update()` exactly once; validation/no-op/missing paths do not call it. Captured state is rechecked inside the transaction, and stale state aborts before validation or persistence.
+- Transaction atomicity: every successful mutation calls `store.update()` exactly once. Cheap shape/content validation failures do not enter a transaction; no-op and missing-state operations enter `store.update()` and reject transactionally after authoritative checks on the serialized draft, before persistence or audit append.
 - Content policy: all user-edited strings, including each profile-array item, pass through `validateUserEditedMemoryContent()` before a transaction starts.
 - Cascades: L2 deletion removes owned Evidence and live references, invalidates executable conflict history, removes source references, and disables affected summaries with `sync_failed`. L2 clear removes all L2/Evidence and invalidates executable conflict history without adding content.
 - Pinning: pin sets `isPinned` and `weight = 1`; explicit governance remains available for pinned memories. Future automatic services can enforce protection from the persisted `isPinned` state.
@@ -99,5 +99,47 @@ PASS: 49 files, 469 tests
 - Store failures: initialization/update/validation/write rejection through the transaction boundary resolves to fixed `invalid_state` metadata. Store messages and causes are never included, and rejected writes do not commit Evidence or audit entries.
 
 ### Review Concerns
+
+None.
+
+## Second Fix Wave
+
+Status: DONE
+
+### RED Evidence
+
+```text
+npx.cmd vitest run tests/memory/memory-governance.test.ts tests/memory/memory-audit.test.ts
+FAIL: 4 tests
+- edit retained a drifted Evidence reference owned by the edited memory
+- delete retained a drifted Evidence reference owned by the deleted memory
+- snapshot mapping failure occurred after persistence instead of aborting the update
+- snapshot/audit reads exposed the Store load error
+
+npm.cmd run typecheck
+FAIL: snapshotBuilder was not an accepted narrow governance-service option
+```
+
+### GREEN Evidence
+
+```text
+npx.cmd vitest run tests/memory/memory-governance.test.ts tests/memory/memory-audit.test.ts tests/memory/memory-store.test.ts
+PASS: 3 files, 58 tests
+
+npm.cmd run typecheck
+PASS
+
+npm.cmd test
+PASS: 49 files, 473 tests
+```
+
+### Resolution
+
+- Commit/result consistency: each successful renderer snapshot is built inside the Store mutator after the mutation and audit append. Snapshot conversion failure aborts the update, and the captured DTO is returned without post-commit mapping.
+- Read privacy: `snapshot()` and `audit()` replace Store load or mapping rejection with a new fixed `Memory data could not be loaded` error and do not retain the underlying cause.
+- Evidence ownership drift: edit and delete remove the union of declared Evidence IDs and every Evidence row owned by the target, then remove that full union from all surviving L2 references.
+- Transaction documentation: no-op and missing-state checks are documented as serialized transactional rejections; only cheap shape/content validation stays outside `store.update()`.
+
+### Concerns
 
 None.
