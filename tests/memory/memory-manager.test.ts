@@ -8,6 +8,7 @@ import type {
   MemoryCandidate,
   MemoryFile,
 } from "../../src/main/memory/memory-types.js";
+import { createEmptyMemoryFileV2 } from "../../src/main/memory/memory-types.js";
 
 const directories: string[] = [];
 
@@ -36,12 +37,7 @@ async function createHarness(options: {
 }
 
 function expectEmptyMemory(file: MemoryFile): void {
-  expect(file).toEqual({
-    schemaVersion: 1,
-    l0: { longTermInterests: [], permanentNotes: [] },
-    l1: { recentGoals: [], recentPreferences: [] },
-    l2: [],
-  });
+  expect(file).toEqual(createEmptyMemoryFileV2());
 }
 
 afterEach(async () => {
@@ -590,15 +586,12 @@ describe("createMemoryManager", () => {
     });
 
     expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
-    expect(idFactory).toHaveBeenCalledOnce();
-    expect((await store.load()).l2).toEqual([{
+    expect(idFactory).toHaveBeenCalledTimes(2);
+    expect((await store.load()).l2).toMatchObject([{
       id: "memory-1",
       content: "Finished Phase 7A",
       confidence: 0.91,
-      evidence: {
-        userQuote: "I finished Phase 7A",
-        capturedAt: "2026-07-14T08:00:00.000Z",
-      },
+      evidenceIds: ["memory-2"],
       importance: "medium",
       createdAt: "2026-07-14T08:00:00.000Z",
       status: "active",
@@ -638,15 +631,12 @@ describe("createMemoryManager", () => {
     });
 
     expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
-    expect(idFactory).toHaveBeenCalledOnce();
-    expect((await store.load()).l2).toEqual([{
+    expect(idFactory).toHaveBeenCalledTimes(2);
+    expect((await store.load()).l2).toMatchObject([{
       id: "memory-1",
       content: "Visited Straße",
       confidence: 0.91,
-      evidence: {
-        userQuote: "I visited Straße",
-        capturedAt: "2026-07-14T08:00:00.000Z",
-      },
+      evidenceIds: ["memory-2"],
       importance: "medium",
       createdAt: "2026-07-14T08:00:00.000Z",
       status: "active",
@@ -688,15 +678,12 @@ describe("createMemoryManager", () => {
     });
 
     expect(duplicateSummary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
-    expect(idFactory).toHaveBeenCalledOnce();
-    expect((await store.load()).l2).toEqual([{
+    expect(idFactory).toHaveBeenCalledTimes(2);
+    expect((await store.load()).l2).toMatchObject([{
       id: "memory-1",
       content: composed,
       confidence: 0.91,
-      evidence: {
-        userQuote: composed,
-        capturedAt: "2026-07-14T08:00:00.000Z",
-      },
+      evidenceIds: ["memory-2"],
       importance: "medium",
       createdAt: "2026-07-14T08:00:00.000Z",
       status: "active",
@@ -706,7 +693,9 @@ describe("createMemoryManager", () => {
   it("injects deterministic L2 identity and time without persisting reason", async () => {
     const { manager, store } = await createHarness({
       now: () => new Date("2026-07-14T08:00:00.000Z"),
-      idFactory: () => "memory-1",
+      idFactory: vi.fn()
+        .mockReturnValueOnce("memory-1")
+        .mockReturnValueOnce("evidence-1"),
     });
 
     await manager.writeCandidates({
@@ -722,18 +711,34 @@ describe("createMemoryManager", () => {
       })],
     });
 
-    expect((await store.load()).l2[0]).toEqual({
+    expect((await store.load()).l2[0]).toMatchObject({
       id: "memory-1",
       content: "Finished Phase 7A",
       confidence: 0.91,
-      evidence: {
-        userQuote: "I finished Phase 7A today",
-        capturedAt: "2026-07-14T08:00:00.000Z",
-      },
+      evidenceIds: ["evidence-1"],
       importance: "high",
       createdAt: "2026-07-14T08:00:00.000Z",
+      updatedAt: "2026-07-14T08:00:00.000Z",
+      lastAccessedAt: "2026-07-14T08:00:00.000Z",
+      accessCount: 0,
+      weight: 0.7735,
+      isPinned: false,
+      isEnabled: true,
       status: "active",
+      syncStatus: "pending_sync",
+      isSummary: false,
+      sourceMemoryIds: [],
+      sourceSnapshots: [],
+      conflictWith: [],
     });
+    expect((await store.load()).evidence).toEqual([{
+      id: "evidence-1",
+      memoryId: "memory-1",
+      quote: "I finished Phase 7A today",
+      capturedAt: "2026-07-14T08:00:00.000Z",
+      source: "conversation",
+      sourceMemoryIds: [],
+    }]);
   });
 
   it("rejects low-importance L2 candidates", async () => {
@@ -866,6 +871,7 @@ describe("createMemoryManager", () => {
       longTermInterests: ["TypeScript"],
       permanentNotes: [],
       updatedAt: "2026-07-14T08:00:00.000Z",
+      fieldMetadata: {},
     });
   });
 });

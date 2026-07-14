@@ -35,16 +35,12 @@ export interface L2MemoryV1 {
   status: "active";
 }
 
-export type L2Memory = L2MemoryV1;
-
 export interface MemoryFileV1 {
   schemaVersion: 1;
   l0: L0Profile;
   l1: L1Profile;
   l2: L2MemoryV1[];
 }
-
-export type MemoryFile = MemoryFileV1;
 
 export type L2MemoryStatus = "active" | "aging" | "archived" | "superseded" | "merged";
 
@@ -167,6 +163,10 @@ export interface MemoryFileV2 {
   auditLogs: MemoryAuditEntry[];
   maintenance: MemoryMaintenanceState;
 }
+
+export type L2Memory = L2MemoryV2;
+
+export type MemoryFile = MemoryFileV2;
 
 export function createEmptyMemoryFileV2(): MemoryFileV2 {
   return {

@@ -25,34 +25,50 @@ import {
 } from "../../src/main/rag/vector-retriever.js";
 
 function createMemory(id: string, content = `Content for ${id}`): L2Memory {
+  const timestamp = "2026-07-14T00:00:00.000Z";
   return {
     id,
     content,
     confidence: 0.9,
     importance: "high",
-    evidence: {
-      userQuote: content,
-      capturedAt: "2026-07-14T00:00:00.000Z",
-    },
-    createdAt: "2026-07-14T00:00:00.000Z",
+    evidenceIds: [`evidence-${id}`],
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    lastAccessedAt: timestamp,
+    accessCount: 0,
+    weight: 0.765,
+    isPinned: false,
+    isEnabled: true,
     status: "active",
+    syncStatus: "pending_sync",
+    isSummary: false,
+    sourceMemoryIds: [],
+    sourceSnapshots: [],
+    conflictWith: [],
   };
 }
 
 function createMemoryFile(l2: L2Memory[] = []): MemoryFile {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     l0: {
       preferredName: "Trailblazer",
       longTermInterests: ["agents"],
       permanentNotes: [],
+      fieldMetadata: {},
     },
     l1: {
       currentProject: "Cyrene",
       recentGoals: ["ship recall"],
       recentPreferences: [],
+      fieldMetadata: {},
     },
     l2,
+    evidence: [],
+    conflictLogs: [],
+    reflectionLogs: [],
+    auditLogs: [],
+    maintenance: { successfulWritesSinceMaintenance: 0, running: false },
   };
 }
 

@@ -25,7 +25,7 @@ import {
   type VectorRetriever,
 } from "../rag/vector-retriever.js";
 import type { MemoryStore } from "./memory-store.js";
-import type { MemoryRecallResult } from "./memory-types.js";
+import type { L2MemoryV2, MemoryRecallResult } from "./memory-types.js";
 
 const SEARCH_TOP_K = 5;
 const DEFAULT_MIN_SCORE = 0.35;
@@ -105,7 +105,7 @@ function resolveMemoryVectorDependencies(
 }
 
 function memoryDocuments(
-  memories: Awaited<ReturnType<MemoryStore["load"]>>["l2"],
+  memories: L2MemoryV2[],
 ): KnowledgeDocument[] {
   return memories.map((memory) => ({
     id: memory.id,

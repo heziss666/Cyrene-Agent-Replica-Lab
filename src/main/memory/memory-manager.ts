@@ -9,6 +9,7 @@ import type {
   MemoryCandidate,
   MemoryWriteSummary,
 } from "./memory-types.js";
+import { initialMemoryWeight } from "./memory-types.js";
 
 const l0Fields = new Set<L0Field>([
   "preferredName",
@@ -205,17 +206,35 @@ function persistCandidate(
   if (draft.l2.some((memory) => dedupeKey(memory.content) === contentKey)) {
     return undefined;
   }
+  const memoryId = idFactory();
+  const evidenceId = idFactory();
   draft.l2.push({
-    id: idFactory(),
+    id: memoryId,
     content: candidate.content,
     confidence: candidate.confidence,
     importance: candidate.importance,
-    evidence: {
-      userQuote: candidate.evidenceQuote,
-      capturedAt: timestamp,
-    },
+    evidenceIds: [evidenceId],
     createdAt: timestamp,
+    updatedAt: timestamp,
+    lastAccessedAt: timestamp,
+    accessCount: 0,
+    weight: initialMemoryWeight(candidate.importance, candidate.confidence),
+    isPinned: false,
+    isEnabled: true,
     status: "active",
+    syncStatus: "pending_sync",
+    isSummary: false,
+    sourceMemoryIds: [],
+    sourceSnapshots: [],
+    conflictWith: [],
+  });
+  draft.evidence.push({
+    id: evidenceId,
+    memoryId,
+    quote: candidate.evidenceQuote,
+    capturedAt: timestamp,
+    source: "conversation",
+    sourceMemoryIds: [],
   });
   return "L2";
 }

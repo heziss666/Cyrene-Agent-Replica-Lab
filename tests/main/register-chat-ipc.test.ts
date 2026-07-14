@@ -8,6 +8,7 @@ import type {
   MemoryFile,
   MemoryRecallResult,
 } from "../../src/main/memory/memory-types.js";
+import { createEmptyMemoryFileV2 } from "../../src/main/memory/memory-types.js";
 import {
   createMemoryWriteQueue,
   type MemoryWriteQueue,
@@ -47,12 +48,7 @@ const validCandidate: MemoryCandidate = {
 };
 
 function emptyMemoryFile(): MemoryFile {
-  return {
-    schemaVersion: 1,
-    l0: { longTermInterests: [], permanentNotes: [] },
-    l1: { recentGoals: [], recentPreferences: [] },
-    l2: [],
-  };
+  return createEmptyMemoryFileV2();
 }
 
 function emptyRecall(): MemoryRecallResult {
