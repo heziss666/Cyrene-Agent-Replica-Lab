@@ -5,6 +5,7 @@ export interface L0Profile {
   language?: string;
   permanentNotes: string[];
   updatedAt?: string;
+  fieldMetadata?: Record<string, ProfileFieldMetadata>;
 }
 
 export interface L1Profile {
@@ -12,9 +13,16 @@ export interface L1Profile {
   recentGoals: string[];
   recentPreferences: string[];
   updatedAt?: string;
+  fieldMetadata?: Record<string, ProfileFieldMetadata>;
 }
 
-export interface L2Memory {
+export interface ProfileFieldMetadata {
+  updatedAt: string;
+  source: "judge" | "reflection" | "user_edit" | "resolver";
+  confidence?: number;
+}
+
+export interface L2MemoryV1 {
   id: string;
   content: string;
   confidence: number;
@@ -27,11 +35,182 @@ export interface L2Memory {
   status: "active";
 }
 
-export interface MemoryFile {
+export type L2Memory = L2MemoryV1;
+
+export interface MemoryFileV1 {
   schemaVersion: 1;
   l0: L0Profile;
   l1: L1Profile;
-  l2: L2Memory[];
+  l2: L2MemoryV1[];
+}
+
+export type MemoryFile = MemoryFileV1;
+
+export type L2MemoryStatus = "active" | "aging" | "archived" | "superseded" | "merged";
+
+export type L2SyncStatus = "pending_sync" | "synced" | "sync_failed";
+
+export type L2Importance = "medium" | "high";
+
+export interface MemorySourceSnapshot {
+  content: string;
+  capturedAt: string;
+  id?: string;
+  memoryId?: string;
+}
+
+export interface L2MemoryV2 {
+  id: string;
+  content: string;
+  confidence: number;
+  importance: L2Importance;
+  evidenceIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  lastAccessedAt: string;
+  accessCount: number;
+  weight: number;
+  isPinned: boolean;
+  isEnabled: boolean;
+  status: L2MemoryStatus;
+  syncStatus: L2SyncStatus;
+  isSummary: boolean;
+  sourceMemoryIds: string[];
+  sourceSnapshots: MemorySourceSnapshot[];
+  conflictWith: string[];
+  supersededBy?: string;
+  mergedInto?: string;
+}
+
+export interface MemoryEvidence {
+  id: string;
+  memoryId: string;
+  quote: string;
+  capturedAt: string;
+  source: "conversation" | "user_edit" | "reflection" | "resolver";
+  sourceMemoryIds: string[];
+}
+
+export interface ConflictSignals {
+  score?: number;
+  semanticSimilarity?: number;
+  contradictionScore?: number;
+  entityOverlap?: number;
+  temporalOverlap?: number;
+}
+
+export type ConflictStatus = "queued" | "processing" | "resolved" | "uncertain" | "failed";
+
+export type ConflictPriority = "idle" | "normal" | "high";
+
+export interface ConflictResolutionMetadata {
+  resolvedAt?: string;
+  resolvedBy?: "resolver" | "user" | "system";
+  action?: "keep" | "supersede" | "merge" | "dismiss";
+  note?: string;
+}
+
+export interface ConflictLog {
+  id: string;
+  memoryId: string;
+  conflictWith: string[];
+  createdAt: string;
+  updatedAt: string;
+  status: ConflictStatus;
+  score: number;
+  priority: ConflictPriority;
+  attempts: number;
+  signals: ConflictSignals;
+  resolution?: ConflictResolutionMetadata;
+  resolutionMetadata?: ConflictResolutionMetadata;
+}
+
+export interface ReflectionLog {
+  id: string;
+  createdAt: string;
+  type: "compression" | "l0_update" | "l1_update" | "lifecycle";
+  sourceMemoryIds: string[];
+  acceptedCount: number;
+  skippedCount: number;
+}
+
+export interface MemoryAuditEntry {
+  id: string;
+  createdAt: string;
+  operation: string;
+  targetType: string;
+  targetId?: string;
+  field?: string;
+  source: "automatic" | "user" | "system";
+  result: "success" | "skipped" | "failed";
+  code?: string;
+}
+
+export interface MemoryMaintenanceState {
+  lastDecayAt?: string;
+  lastMaintenanceAt?: string;
+  lastReflectionAt?: string;
+  lastCompressionAt?: string;
+  lastEntityGraphAt?: string;
+  successfulWritesSinceMaintenance: number;
+  running: boolean;
+  lastErrorCode?: string;
+}
+
+export interface MemoryFileV2 {
+  schemaVersion: 2;
+  l0: L0Profile;
+  l1: L1Profile;
+  l2: L2MemoryV2[];
+  evidence: MemoryEvidence[];
+  conflictLogs: ConflictLog[];
+  reflectionLogs: ReflectionLog[];
+  auditLogs: MemoryAuditEntry[];
+  maintenance: MemoryMaintenanceState;
+}
+
+export function createEmptyMemoryFileV2(): MemoryFileV2 {
+  return {
+    schemaVersion: 2,
+    l0: {
+      longTermInterests: [],
+      permanentNotes: [],
+      fieldMetadata: {},
+    },
+    l1: {
+      recentGoals: [],
+      recentPreferences: [],
+      fieldMetadata: {},
+    },
+    l2: [],
+    evidence: [],
+    conflictLogs: [],
+    reflectionLogs: [],
+    auditLogs: [],
+    maintenance: {
+      successfulWritesSinceMaintenance: 0,
+      running: false,
+    },
+  };
+}
+
+export function initialMemoryWeight(
+  importance: L2Importance,
+  isSummary = false,
+  baseWeight?: number,
+): number {
+  const base = baseWeight ?? (importance === "high" ? 0.85 : 0.6);
+  const minimum = isSummary ? 0.75 : 0;
+  const weight = Number.isFinite(base) ? Math.max(base, minimum) : minimum;
+  return Math.min(1, Math.max(0, weight));
+}
+
+export function isRecallableL2(memory: L2MemoryV2): boolean {
+  return (
+    memory.isEnabled &&
+    (memory.status === "active" || memory.status === "aging") &&
+    (!memory.isSummary || memory.syncStatus === "synced")
+  );
 }
 
 export interface MemoryCandidate {
