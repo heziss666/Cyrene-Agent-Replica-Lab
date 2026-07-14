@@ -47,6 +47,19 @@ afterEach(async () => {
 });
 
 describe("createMemoryManager", () => {
+  it("skips content beyond the normalized policy length limit", async () => {
+    const { manager, store } = await createHarness();
+    const content = "x".repeat(2_001);
+
+    const summary = await manager.writeCandidates({
+      userMessage: content,
+      candidates: [candidate({ content, evidenceQuote: content })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
   it("writes an explicit high-confidence L0 field", async () => {
     const { manager, store } = await createHarness();
 
