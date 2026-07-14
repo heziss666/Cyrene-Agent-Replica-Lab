@@ -15,6 +15,7 @@ import {
 import type {
   DeleteProfileFieldInput,
   MemoryConflictRow,
+  MemorySnapshot,
   UpdateProfileFieldInput,
 } from "../../src/shared/memory-api-types.js";
 
@@ -90,6 +91,7 @@ describe("v2 memory types", () => {
   });
 
   it("rejects copied source content and nested conflict resolution fields", () => {
+    expectTypeOf<ConflictLog["resolutionReason"]>().toEqualTypeOf<string | undefined>();
     expectTypeOf<keyof MemorySourceSnapshot>().toEqualTypeOf<"memoryId" | "updatedAt">();
     expectTypeOf<keyof ConflictLog>().toEqualTypeOf<
       | "id"
@@ -116,10 +118,12 @@ describe("v2 memory types", () => {
       | "priority"
       | "attempts"
       | "resolutionType"
-      | "resolutionReason"
       | "resolutionConfidence"
       | "finishedAt"
     >();
+    expectTypeOf<"resolutionReason" extends keyof MemoryConflictRow ? true : false>().toEqualTypeOf<false>();
+    expectTypeOf<"resolutionReason" extends keyof MemorySnapshot["conflicts"][number] ? true : false>()
+      .toEqualTypeOf<false>();
   });
 
   it("uses the existing profile field unions in shared mutation inputs", () => {

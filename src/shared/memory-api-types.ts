@@ -69,7 +69,6 @@ export interface MemoryConflictRow {
   priority: ConflictPriority;
   attempts: number;
   resolutionType?: ConflictResolutionType;
-  resolutionReason?: string;
   resolutionConfidence?: number;
   finishedAt?: string;
 }
