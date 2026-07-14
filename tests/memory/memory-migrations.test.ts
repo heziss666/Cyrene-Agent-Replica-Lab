@@ -149,6 +149,19 @@ describe("migrateMemoryFile", () => {
 });
 
 describe("migrateMemoryFileOnDisk", () => {
+  it("exports only the approved migration behavior", async () => {
+    const migrationExports = await import(
+      "../../src/main/memory/memory-migrations.js"
+    );
+    const storeExports = await import("../../src/main/memory/memory-store.js");
+
+    expect(Object.keys(migrationExports).sort()).toEqual([
+      "migrateMemoryFile",
+      "migrateMemoryFileOnDisk",
+    ]);
+    expect(storeExports).not.toHaveProperty("migrateMemoryFileForMigration");
+  });
+
   it("creates a deterministic byte-for-byte v1 backup before replacement", async () => {
     const filePath = await createFilePath();
     const original = `  ${JSON.stringify(v1File, null, 2)}\r\n`;
@@ -180,6 +193,7 @@ describe("migrateMemoryFileOnDisk", () => {
   it("leaves v1 readable when exclusive backup creation itself fails", async () => {
     const filePath = await createFilePath();
     const original = JSON.stringify(v1File);
+    const trackedIdFactory = vi.fn(() => "evidence-1");
     const backupWrite = vi.fn(async () => {
       throw new Error("backup device unavailable");
     });
@@ -188,7 +202,7 @@ describe("migrateMemoryFileOnDisk", () => {
     await expect(migrateMemoryFileOnDisk({
       filePath,
       now,
-      idFactory,
+      idFactory: trackedIdFactory,
       backupFileOperations: {
         writeFile: backupWrite,
         readFile,
@@ -200,7 +214,38 @@ describe("migrateMemoryFileOnDisk", () => {
       Buffer.from(original),
       { flag: "wx" },
     );
+    expect(trackedIdFactory).not.toHaveBeenCalled();
     expect(await readFile(filePath, "utf8")).toBe(original);
+  });
+
+  it("completes the backup before allocating IDs and replacing the file", async () => {
+    const filePath = await createFilePath();
+    const original = JSON.stringify(v1File);
+    const operations: string[] = [];
+    await writeFile(filePath, original, "utf8");
+
+    const migrated = await migrateMemoryFileOnDisk({
+      filePath,
+      now,
+      idFactory: () => {
+        operations.push("idFactory");
+        return "evidence-1";
+      },
+      backupFileOperations: {
+        writeFile: async (path, bytes, options) => {
+          operations.push("backup");
+          await writeFile(path, bytes, options);
+        },
+        readFile,
+      },
+      atomicWrite: async (path, content) => {
+        operations.push("atomicWrite");
+        await writeFileAtomically(path, content);
+      },
+    });
+
+    expect(operations).toEqual(["backup", "idFactory", "atomicWrite"]);
+    expect(migrated.evidence).toHaveLength(1);
   });
 
   it("leaves v1 readable when an existing backup has different bytes", async () => {

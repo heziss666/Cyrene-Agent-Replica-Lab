@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, rename } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import {
@@ -37,6 +37,25 @@ export interface CreateMemoryStoreOptions {
   idFactory?: () => string;
 }
 
+type AtomicWrite = (filePath: string, content: string) => Promise<void>;
+
+interface MigrationBackupFileOperations {
+  writeFile(
+    path: string,
+    content: Buffer,
+    options: { flag: "wx" },
+  ): Promise<void>;
+  readFile(path: string): Promise<Buffer>;
+}
+
+export interface MigrateMemoryFileOnDiskOptions {
+  filePath: string;
+  now?: () => number;
+  idFactory?: () => string;
+  atomicWrite?: AtomicWrite;
+  backupFileOperations?: MigrationBackupFileOperations;
+}
+
 class MemoryFileValidationError extends Error {
   constructor(message: string) {
     super(`Invalid memory file: ${message}`);
@@ -48,7 +67,7 @@ function invalid(message: string): Error {
   return new MemoryFileValidationError(message);
 }
 
-export function isMemoryFileValidationError(error: unknown): boolean {
+function isMemoryFileValidationError(error: unknown): boolean {
   return error instanceof MemoryFileValidationError;
 }
 
@@ -388,17 +407,13 @@ function metadataForProfile(
   return metadata;
 }
 
-/** Internal bridge used by memory-migrations; structural parsers stay Store-owned. */
-export function migrateMemoryFileForMigration(
-  value: unknown,
-  now: () => number,
+function convertMemoryFileV1(
+  v1: MemoryFileV1,
+  timestamp: string,
   idFactory: () => string,
 ): MemoryFileV2 {
-  if (isRecord(value) && value.schemaVersion === 2) return validateMemoryFile(value);
-  const v1 = validateMemoryFileV1(value);
-  const timestamp = new Date(now()).toISOString();
   const evidenceIds = v1.l2.map(() => idFactory());
-  const migrated: MemoryFileV2 = {
+  return {
     schemaVersion: 2,
     l0: {
       ...v1.l0,
@@ -445,7 +460,108 @@ export function migrateMemoryFileForMigration(
     auditLogs: [],
     maintenance: { successfulWritesSinceMaintenance: 0, running: false },
   };
+}
+
+export function migrateMemoryFile(
+  value: unknown,
+  now: () => number,
+  idFactory: () => string,
+): MemoryFileV2 {
+  if (isRecord(value) && value.schemaVersion === 2) return validateMemoryFile(value);
+  const v1 = validateMemoryFileV1(value);
+  const migrated = convertMemoryFileV1(v1, new Date(now()).toISOString(), idFactory);
   return validateMemoryFile(migrated);
+}
+
+const defaultBackupFileOperations: MigrationBackupFileOperations = {
+  writeFile: (path, content, options) => writeFile(path, content, options),
+  readFile: (path) => readFile(path),
+};
+
+function isExclusiveCreateCollision(error: unknown): boolean {
+  return isRecord(error) && error.code === "EEXIST";
+}
+
+async function createMigrationBackup(
+  backupPath: string,
+  originalBytes: Buffer,
+  fileOperations: MigrationBackupFileOperations,
+): Promise<void> {
+  try {
+    await fileOperations.writeFile(backupPath, originalBytes, { flag: "wx" });
+  } catch (error) {
+    if (!isExclusiveCreateCollision(error)) throw error;
+    let existingBytes: Buffer;
+    try {
+      existingBytes = await fileOperations.readFile(backupPath);
+    } catch (readError) {
+      throw new Error(`Existing migration backup cannot be verified: ${backupPath}`, {
+        cause: readError,
+      });
+    }
+    if (!existingBytes.equals(originalBytes)) {
+      throw new Error(`Existing migration backup has different bytes: ${backupPath}`);
+    }
+  }
+}
+
+interface ParsedDiskMigrationOptions {
+  filePath: string;
+  originalBytes: Buffer;
+  value: unknown;
+  now: () => number;
+  idFactory: () => string;
+  atomicWrite: AtomicWrite;
+  backupFileOperations: MigrationBackupFileOperations;
+}
+
+async function migrateParsedMemoryFileOnDisk(
+  options: ParsedDiskMigrationOptions,
+): Promise<MemoryFileV2> {
+  if (isRecord(options.value) && options.value.schemaVersion === 2) {
+    return validateMemoryFile(options.value);
+  }
+
+  const v1 = validateMemoryFileV1(options.value);
+  const migrationTime = options.now();
+  const backupPath = join(
+    dirname(options.filePath),
+    `memory.pre-v2-${migrationTime}.json`,
+  );
+  await createMigrationBackup(
+    backupPath,
+    options.originalBytes,
+    options.backupFileOperations,
+  );
+
+  const migrated = convertMemoryFileV1(
+    v1,
+    new Date(migrationTime).toISOString(),
+    options.idFactory,
+  );
+  const validated = validateMemoryFile(migrated);
+  await options.atomicWrite(
+    options.filePath,
+    `${JSON.stringify(validated, null, 2)}\n`,
+  );
+  return structuredClone(validated);
+}
+
+export async function migrateMemoryFileOnDisk(
+  options: MigrateMemoryFileOnDiskOptions,
+): Promise<MemoryFileV2> {
+  await recoverInterruptedAtomicWrite(options.filePath);
+  const originalBytes = await readFile(options.filePath);
+  const value = JSON.parse(originalBytes.toString("utf8")) as unknown;
+  return migrateParsedMemoryFileOnDisk({
+    filePath: options.filePath,
+    originalBytes,
+    value,
+    now: options.now ?? Date.now,
+    idFactory: options.idFactory ?? randomUUID,
+    atomicWrite: options.atomicWrite ?? writeFileAtomically,
+    backupFileOperations: options.backupFileOperations ?? defaultBackupFileOperations,
+  });
 }
 
 function cloneMemoryFile(file: MemoryFile): MemoryFile {
@@ -508,14 +624,14 @@ export function createMemoryStore(
 
     if (isRecord(value) && value.schemaVersion === 1) {
       try {
-        const { migrateMemoryFileOnDisk } = await import("./memory-migrations.js");
-        return await migrateMemoryFileOnDisk({
+        return await migrateParsedMemoryFileOnDisk({
           filePath,
+          originalBytes,
+          value,
           now,
           idFactory,
           atomicWrite,
-          originalBytes,
-          value,
+          backupFileOperations: defaultBackupFileOperations,
         });
       } catch (error) {
         if (isMemoryFileValidationError(error)) return archiveCorruptFile();
