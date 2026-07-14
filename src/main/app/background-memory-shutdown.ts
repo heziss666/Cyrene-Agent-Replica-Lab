@@ -17,25 +17,34 @@ export function registerBackgroundMemoryShutdown(options: {
   let allowQuit = false;
   let flushStarted = false;
 
+  function logFlushFailure(): void {
+    try {
+      (options.logger ?? console.error)("[electron] background memory flush failed");
+    } catch {
+      // Logging must not prevent the final quit attempt.
+    }
+  }
+
   options.app.on("before-quit", (event) => {
-    if (allowQuit || options.runtime.pendingBackgroundTaskCount() === 0) {
+    if (allowQuit) {
+      return;
+    }
+
+    if (flushStarted) {
+      event.preventDefault();
+      return;
+    }
+
+    const shutdown = options.runtime.beginShutdown();
+    if (options.runtime.pendingBackgroundTaskCount() === 0) {
+      void shutdown.catch(logFlushFailure);
       return;
     }
 
     event.preventDefault();
-    if (flushStarted) {
-      return;
-    }
-
     flushStarted = true;
-    void options.runtime.flushBackgroundTasks()
-      .catch(() => {
-        try {
-          (options.logger ?? console.error)("[electron] background memory flush failed");
-        } catch {
-          // Logging must not prevent the final quit attempt.
-        }
-      })
+    void shutdown
+      .catch(logFlushFailure)
       .finally(() => {
         allowQuit = true;
         options.app.quit();

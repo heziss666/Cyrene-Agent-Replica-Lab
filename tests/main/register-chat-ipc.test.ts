@@ -265,6 +265,64 @@ describe("registerChatIpc", () => {
     ]);
   });
 
+  it("drains an accepted in-flight model request and its memory write during shutdown", async () => {
+    const modelStarted = createDeferred<void>();
+    const finishModel = createDeferred<void>();
+    const memoryWriteStarted = createDeferred<void>();
+    const finishMemoryWrite = createDeferred<void>();
+    const runAgent = vi.fn(async ({ messages }: { messages: ChatMessage[] }) => {
+      modelStarted.resolve();
+      await finishModel.promise;
+      return {
+        reply: "Hello, Alex.",
+        messages: [...messages, { role: "assistant" as const, content: "Hello, Alex." }],
+        toolResults: [],
+      };
+    });
+    const memoryManager = {
+      writeCandidates: vi.fn(async () => {
+        memoryWriteStarted.resolve();
+        await finishMemoryWrite.promise;
+        return {
+          candidateCount: 1,
+          writtenCount: 1,
+          skippedCount: 0,
+          writes: ["L0.preferredName"],
+        };
+      }),
+    };
+    const deps = createFakeDeps(runAgent, {
+      memoryJudge: { judge: vi.fn(async () => [validCandidate]) },
+      memoryManager,
+      memoryWriteQueue: createMemoryWriteQueue(),
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    const acceptedSend = send({ sender }, "Call me Alex");
+    await modelStarted.promise;
+    let shutdownSettled = false;
+    const shutdown = runtime.beginShutdown().then(() => {
+      shutdownSettled = true;
+    });
+
+    await expect(send({ sender }, "too late")).rejects.toThrow("shutting down");
+    expect(runAgent).toHaveBeenCalledOnce();
+    expect(shutdownSettled).toBe(false);
+
+    finishModel.resolve();
+    await expect(acceptedSend).resolves.toMatchObject({ reply: "Hello, Alex." });
+    await memoryWriteStarted.promise;
+    expect(shutdownSettled).toBe(false);
+
+    finishMemoryWrite.resolve();
+    await shutdown;
+    expect(shutdownSettled).toBe(true);
+    expect(memoryManager.writeCandidates).toHaveBeenCalledOnce();
+    expect(runtime.pendingBackgroundTaskCount()).toBe(0);
+  });
+
   it("does not schedule a memory write when the main model fails", async () => {
     const schedule = vi.fn<MemoryWriteQueue["schedule"]>();
     const memoryWriteQueue: MemoryWriteQueue = {

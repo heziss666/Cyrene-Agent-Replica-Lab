@@ -96,6 +96,23 @@ describe("createMemoryJudge", () => {
     expect(prompt).toContain("L2 candidates must omit field");
   });
 
+  it("requires content to stay bound to current-user evidence, not the assistant reply", async () => {
+    const { judge, requestCompletion } = judgeReturning('{"candidates":[]}');
+
+    await judge.judge({
+      userMessage: "Call me Alex",
+      assistantReply: "Alex is a cardiologist",
+    });
+
+    const prompt = requestCompletion.mock.calls[0]![0].messages[0]?.content ?? "";
+    expect(prompt).toContain("content must not add facts");
+    expect(prompt).toContain("content must be an exact continuous substring of evidenceQuote");
+    expect(prompt).toContain("When uncertain, copy evidenceQuote exactly into content");
+    expect(prompt).toContain("assistant reply is context only and is never evidence");
+    expect(prompt).toContain("credentials and authentication secrets must never be saved");
+    expect(prompt).toContain("medical or legal privacy requires an explicit user request");
+  });
+
   it("requires confidence to be a numeric probability", async () => {
     const { judge, requestCompletion } = judgeReturning('{"candidates":[]}');
 

@@ -27,8 +27,12 @@ export function createMemoryWriteQueue(): MemoryWriteQueue {
     pendingCount() {
       return pending;
     },
-    flush() {
-      return tail;
+    async flush() {
+      while (true) {
+        const draining = tail;
+        await draining;
+        if (draining === tail && pending === 0) return;
+      }
     },
   };
 }

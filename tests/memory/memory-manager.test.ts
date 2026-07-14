@@ -104,6 +104,82 @@ describe("createMemoryManager", () => {
     expectEmptyMemory(await store.load());
   });
 
+  it("rejects content that adds facts not supported by current-user evidence", async () => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage: "Call me Alex",
+      candidates: [candidate({
+        content: "Alex is a cardiologist",
+        evidenceQuote: "Call me Alex",
+      })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    ["removes a negation", "I am not a cardiologist", "I am a cardiologist"],
+    ["drops a negation by taking a later substring", "I do not like coffee", "like coffee"],
+    [
+      "keeps an unrelated negation while dropping the governing one",
+      "I don't like coffee. This is not a joke.",
+      "like coffee. This is not a joke",
+    ],
+    ["reverses who did what", "Alice defeated Bob", "Bob defeated Alice"],
+  ])("rejects evidence transformations that %s", async (_label, evidenceQuote, content) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage: evidenceQuote,
+      candidates: [candidate({ content, evidenceQuote })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it("accepts conservative L0, L1, and L2 content grounded in user evidence", async () => {
+    const { manager, store } = await createHarness({
+      idFactory: () => "memory-1",
+      now: () => new Date("2026-07-14T08:00:00.000Z"),
+    });
+    const userMessage = [
+      "Call me Alex.",
+      "I am working on Cyrene Agent.",
+      "I completed Phase 7A yesterday.",
+    ].join(" ");
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [
+        candidate({ content: "Alex", evidenceQuote: "Call me Alex" }),
+        candidate({
+          layer: "L1",
+          field: "currentProject",
+          content: "Cyrene Agent",
+          confidence: 0.91,
+          evidenceQuote: "I am working on Cyrene Agent",
+        }),
+        candidate({
+          layer: "L2",
+          field: undefined,
+          content: "Completed Phase 7A yesterday",
+          confidence: 0.91,
+          importance: "high",
+          evidenceQuote: "I completed Phase 7A yesterday",
+        }),
+      ],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 3, skippedCount: 0 });
+    const stored = await store.load();
+    expect(stored.l0.preferredName).toBe("Alex");
+    expect(stored.l1.currentProject).toBe("Cyrene Agent");
+    expect(stored.l2[0]?.content).toBe("Completed Phase 7A yesterday");
+  });
+
   it.each([
     { layer: "L0" as const, field: "occupation", confidence: 0.89 },
     { layer: "L1" as const, field: "currentProject", confidence: 0.79 },
@@ -138,7 +214,7 @@ describe("createMemoryManager", () => {
   ])("accepts $layer confidence at its $confidence boundary", async (testCase) => {
     const { manager, store } = await createHarness();
     const evidenceQuote = `Boundary ${testCase.layer}`;
-    const content = `${testCase.layer} boundary memory`;
+    const content = `Boundary ${testCase.layer}`;
 
     const summary = await manager.writeCandidates({
       userMessage: evidenceQuote,
@@ -265,6 +341,139 @@ describe("createMemoryManager", () => {
     const summary = await manager.writeCandidates({
       userMessage: `User said ${evidenceQuote}`,
       candidates: [candidate({ content, evidenceQuote })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    ["JWT", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWtlIn0.fake_signature"],
+    ["JWT ending in a URL-safe dash", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWtlIn0.signature-"],
+    ["GitHub PAT", "ghp_FAKE000000000000000000000000000000000"],
+    ["AWS access key", "AKIAFAKE000000000000"],
+    ["passport identifier", "passport number PFAKE12345"],
+    ["US social security number", "123-45-6789"],
+    ["English exact address", "my exact address is 123 Example Street"],
+    ["English Address label", "Address: 123 Example Street"],
+    ["Chinese exact address", "我的详细地址是示例路123号"],
+    ["English medical privacy", "I was diagnosed with a heart condition"],
+    ["common medical privacy", "I have cancer"],
+    ["Chinese medical privacy", "我被诊断患有示例疾病"],
+    ["English legal privacy", "My lawyer filed a custody lawsuit"],
+    ["common legal privacy", "I am facing criminal charges"],
+    ["Chinese legal privacy", "我的律师正在处理离婚诉讼"],
+  ])("rejects %s without an eligible explicit opt-in", async (_label, evidenceQuote) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage: evidenceQuote,
+      candidates: [candidate({ content: evidenceQuote, evidenceQuote })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    [
+      "passport label outside the quote",
+      "My passport number is PFAKE12345",
+      "PFAKE12345",
+    ],
+    [
+      "exact-address label outside the quote",
+      "My exact address is 123 Example Street",
+      "123 Example Street",
+    ],
+    [
+      "medical label outside the quote",
+      "I was diagnosed with a heart condition",
+      "heart condition",
+    ],
+  ])("rejects %s", async (_label, userMessage, quotedValue) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [candidate({ content: quotedValue, evidenceQuote: quotedValue })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    [
+      "passport label earlier in a long statement",
+      `My passport number is ${"x".repeat(80)} PFAKE12345`,
+      "PFAKE12345",
+    ],
+    [
+      "medical label earlier in a long statement",
+      `I was diagnosed with ${"details ".repeat(16)}a heart condition`,
+      "a heart condition",
+    ],
+  ])("checks the complete statement for %s", async (_label, userMessage, quotedValue) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [candidate({ content: quotedValue, evidenceQuote: quotedValue })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    [
+      "medical",
+      "Please remember for future conversations that I was diagnosed with a heart condition",
+      "I was diagnosed with a heart condition",
+    ],
+    [
+      "legal",
+      "请长期记住我的律师正在处理离婚诉讼",
+      "我的律师正在处理离婚诉讼",
+    ],
+  ])("allows explicitly opted-in %s privacy", async (_label, userMessage, content) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [candidate({ content, evidenceQuote: content })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 1, skippedCount: 0 });
+    expect((await store.load()).l0.preferredName).toBe(content);
+  });
+
+  it("does not let an unrelated opt-in sentence authorize medical privacy", async () => {
+    const { manager, store } = await createHarness();
+    const userMessage = "Please remember for future conversations that I like blue. I was diagnosed with cancer.";
+    const evidenceQuote = "I was diagnosed with cancer";
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [candidate({ content: evidenceQuote, evidenceQuote })],
+    });
+
+    expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });
+    expectEmptyMemory(await store.load());
+  });
+
+  it.each([
+    ["credential", "Please remember my GitHub token ghp_FAKE000000000000000000000000000000000"],
+    ["bank card", "Please remember my bank card 4111 1111 1111 1111"],
+    ["identity number", "Please remember my passport number PFAKE12345"],
+    ["exact address", "Please remember my exact address is 123 Example Street"],
+  ])("rejects opted-in %s data unconditionally", async (_label, userMessage) => {
+    const { manager, store } = await createHarness();
+
+    const summary = await manager.writeCandidates({
+      userMessage,
+      candidates: [candidate({ content: userMessage, evidenceQuote: userMessage })],
     });
 
     expect(summary).toMatchObject({ writtenCount: 0, skippedCount: 1 });

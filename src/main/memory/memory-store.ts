@@ -1,7 +1,10 @@
 import { readFile, rename } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { writeFileAtomically } from "../rag/atomic-file-write.js";
+import {
+  recoverInterruptedAtomicWrite,
+  writeFileAtomically,
+} from "../rag/atomic-file-write.js";
 import type {
   L0Profile,
   L1Profile,
@@ -193,6 +196,7 @@ export function createMemoryStore(
   }
 
   async function loadFromDisk(): Promise<MemoryFile> {
+    await recoverInterruptedAtomicWrite(filePath);
     let content: string;
     try {
       content = await readFile(filePath, "utf8");

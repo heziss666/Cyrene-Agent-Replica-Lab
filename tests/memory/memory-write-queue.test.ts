@@ -151,28 +151,33 @@ describe("createMemoryWriteQueue", () => {
     expect(queue.pendingCount()).toBe(0);
   });
 
-  it("flush waits only for the tail that exists when it is called", async () => {
+  it("flush waits for work appended while the drain is in progress", async () => {
     const queue = createMemoryWriteQueue();
     const firstGate = createDeferred();
     const secondGate = createDeferred();
-    const flushed = vi.fn();
+    let flushSettled = false;
 
     queue.schedule(async () => {
       await firstGate.promise;
     });
-    const flush = queue.flush().then(flushed);
+    const flush = queue.flush().then(() => {
+      flushSettled = true;
+    });
     queue.schedule(async () => {
       await secondGate.promise;
     });
 
     firstGate.resolve();
-    await flush;
+    for (let turn = 0; turn < 5; turn += 1) {
+      await Promise.resolve();
+    }
 
-    expect(flushed).toHaveBeenCalledOnce();
+    expect(flushSettled).toBe(false);
     expect(queue.pendingCount()).toBe(1);
 
     secondGate.resolve();
-    await queue.flush();
+    await flush;
+    expect(flushSettled).toBe(true);
     expect(queue.pendingCount()).toBe(0);
   });
 });

@@ -191,7 +191,9 @@ candidates = parse_and_validate_json(raw)
 
 - 再次检查候选结构、字段白名单和置信度；
 - 检查 evidenceQuote 是否真的是当前用户消息原样子串；
-- 拒绝 API key、密码、银行卡、身份证、护照、支付账户、精确住址等敏感内容；
+- 检查 content 只能是 evidenceQuote 中保持原顺序的连续片段，不能颠倒主客体；只要证据含否定表达，content 就必须保留整条证据，禁止缩写；
+- 永久拒绝 API key、JWT、GitHub/AWS 凭据、密码、银行卡、身份证件、护照、社保号、支付账户和精确住址等内容；
+- 医疗和法律隐私只有在证据所在的同一句话包含长期保存请求时才允许写入；
 - 统一 Unicode、首尾空白和连续空白；
 - 对大小写和部分 Unicode 等价形式去重；
 - 单值字段覆盖，数组字段只追加不重复内容；
@@ -209,7 +211,7 @@ for candidate in llm_candidates:
 
 ## 6. 为什么必须有 evidenceQuote
 
-`evidenceQuote` 是当前用户消息中的原文证据。Manager 使用 `userMessage.includes(value.evidenceQuote)` 做硬校验。
+`evidenceQuote` 是当前用户消息中的原文证据。Manager 先使用 `userMessage.includes(value.evidenceQuote)` 做硬校验，再把 content 和 evidenceQuote 做 NFKC、大小写、空白和标点归一化，要求 content 仍是 evidenceQuote 中保持顺序的连续子串。
 
 用户只说“帮我用 Python 写排序”时，模型不能长期保存“用户最喜欢 Python”，因为用户没说过这句话，也无法提供对应原文。
 
@@ -219,7 +221,9 @@ for candidate in llm_candidates:
 2. 方便审计，L2 保存 `evidence.userQuote` 和时间；
 3. 限制来源，只从用户消息提取，不能把助手猜测写回记忆。
 
-证据存在也不保证写入，候选仍可能因低置信度、非法字段、敏感或重复而跳过。
+因此，“I am not a cardiologist” 不能被改成 “I am a cardiologist”，“I do not like coffee” 也不能只截取成 “like coffee”；“Alice defeated Bob” 不能被改成 “Bob defeated Alice”。Judge 被要求优先复制原文；即使模型没有遵守，Manager 仍会拒绝候选。
+
+证据存在也不保证写入，候选仍可能因低置信度、非法字段、敏感、缺少同句隐私授权或重复而跳过。
 
 ## 7. 为什么“记忆是数据，不是指令”
 
@@ -272,6 +276,8 @@ async with lock:
 
 `src/main/rag/atomic-file-write.ts` 先写随机 `.tmp`，再 rename 到目标文件。Windows 不能直接覆盖时，先把旧文件移动为 `.bak`，然后替换；失败时尽力恢复和清理。这避免程序写到一半留下半截 JSON。
 
+如果进程恰好在“旧文件已经改名为 `.bak`、新文件尚未替换完成”时崩溃，下次 `MemoryStore.load()` 会先运行 `recoverInterruptedAtomicWrite()`：目标文件不存在而 `.bak` 存在时，将备份恢复成正式文件，并清理遗留 `.tmp`。如果正式文件仍存在，则不会用可能过期的 `.bak` 覆盖它；正式文件损坏时仍走隔离为 `memory.corrupt-时间.json` 的流程。
+
 它不是完整数据库事务，也没有多进程锁；Phase 7A 保证的是当前进程内串行更新和单文件安全替换。
 
 ## 9. L2 向量召回策略
@@ -315,7 +321,7 @@ pending += 1
 tail = tail.then(task).catch(report_error).finally(lambda: pending -= 1)
 ```
 
-它保证后台任务有序、一个失败不毒死后续任务、onError 自身失败也被吸收；`pendingCount()` 用于事件和退出判断；`flush()` 用于测试和安全退出。
+它保证后台任务有序、一个失败不毒死后续任务、onError 自身失败也被吸收；`pendingCount()` 用于事件和退出判断；`flush()` 会持续观察队列尾部，连 flush 过程中追加的任务也一起等待，直到队列稳定为空。
 
 因此用户看到回答时，记忆可能尚未落盘。测试必须等待 `memory_write_finished`。
 
@@ -323,11 +329,13 @@ tail = tail.then(task).catch(report_error).finally(lambda: pending -= 1)
 
 文件：`src/main/app/background-memory-shutdown.ts`、`src/main/app/main.ts`。
 
-回答已返回但后台仍在写时，立即关闭窗口可能丢记忆。退出注册器监听 `before-quit`：
+回答已返回但后台仍在写时，立即关闭窗口可能丢记忆；模型请求尚未返回时退出也可能让它随后新建一个记忆任务。退出注册器监听 `before-quit`，并通过 `runtime.beginShutdown()` 建立稳定屏障：
 
-- 无 pending：不阻止退出；
-- 有 pending：第一次 preventDefault，启动一次 flush；
-- flush 成功或失败：设置 allowQuit，调用一次 app.quit；
+- 先把 runtime 标记为 shuttingDown，新的发送消息、清空会话和人格操作立即拒绝；
+- 等待关机开始前已接收的会话操作完成；这些操作若产生记忆写入，再等待记忆队列稳定为空；
+- 无已接收操作且无后台任务：不阻止退出；
+- 有 pending：第一次 preventDefault，只启动一次 shutdown promise；
+- 屏障成功或失败：设置 allowQuit，调用一次 app.quit；
 - app.quit 再次触发 before-quit 时不再阻止；
 - 错误日志只打印固定摘要，不包含异常原文。
 

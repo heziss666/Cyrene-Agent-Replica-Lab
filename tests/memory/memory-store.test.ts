@@ -75,6 +75,58 @@ describe("createMemoryStore", () => {
     expect((await reloaded.load()).l0.preferredName).toBe("小明");
   });
 
+  it("recovers an interrupted atomic replacement and removes stale temporary files", async () => {
+    const filePath = await createFilePath();
+    const backupPath = `${filePath}.bak`;
+    const temporaryPath = `${filePath}.123-stale.tmp`;
+    await writeFile(backupPath, JSON.stringify({
+      schemaVersion: 1,
+      l0: {
+        preferredName: "Alex",
+        longTermInterests: [],
+        permanentNotes: [],
+      },
+      l1: { recentGoals: [], recentPreferences: [] },
+      l2: [],
+    }), "utf8");
+    await writeFile(temporaryPath, "incomplete replacement", "utf8");
+
+    const store = createMemoryStore({ filePath });
+
+    expect((await store.load()).l0.preferredName).toBe("Alex");
+    await expect(stat(filePath)).resolves.toBeDefined();
+    await expect(stat(backupPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(stat(temporaryPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("quarantines a corrupt primary instead of replacing it from a stale backup", async () => {
+    const filePath = await createFilePath();
+    const backupPath = `${filePath}.bak`;
+    await writeFile(filePath, "{ invalid", "utf8");
+    await writeFile(backupPath, JSON.stringify({
+      schemaVersion: 1,
+      l0: {
+        preferredName: "stale backup",
+        longTermInterests: [],
+        permanentNotes: [],
+      },
+      l1: { recentGoals: [], recentPreferences: [] },
+      l2: [],
+    }), "utf8");
+    const store = createMemoryStore({ filePath, now: () => 789 });
+
+    await expect(store.load()).resolves.toEqual({
+      schemaVersion: 1,
+      l0: { longTermInterests: [], permanentNotes: [] },
+      l1: { recentGoals: [], recentPreferences: [] },
+      l2: [],
+    });
+
+    expect(await readFile(join(dirname(filePath), "memory.corrupt-789.json"), "utf8"))
+      .toBe("{ invalid");
+    await expect(readFile(backupPath, "utf8")).resolves.toContain("stale backup");
+  });
+
   it("does not publish failed writes to its cache", async () => {
     const filePath = await createFilePath();
     const atomicWrite = vi.fn(async () => {

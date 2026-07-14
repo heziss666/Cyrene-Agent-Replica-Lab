@@ -87,6 +87,7 @@ export interface RegisterChatIpcDeps {
 }
 
 export interface ChatIpcRuntime {
+  beginShutdown(): Promise<void>;
   flushBackgroundTasks(): Promise<void>;
   pendingBackgroundTaskCount(): number;
 }
@@ -162,7 +163,34 @@ export async function registerChatIpc(
   const toolRegistry = getToolRegistry() as ToolRegistry;
   const session = createChatSession(await loadConfig());
   const serializeSessionOperation = createSerialExecutor();
+  const acceptedSessionOperations = new Set<Promise<unknown>>();
+  let shuttingDown = false;
+  let shutdownPromise: Promise<void> | undefined;
   let nextRunNumber = 1;
+
+  function runSessionOperation<T>(task: () => Promise<T>): Promise<T> {
+    if (shuttingDown) {
+      return Promise.reject(new Error("Chat runtime is shutting down"));
+    }
+    const operation = serializeSessionOperation(task);
+    acceptedSessionOperations.add(operation);
+    void operation.then(
+      () => acceptedSessionOperations.delete(operation),
+      () => acceptedSessionOperations.delete(operation),
+    );
+    return operation;
+  }
+
+  function beginShutdown(): Promise<void> {
+    shuttingDown = true;
+    shutdownPromise ??= (async () => {
+      while (acceptedSessionOperations.size > 0) {
+        await Promise.allSettled([...acceptedSessionOperations]);
+      }
+      await memoryWriteQueue.flush();
+    })();
+    return shutdownPromise;
+  }
 
   deps.ipcMain.handle(
     IPC_CHANNELS.chat.sendMessage,
@@ -170,7 +198,7 @@ export async function registerChatIpc(
       const text = typeof payload === "string" ? payload : "";
       const runId = `run_${nextRunNumber}`;
       nextRunNumber += 1;
-      return serializeSessionOperation(async () => {
+      return runSessionOperation(async () => {
         const history = session.appendUserMessage(text);
         const styleId = session.getStyle();
         const transition = session.getPendingStyleTransition();
@@ -287,7 +315,7 @@ export async function registerChatIpc(
   deps.ipcMain.handle(
     IPC_CHANNELS.chat.clearSession,
     async (): Promise<ChatClearResult> => {
-      return serializeSessionOperation(async () => {
+      return runSessionOperation(async () => {
         session.clear();
         return {
           cleared: true,
@@ -300,7 +328,7 @@ export async function registerChatIpc(
   deps.ipcMain.handle(
     IPC_CHANNELS.persona.getStyle,
     async (): Promise<PersonaStyleResult> => {
-      return serializeSessionOperation(
+      return runSessionOperation(
         async () => ({ styleId: session.getStyle() }),
       );
     },
@@ -309,7 +337,7 @@ export async function registerChatIpc(
   deps.ipcMain.handle(
     IPC_CHANNELS.persona.setStyle,
     async (_event, payload): Promise<PersonaStyleResult> => {
-      return serializeSessionOperation(async () => {
+      return runSessionOperation(async () => {
         if (!isStyleId(payload)) {
           throw new Error(`Invalid persona style: ${String(payload)}`);
         }
@@ -321,7 +349,9 @@ export async function registerChatIpc(
   );
 
   return {
+    beginShutdown,
     flushBackgroundTasks: () => memoryWriteQueue.flush(),
-    pendingBackgroundTaskCount: () => memoryWriteQueue.pendingCount(),
+    pendingBackgroundTaskCount: () =>
+      acceptedSessionOperations.size + memoryWriteQueue.pendingCount(),
   };
 }

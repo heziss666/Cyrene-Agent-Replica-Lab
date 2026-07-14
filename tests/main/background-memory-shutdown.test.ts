@@ -25,9 +25,13 @@ function createFakeApp(): FakeApp {
 
 function createRuntime(
   pendingCount: () => number,
-  flushBackgroundTasks: () => Promise<void>,
+  beginShutdown: () => Promise<void>,
 ): ChatIpcRuntime {
-  return { pendingBackgroundTaskCount: pendingCount, flushBackgroundTasks };
+  return {
+    pendingBackgroundTaskCount: pendingCount,
+    flushBackgroundTasks: beginShutdown,
+    beginShutdown,
+  };
 }
 
 function createEvent() {
@@ -41,15 +45,15 @@ async function triggerBeforeQuit(app: FakeApp, event = createEvent()): Promise<v
 describe("registerBackgroundMemoryShutdown", () => {
   it("allows Electron to quit immediately when no background work is pending", async () => {
     const app = createFakeApp();
-    const flushBackgroundTasks = vi.fn(async () => undefined);
-    const runtime = createRuntime(() => 0, flushBackgroundTasks);
+    const beginShutdown = vi.fn(async () => undefined);
+    const runtime = createRuntime(() => 0, beginShutdown);
     registerBackgroundMemoryShutdown({ app, runtime });
     const event = createEvent();
 
     await triggerBeforeQuit(app, event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
-    expect(flushBackgroundTasks).not.toHaveBeenCalled();
+    expect(beginShutdown).toHaveBeenCalledOnce();
     expect(app.quit).not.toHaveBeenCalled();
   });
 

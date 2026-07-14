@@ -31,7 +31,10 @@ Allowed layers and fields:
 - L1: currentProject, recentGoals, recentPreferences
 - L2: no field
 Valid L2 example: {"layer":"L2","content":"Completed milestone Alpha-7","confidence":0.95,"importance":"high","evidenceQuote":"I completed milestone Alpha-7","reason":"A durable past milestone"}
-Only extract user facts supported by an exact evidenceQuote from the user message. Do not save assistant claims, advice, guesses, greetings, credentials, or sensitive information. Return an empty candidates array when there is nothing durable to save.`;
+Only extract user facts supported by an exact evidenceQuote from the user message. Candidate content must not add facts, attributes, or implications absent from that evidenceQuote. Candidate content must be an exact continuous substring of evidenceQuote after ignoring only whitespace, punctuation, case, and Unicode normalization. Do not omit or reorder words. When uncertain, copy evidenceQuote exactly into content. For L2 events, copying the complete evidenceQuote is preferred over rewriting or summarizing it.
+The assistant reply is context only and is never evidence. Do not save assistant claims, advice, guesses, or greetings.
+credentials and authentication secrets must never be saved. Bank cards, identity numbers, passport identifiers, and exact addresses must never be saved even when requested. medical or legal privacy requires an explicit user request for long-term storage.
+Return an empty candidates array when there is nothing durable to save.`;
 
 export interface MemoryJudge {
   judge(input: {
