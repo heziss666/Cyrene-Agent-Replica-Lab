@@ -1,7 +1,20 @@
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  recoverInterruptedAtomicWrite,
+  writeFileAtomically,
+  type AtomicFileOperations,
+} from "../../src/main/rag/atomic-file-write.js";
 import {
   migrateMemoryFile,
   migrateMemoryFileOnDisk,
@@ -47,6 +60,10 @@ async function createFilePath(): Promise<string> {
 
 const now = () => NOW;
 const idFactory = () => "evidence-1";
+
+function fileSystemError(code: string): Error & { code: string } {
+  return Object.assign(new Error(code), { code });
+}
 
 afterEach(async () => {
   await Promise.all(
@@ -119,7 +136,10 @@ describe("migrateMemoryFile", () => {
   });
 
   it("clones existing v2 input without changing it", () => {
-    const v2 = createEmptyMemoryFileV2();
+    const v2 = {
+      ...createEmptyMemoryFileV2(),
+      extension: { provider: "future-runtime", revision: 3 },
+    };
     const migrated = migrateMemoryFile(v2, now, idFactory);
 
     expect(migrated).toEqual(v2);
@@ -144,7 +164,10 @@ describe("migrateMemoryFileOnDisk", () => {
 
   it("does not create a backup for an existing v2 file", async () => {
     const filePath = await createFilePath();
-    const v2 = createEmptyMemoryFileV2();
+    const v2 = {
+      ...createEmptyMemoryFileV2(),
+      extension: { provider: "future-runtime", revision: 3 },
+    };
     await writeFile(filePath, JSON.stringify(v2), "utf8");
 
     const loaded = await migrateMemoryFileOnDisk({ filePath, now, idFactory });
@@ -152,6 +175,32 @@ describe("migrateMemoryFileOnDisk", () => {
     expect(loaded).toEqual(v2);
     expect(loaded).not.toBe(v2);
     expect(await readdir(join(filePath, ".."))).toEqual(["memory.json"]);
+  });
+
+  it("leaves v1 readable when exclusive backup creation itself fails", async () => {
+    const filePath = await createFilePath();
+    const original = JSON.stringify(v1File);
+    const backupWrite = vi.fn(async () => {
+      throw new Error("backup device unavailable");
+    });
+    await writeFile(filePath, original, "utf8");
+
+    await expect(migrateMemoryFileOnDisk({
+      filePath,
+      now,
+      idFactory,
+      backupFileOperations: {
+        writeFile: backupWrite,
+        readFile,
+      },
+    })).rejects.toThrow("backup device unavailable");
+
+    expect(backupWrite).toHaveBeenCalledWith(
+      join(filePath, `../memory.pre-v2-${NOW}.json`),
+      Buffer.from(original),
+      { flag: "wx" },
+    );
+    expect(await readFile(filePath, "utf8")).toBe(original);
   });
 
   it("leaves v1 readable when an existing backup has different bytes", async () => {
@@ -182,6 +231,43 @@ describe("migrateMemoryFileOnDisk", () => {
     expect(await readFile(filePath, "utf8")).toBe(original);
     expect(await readFile(join(filePath, `../memory.pre-v2-${NOW}.json`), "utf8"))
       .toBe(original);
+  });
+
+  it("recovers v1 after replacement fails with the original moved aside", async () => {
+    const filePath = await createFilePath();
+    const original = JSON.stringify(v1File);
+    await writeFile(filePath, original, "utf8");
+    let replacementAttempts = 0;
+    const fileOps: AtomicFileOperations = {
+      mkdir: (path, options) => mkdir(path, options),
+      writeFile: (path, content, encoding) => writeFile(path, content, encoding),
+      rename: async (oldPath, newPath) => {
+        if (oldPath.includes(".tmp") && newPath === filePath) {
+          replacementAttempts += 1;
+          throw fileSystemError(replacementAttempts === 1 ? "EPERM" : "EACCES");
+        }
+        if (oldPath === `${filePath}.bak` && newPath === filePath) {
+          throw fileSystemError("EACCES");
+        }
+        await rename(oldPath, newPath);
+      },
+      rm: (path, options) => rm(path, options),
+    };
+
+    await expect(migrateMemoryFileOnDisk({
+      filePath,
+      now,
+      idFactory,
+      atomicWrite: (path, content) => writeFileAtomically(path, content, fileOps),
+    })).rejects.toMatchObject({ code: "EACCES" });
+
+    await expect(readFile(filePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    expect(await readFile(`${filePath}.bak`, "utf8")).toBe(original);
+
+    await recoverInterruptedAtomicWrite(filePath);
+
+    expect(await readFile(filePath, "utf8")).toBe(original);
+    await expect(readFile(`${filePath}.bak`, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("is idempotent across repeated disk migration", async () => {
