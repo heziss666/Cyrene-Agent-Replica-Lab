@@ -3,6 +3,10 @@ import {
   normalizeMemoryContent,
   validateModelMemoryContent,
 } from "./memory-content-policy.js";
+import {
+  createMemoryConflictService,
+  type MemoryConflictService,
+} from "./memory-conflict-service.js";
 import type { MemoryStore } from "./memory-store.js";
 import type {
   L0Field,
@@ -51,17 +55,33 @@ export interface MemoryManager {
   }): Promise<MemoryWriteSummary>;
 }
 
+export type MemoryConflictEvent = {
+  readonly type: "memory_conflict_detection_failed";
+};
+
+export const MEMORY_CONFLICT_DETECTION_FAILED_EVENT: MemoryConflictEvent = Object.freeze({
+  type: "memory_conflict_detection_failed",
+});
+
 export function createMemoryManager(options: {
   store: MemoryStore;
   now?: () => Date;
   idFactory?: () => string;
+  conflictService?: MemoryConflictService;
+  onConflictEvent?: (event: MemoryConflictEvent) => void;
 }): MemoryManager {
   const now = options.now ?? (() => new Date());
   const idFactory = options.idFactory ?? randomUUID;
+  const conflictService = options.conflictService ?? createMemoryConflictService({
+    store: options.store,
+    vectorNeighbors: async () => [],
+    recentInjectionIds: () => [],
+  });
 
   return {
     async writeCandidates(input) {
       const writes: string[] = [];
+      const writtenL2Ids: string[] = [];
       const timestamp = now().toISOString();
 
       await options.store.update((draft) => {
@@ -69,10 +89,24 @@ export function createMemoryManager(options: {
           const validated = validateCandidate(untrustedCandidate, input.userMessage);
           if (!validated) continue;
 
-          const write = persistCandidate(draft, validated, timestamp, idFactory);
-          if (write) writes.push(write);
+          const persisted = persistCandidate(draft, validated, timestamp, idFactory);
+          if (!persisted) continue;
+          writes.push(persisted.write);
+          if (persisted.l2MemoryId !== undefined) writtenL2Ids.push(persisted.l2MemoryId);
         }
       });
+
+      for (const id of writtenL2Ids) {
+        try {
+          await conflictService.inspectNewMemory(id);
+        } catch {
+          try {
+            options.onConflictEvent?.(MEMORY_CONFLICT_DETECTION_FAILED_EVENT);
+          } catch {
+            // Conflict reporting is best effort and must not affect a persisted memory.
+          }
+        }
+      }
 
       return {
         candidateCount: input.candidates.length,
@@ -149,17 +183,17 @@ function persistCandidate(
   candidate: ValidatedCandidate,
   timestamp: string,
   idFactory: () => string,
-): string | undefined {
+): { write: string; l2MemoryId?: string } | undefined {
   if (candidate.layer === "L0") {
     if (!writeL0(draft.l0, candidate.field, candidate.content)) return undefined;
     draft.l0.updatedAt = timestamp;
-    return `L0.${candidate.field}`;
+    return { write: `L0.${candidate.field}` };
   }
 
   if (candidate.layer === "L1") {
     if (!writeL1(draft.l1, candidate.field, candidate.content)) return undefined;
     draft.l1.updatedAt = timestamp;
-    return `L1.${candidate.field}`;
+    return { write: `L1.${candidate.field}` };
   }
 
   const contentKey = dedupeKey(candidate.content);
@@ -196,7 +230,7 @@ function persistCandidate(
     source: "conversation",
     sourceMemoryIds: [],
   });
-  return "L2";
+  return { write: "L2", l2MemoryId: memoryId };
 }
 
 function writeL0(profile: L0Profile, field: L0Field, content: string): boolean {

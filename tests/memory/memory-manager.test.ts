@@ -28,6 +28,8 @@ function candidate(overrides: Partial<MemoryCandidate> = {}): MemoryCandidate {
 async function createHarness(options: {
   now?: () => Date;
   idFactory?: () => string;
+  conflictService?: Parameters<typeof createMemoryManager>[0]["conflictService"];
+  onConflictEvent?: Parameters<typeof createMemoryManager>[0]["onConflictEvent"];
 } = {}) {
   const directory = await mkdtemp(join(tmpdir(), "cyrene-memory-manager-"));
   directories.push(directory);
@@ -47,6 +49,38 @@ afterEach(async () => {
 });
 
 describe("createMemoryManager", () => {
+  it("runs conflict inspection after a successful L2 write and emits a fixed safe event on failure", async () => {
+    const inspectNewMemory = vi.fn(async () => {
+      throw new Error("C:\\private\\memory.json contains a secret");
+    });
+    const onConflictEvent = vi.fn(() => {
+      throw new Error("observer failure");
+    });
+    const { manager, store } = await createHarness({
+      idFactory: vi.fn()
+        .mockReturnValueOnce("memory-1")
+        .mockReturnValueOnce("evidence-1"),
+      conflictService: { inspectNewMemory },
+      onConflictEvent,
+    });
+
+    await expect(manager.writeCandidates({
+      userMessage: "I no longer use Python",
+      candidates: [candidate({
+        layer: "L2",
+        field: undefined,
+        content: "I no longer use Python",
+        evidenceQuote: "I no longer use Python",
+        importance: "medium",
+        confidence: 0.9,
+      })],
+    })).resolves.toMatchObject({ writtenCount: 1 });
+
+    expect(inspectNewMemory).toHaveBeenCalledWith("memory-1");
+    expect(onConflictEvent).toHaveBeenCalledWith({ type: "memory_conflict_detection_failed" });
+    expect((await store.load()).l2).toHaveLength(1);
+  });
+
   it("skips content beyond the normalized policy length limit", async () => {
     const { manager, store } = await createHarness();
     const content = "x".repeat(2_001);
