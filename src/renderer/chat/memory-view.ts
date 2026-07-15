@@ -20,7 +20,7 @@ import {
 
 export interface MemoryViewOptions {
   root: HTMLElement;
-  api: CyreneApi["memory"];
+  api: MemoryApi & Partial<Pick<CyreneApi["memory"], "runMaintenance">>;
   confirm?: (message: string) => boolean | Promise<boolean>;
   document?: Document;
   onAgentEvent?: (listener: AgentEventListener) => void;
@@ -74,6 +74,10 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
   let hasLoaded = false;
   let auditReport: MemoryAuditReport | undefined;
   let auditLoading = false;
+  let maintenanceRun: {
+    runId: string;
+    status: "requested" | "running" | "finished" | "failed";
+  } | undefined;
 
   const controller: MemoryViewController = {
     async show() {
@@ -121,6 +125,16 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
   const runtimeApi = (globalThis as { cyrene?: CyreneApi }).cyrene;
   const onAgentEvent = options.onAgentEvent ?? runtimeApi?.chat.onAgentEvent;
   onAgentEvent?.((payload) => {
+    if (payload.event.type === "memory_maintenance_started") {
+      maintenanceRun = { runId: payload.runId, status: "running" };
+      render();
+    } else if (payload.event.type === "memory_maintenance_finished") {
+      maintenanceRun = { runId: payload.runId, status: "finished" };
+      render();
+    } else if (payload.event.type === "memory_maintenance_failed") {
+      maintenanceRun = { runId: payload.runId, status: "failed" };
+      render();
+    }
     if (payload.event.type === "memory_governance_changed"
       || payload.event.type === "memory_resolver_finished"
       || payload.event.type === "memory_maintenance_started"
@@ -227,6 +241,13 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
         ? `Last maintenance: ${snapshot.maintenance.lastMaintenanceAt}`
         : "No maintenance run recorded.";
     content.append(maintenance);
+    if (maintenanceRun) {
+      content.append(createText(
+        "p",
+        "memory-muted",
+        `Maintenance ${maintenanceRun.runId}: ${maintenanceRun.status}.`,
+      ));
+    }
     const nextTrigger = Math.max(
       0,
       10 - snapshot.maintenance.successfulWritesSinceMaintenance,
@@ -251,7 +272,10 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     render();
     try {
       if (!options.api.runMaintenance) throw new Error("Maintenance IPC unavailable");
-      await options.api.runMaintenance();
+      const result = await options.api.runMaintenance();
+      if (!maintenanceRun || maintenanceRun.runId !== result.runId) {
+        maintenanceRun = { runId: result.runId, status: "requested" };
+      }
       model = new MemoryViewModel(await options.api.getSnapshot());
     } catch {
       errorMessage = "Memory maintenance could not be started.";

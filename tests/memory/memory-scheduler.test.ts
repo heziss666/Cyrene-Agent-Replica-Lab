@@ -73,7 +73,7 @@ describe("MemoryScheduler", () => {
     await expect(scheduler.recordSuccessfulWrite()).resolves.toBe("run-1");
     await scheduler.flush();
     expect(runNow).toHaveBeenCalledOnce();
-    expect(runNow).toHaveBeenCalledWith("write_count");
+    expect(runNow).toHaveBeenCalledWith("write_count", "run-1");
   });
 
   it("triggers when elapsed time reaches exactly 24 hours", async () => {
@@ -91,7 +91,7 @@ describe("MemoryScheduler", () => {
     await scheduler.flush();
 
     expect(runNow).toHaveBeenCalledOnce();
-    expect(runNow).toHaveBeenCalledWith("time");
+    expect(runNow).toHaveBeenCalledWith("time", "run-1");
   });
 
   it("coalesces repeated running requests into at most one follow-up", async () => {

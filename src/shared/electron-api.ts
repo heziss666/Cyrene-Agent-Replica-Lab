@@ -40,6 +40,6 @@ export interface CyreneApi {
     setStyle: (styleId: StyleId) => Promise<PersonaStyleResult>;
   };
   memory: MemoryApi & {
-    runMaintenance?: () => Promise<MemoryMaintenanceRunResult>;
+    runMaintenance: () => Promise<MemoryMaintenanceRunResult>;
   };
 }

@@ -321,6 +321,17 @@ export function createMemoryMaintenanceFailedEvent(input: {
   }) as MemoryMaintenanceFailedEvent;
 }
 
+export function countMemoryGovernanceChanges(input: {
+  activeToAging: number;
+  agingToArchived: number;
+  weightUpdated: number;
+  l1Expired: number;
+}): number {
+  const statusChanged = safeCount(input.activeToAging) + safeCount(input.agingToArchived);
+  const weightOnly = Math.max(0, safeCount(input.weightUpdated) - statusChanged);
+  return statusChanged + weightOnly + safeCount(input.l1Expired);
+}
+
 function safeCount(value: number): number {
   return Number.isSafeInteger(value) && value > 0 ? value : 0;
 }

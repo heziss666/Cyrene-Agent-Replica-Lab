@@ -4,7 +4,6 @@ import type {
   PersonaStyleResult,
 } from "../../src/shared/electron-api.js";
 import type {
-  MemoryApi,
   MemoryAuditReport,
   MemoryMutationResult,
   MemorySnapshot,
@@ -24,7 +23,7 @@ describe("CyreneApi persona contract", () => {
 });
 
 describe("CyreneApi memory contract", () => {
-  it("exposes only the ten Phase 7B governance methods", async () => {
+  it("requires the Phase 7C maintenance method with the governance methods", async () => {
     const snapshot = { l2: [] } as unknown as MemorySnapshot;
     const mutation = { ok: true, snapshot } satisfies MemoryMutationResult;
     const audit = { ok: true, findings: [] } satisfies MemoryAuditReport;
@@ -39,7 +38,8 @@ describe("CyreneApi memory contract", () => {
       restoreL2: async () => mutation,
       clearLayer: async () => mutation,
       getAuditReport: async () => audit,
-    } satisfies MemoryApi;
+      runMaintenance: async () => ({ runId: "maintenance-run-1" }),
+    } satisfies CyreneApi["memory"];
     const apiMemory: CyreneApi["memory"] = memory;
 
     expect(Object.keys(apiMemory)).toEqual([
@@ -53,8 +53,10 @@ describe("CyreneApi memory contract", () => {
       "restoreL2",
       "clearLayer",
       "getAuditReport",
+      "runMaintenance",
     ]);
     await expect(apiMemory.getSnapshot()).resolves.toBe(snapshot);
     await expect(apiMemory.getAuditReport()).resolves.toBe(audit);
+    await expect(apiMemory.runMaintenance()).resolves.toEqual({ runId: "maintenance-run-1" });
   });
 });

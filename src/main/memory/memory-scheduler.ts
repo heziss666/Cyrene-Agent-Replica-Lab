@@ -8,7 +8,7 @@ const SHUTDOWN_CODE = "MEMORY_MAINTENANCE_SHUTTING_DOWN";
 
 export interface MaintenanceRunner {
   initialize(): Promise<void>;
-  runNow(reason: MaintenanceReason): Promise<unknown>;
+  runNow(reason: MaintenanceReason, runId: string): Promise<unknown>;
 }
 
 export interface MemorySchedulerOptions {
@@ -83,7 +83,7 @@ export class MemoryScheduler {
 
     const runId = this.idFactory();
     this.activeRunId = runId;
-    this.tail = this.drain(reason);
+    this.tail = this.drain(reason, runId);
     return runId;
   }
 
@@ -124,14 +124,18 @@ export class MemoryScheduler {
     this.scheduleTimeTrigger(snapshot.maintenance.lastMaintenanceAt);
   }
 
-  private async drain(initialReason: MaintenanceReason): Promise<void> {
+  private async drain(initialReason: MaintenanceReason, initialRunId: string): Promise<void> {
     let reason: MaintenanceReason | undefined = initialReason;
+    let runId = initialRunId;
     try {
       while (reason !== undefined) {
-        await this.coordinator.runNow(reason).catch(() => undefined);
+        await this.coordinator.runNow(reason, runId).catch(() => undefined);
         reason = this.followUpReason;
         this.followUpReason = undefined;
-        if (reason !== undefined) this.activeRunId = this.idFactory();
+        if (reason !== undefined) {
+          runId = this.idFactory();
+          this.activeRunId = runId;
+        }
       }
     } finally {
       this.activeRunId = undefined;

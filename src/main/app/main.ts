@@ -17,6 +17,7 @@ import { createMemoryResolverQueue } from "../memory/memory-resolver-queue.js";
 import { MemoryScheduler } from "../memory/memory-scheduler.js";
 import { createMemoryStore } from "../memory/memory-store.js";
 import {
+  countMemoryGovernanceChanges,
   createMemoryGovernanceChangedEvent,
   createMemoryMaintenanceFailedEvent,
   createMemoryMaintenanceFinishedEvent,
@@ -38,13 +39,11 @@ async function boot(): Promise<void> {
     l1ExpiryService: new MemoryL1Expiry({ store: memoryStore }),
     audit: () => governance.audit(),
   });
-  let nextMaintenanceEventNumber = 1;
   const memoryScheduler = new MemoryScheduler({
     store: memoryStore,
     coordinator: {
       initialize: () => coordinator.initialize(),
-      runNow: async (reason) => {
-        const runId = `memory_maintenance_${nextMaintenanceEventNumber++}`;
+      runNow: async (reason, runId) => {
         broadcastAgentEvent(runId, createMemoryMaintenanceStartedEvent({ pendingCount: 1 }));
         try {
           const summary = await coordinator.runNow(reason);
@@ -93,7 +92,7 @@ function broadcastMaintenanceResult(runId: string, summary: MaintenanceRunSummar
   const decay = lifecycleCounts(summary.steps.decay);
   const l1Expired = expiredFieldCount(summary.steps["l1-expiry"]);
   broadcastAgentEvent(runId, createMemoryMaintenanceFinishedEvent({ ...decay, l1Expired }));
-  const changedCount = decay.weightUpdated + l1Expired;
+  const changedCount = countMemoryGovernanceChanges({ ...decay, l1Expired });
   if (changedCount > 0) {
     broadcastAgentEvent(runId, createMemoryGovernanceChangedEvent({ changedCount }));
   }
