@@ -39,10 +39,12 @@ export class MemoryDecayService {
 
   async runDecay(now = this.now()): Promise<LifecycleSummary> {
     assertValidDate(now, "now");
+    validateDecayTimestamps(await this.store.load(), now);
     const summary: LifecycleCounts = { ...EMPTY_SUMMARY };
     let skippedForInterval = false;
 
     await this.store.update((draft) => {
+      validateDecayTimestamps(draft, now);
       const lastDecayAt = draft.maintenance.lastDecayAt;
       if (lastDecayAt === undefined) {
         applyDecay(draft, now, 0, summary, this.idFactory);
@@ -51,16 +53,12 @@ export class MemoryDecayService {
 
       const lastDecayTime = parseTimestamp(lastDecayAt, "maintenance.lastDecayAt");
       const elapsedMs = now.getTime() - lastDecayTime;
-      if (elapsedMs < 0) {
-        throw new Error("Invalid timestamp: maintenance.lastDecayAt is after now");
-      }
       if (elapsedMs === 0) return;
       if (elapsedMs < DAY_MS) {
         skippedForInterval = true;
         return;
       }
 
-      validateEligibleAccessTimestamps(draft.l2);
       applyDecay(draft, now, elapsedMs / DAY_MS, summary, this.idFactory);
     });
 
@@ -108,6 +106,17 @@ function validateEligibleAccessTimestamps(memories: readonly L2MemoryV2[]): void
       parseTimestamp(memory.lastAccessedAt, `l2.${memory.id}.lastAccessedAt`);
     }
   }
+}
+
+function validateDecayTimestamps(file: MemoryFile, now: Date): void {
+  const lastDecayAt = file.maintenance.lastDecayAt;
+  if (lastDecayAt !== undefined) {
+    const lastDecayTime = parseTimestamp(lastDecayAt, "maintenance.lastDecayAt");
+    if (lastDecayTime > now.getTime()) {
+      throw new Error("Invalid timestamp: maintenance.lastDecayAt is after now");
+    }
+  }
+  validateEligibleAccessTimestamps(file.l2);
 }
 
 function summaryCode(summary: LifecycleCounts): string {

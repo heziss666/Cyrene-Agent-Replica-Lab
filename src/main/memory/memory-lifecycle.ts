@@ -28,7 +28,9 @@ export function calculateDecayedMemory(
   );
   const inactiveDays = (now.getTime() - Date.parse(memory.lastAccessedAt)) / DAY_MS;
   let status: L2MemoryV2["status"] = memory.status;
-  if (nextWeight < ARCHIVE_WEIGHT_THRESHOLD && inactiveDays >= ARCHIVE_INACTIVITY_DAYS) {
+  if (memory.status === "aging"
+    && nextWeight < ARCHIVE_WEIGHT_THRESHOLD
+    && inactiveDays >= ARCHIVE_INACTIVITY_DAYS) {
     status = "archived";
   } else if (nextWeight < AGING_WEIGHT_THRESHOLD) {
     status = "aging";

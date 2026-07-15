@@ -85,6 +85,16 @@ describe("calculateDecayedMemory", () => {
     expect(result).toMatchObject({ weight: 0.1, status: "archived" });
   });
 
+  it("stages active memory through aging even when archive thresholds are met", () => {
+    const result = calculateDecayedMemory(memory({
+      weight: 0.2,
+      status: "active",
+      lastAccessedAt: new Date(NOW.getTime() - 30 * DAY_MS).toISOString(),
+    }), 45, NOW);
+
+    expect(result).toMatchObject({ weight: 0.1, status: "aging" });
+  });
+
   it("keeps recently accessed low-weight memory aging", () => {
     const result = calculateDecayedMemory(memory({
       weight: 0.2,

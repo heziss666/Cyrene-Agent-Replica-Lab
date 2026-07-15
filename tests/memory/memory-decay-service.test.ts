@@ -129,6 +129,23 @@ describe("MemoryDecayService", () => {
     expect(store.read().maintenance.lastDecayAt).toBe(boundary.toISOString());
   });
 
+  it("counts an active memory crossing both thresholds as active-to-aging", async () => {
+    const initial = createEmptyMemoryFileV2();
+    initial.maintenance.lastDecayAt = LAST_DECAY.toISOString();
+    initial.l2 = [memory("low-active", { status: "active", weight: 0.2 })];
+    const store = createStore(initial);
+    const service = new MemoryDecayService({ store, idFactory: () => "audit-decay" });
+
+    const result = await service.runDecay(NOW);
+
+    expect(result).toEqual({
+      activeToAging: 1,
+      agingToArchived: 0,
+      weightUpdated: 1,
+    });
+    expect(store.read().l2[0]?.status).toBe("aging");
+  });
+
   it.each([
     ["invalid now", () => new Date(Number.NaN), LAST_DECAY.toISOString()],
     ["invalid last decay", () => NOW, "not-a-timestamp"],
@@ -154,6 +171,17 @@ describe("MemoryDecayService", () => {
     const service = new MemoryDecayService({ store });
 
     await expect(service.runDecay(NOW)).rejects.toThrow("Invalid timestamp");
+    expect(store.read()).toEqual(initial);
+  });
+
+  it("validates eligible timestamps before establishing the first decay baseline", async () => {
+    const initial = createEmptyMemoryFileV2();
+    initial.l2 = [memory("invalid", { lastAccessedAt: "not-a-timestamp" })];
+    const store = createStore(initial);
+    const service = new MemoryDecayService({ store });
+
+    await expect(service.runDecay(NOW)).rejects.toThrow("Invalid timestamp");
+    expect(store.updateCalls).toBe(0);
     expect(store.read()).toEqual(initial);
   });
 });
