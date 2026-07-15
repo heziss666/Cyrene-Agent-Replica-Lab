@@ -20,6 +20,7 @@ type FakeElement = {
   getAttribute: (name: string) => string | null;
   addEventListener: (name: string, listener: () => void) => void;
   click: () => void;
+  change: (value: string) => void;
   querySelector: (selector: string) => FakeElement | null;
   querySelectorAll: (selector: string) => FakeElement[];
 };
@@ -61,6 +62,10 @@ function createFakeDocument(): Document {
       },
       click() {
         for (const listener of element.listeners.click ?? []) listener();
+      },
+      change(value: string) {
+        element.value = value;
+        for (const listener of element.listeners.change ?? []) listener();
       },
       querySelector(selector: string) {
         return element.querySelectorAll(selector)[0] ?? null;
@@ -110,25 +115,46 @@ function createSnapshot(): MemorySnapshot {
   return {
     l0: { preferredName: "Alex", longTermInterests: ["music"], permanentNotes: [] },
     l1: { currentProject: "Replica", recentGoals: [], recentPreferences: [] },
-    l2: [{
-      id: "memory-1",
-      content: "I use TypeScript",
-      confidence: 0.9,
-      importance: "high",
-      createdAt: "2026-07-01T00:00:00.000Z",
-      updatedAt: "2026-07-02T00:00:00.000Z",
-      lastAccessedAt: "2026-07-02T00:00:00.000Z",
-      accessCount: 2,
-      weight: 0.8,
-      isPinned: false,
-      isEnabled: true,
-      status: "active",
-      syncStatus: "synced",
-      isSummary: false,
-      evidenceCount: 1,
-      sourceMemoryIds: [],
-      conflictWith: [],
-    }],
+    l2: [
+      {
+        id: "memory-1",
+        content: "I use TypeScript",
+        confidence: 0.9,
+        importance: "high",
+        createdAt: "2026-07-01T00:00:00.000Z",
+        updatedAt: "2026-07-02T00:00:00.000Z",
+        lastAccessedAt: "2026-07-02T00:00:00.000Z",
+        accessCount: 2,
+        weight: 0.8,
+        isPinned: false,
+        isEnabled: true,
+        status: "active",
+        syncStatus: "synced",
+        isSummary: false,
+        evidenceCount: 1,
+        sourceMemoryIds: [],
+        conflictWith: [],
+      },
+      {
+        id: "memory-2",
+        content: "I prefer light mode",
+        confidence: 0.7,
+        importance: "medium",
+        createdAt: "2026-06-01T00:00:00.000Z",
+        updatedAt: "2026-07-01T00:00:00.000Z",
+        lastAccessedAt: "2026-07-01T00:00:00.000Z",
+        accessCount: 1,
+        weight: 0.95,
+        isPinned: false,
+        isEnabled: true,
+        status: "active",
+        syncStatus: "synced",
+        isSummary: false,
+        evidenceCount: 1,
+        sourceMemoryIds: [],
+        conflictWith: [],
+      },
+    ],
     conflicts: [],
     reflections: [],
     audit: [],
@@ -153,6 +179,49 @@ function createApi(snapshot: MemorySnapshot): MemoryApi {
 }
 
 describe("memory view", () => {
+  it("keeps a reserved status row across loading, empty, and error states", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi(createSnapshot());
+    let resolveSnapshot: ((value: MemorySnapshot) => void) | undefined;
+    api.getSnapshot = vi.fn(() => new Promise<MemorySnapshot>((resolve) => {
+      resolveSnapshot = resolve;
+    }));
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+
+    const loading = view.show();
+    expect(root.children).toHaveLength(4);
+    expect(root.querySelector(".memory-status")?.textContent).toBe("Loading memory...");
+    resolveSnapshot?.(createSnapshot());
+    await loading;
+    expect(root.children).toHaveLength(4);
+    expect(root.querySelector(".memory-status")).not.toBeNull();
+
+    api.getSnapshot = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    await view.refresh();
+    expect(root.children).toHaveLength(4);
+    expect(root.querySelector(".memory-status")?.textContent).toContain("could not be refreshed");
+  });
+
+  it("keeps empty and disabled panels in the same content layout", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi({ ...createSnapshot(), l2: [] });
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+    await view.show();
+    root.querySelector('[data-memory-tab="events"]')?.click();
+    expect(root.querySelector(".memory-content")).not.toBeNull();
+    expect(root.querySelector(".memory-event-list")?.textContent).toContain("No memories match");
+    expect(root.children).toHaveLength(4);
+
+    root.querySelector('[data-memory-tab="relations"]')?.click();
+    expect(root.querySelector(".memory-content")).not.toBeNull();
+    expect(root.querySelector(".memory-state")?.getAttribute("aria-disabled")).toBe("true");
+    expect(root.children).toHaveLength(4);
+  });
+
   it("loads once when switched on and leaves chat messages untouched", async () => {
     const document = createFakeDocument();
     const root = document.createElement("section") as unknown as FakeElement;
@@ -178,11 +247,51 @@ describe("memory view", () => {
     root.querySelector('[data-memory-tab="profile"]')?.click();
 
     const input = root.querySelector('[data-memory-field="preferredName"]') as unknown as FakeElement;
+    expect(input.id).toBe("memory-field-L0-preferredName");
+    expect(root.querySelectorAll("label").some((label) => label.getAttribute("for") === "memory-field-L0-preferredName")).toBe(true);
     input.value = "Morgan";
     root.querySelector('[data-action="save-profile-preferredName"]')?.click();
     await Promise.resolve();
 
     expect(api.updateProfileField).toHaveBeenCalledWith({ layer: "L0", field: "preferredName", value: "Morgan" });
+  });
+
+  it("wires the visible Events sort control to model ordering", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi(createSnapshot());
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+    await view.show();
+    root.querySelector('[data-memory-tab="events"]')?.click();
+
+    const sort = root.querySelector('[aria-label="Sort by"]') as unknown as FakeElement;
+    expect(sort).not.toBeNull();
+    expect(root.querySelectorAll("article")[0]?.getAttribute("data-memory-row")).toBe("memory-1");
+    sort.change("weight");
+    expect(root.querySelectorAll("article")[0]?.getAttribute("data-memory-row")).toBe("memory-2");
+  });
+
+  it("exits L2 edit mode only after a successful save and rerender", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi(createSnapshot());
+    const updated = createSnapshot();
+    updated.l2[0].content = "I use TypeScript every day";
+    api.updateL2 = vi.fn(async () => ({ ok: true as const, snapshot: updated }));
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+    await view.show();
+    root.querySelector('[data-memory-tab="events"]')?.click();
+    root.querySelector('[data-action="edit-l2-memory-1"]')?.click();
+    const editor = root.querySelector('[data-action="save-l2-memory-1"]');
+    expect(editor).not.toBeNull();
+    root.querySelector(".memory-edit-input")!.value = "I use TypeScript every day";
+    editor?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.querySelector('[data-action="edit-l2-memory-1"]')).not.toBeNull();
+    expect(root.querySelector(".memory-edit-input")).toBeNull();
+    expect(root.textContent).toContain("I use TypeScript every day");
   });
 
   it("provides event controls and confirms destructive actions", async () => {
@@ -199,9 +308,11 @@ describe("memory view", () => {
     expect(root.querySelector('[data-action="pin-l2-memory-1"]')).not.toBeNull();
     expect(root.querySelector('[data-action="enable-l2-memory-1"]')).not.toBeNull();
     root.querySelector('[data-action="delete-l2-memory-1"]')?.click();
+    root.querySelector('[data-action="clear-layer-L2"]')?.click();
     await Promise.resolve();
-    expect(confirm).toHaveBeenCalledOnce();
+    expect(confirm).toHaveBeenCalledTimes(2);
     expect(api.deleteL2).not.toHaveBeenCalled();
+    expect(api.clearLayer).not.toHaveBeenCalled();
   });
 
   it("rolls back failed mutations and displays a safe error", async () => {
@@ -218,5 +329,7 @@ describe("memory view", () => {
 
     expect(root.textContent).toContain("This memory is not available for that action.");
     expect(root.textContent).not.toContain("secret detail");
+    expect(root.textContent).toContain("I use TypeScript");
+    expect(root.querySelector('[data-action="pin-l2-memory-1"]')?.textContent).toBe("Pin");
   });
 });

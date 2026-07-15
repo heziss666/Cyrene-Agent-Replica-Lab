@@ -138,7 +138,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     if (loading) status.textContent = "Loading memory...";
     else if (errorMessage) status.textContent = errorMessage;
     else if (!model) status.textContent = "Memory is unavailable.";
-    if (status.textContent) options.root.append(status);
+    options.root.append(status);
 
     const content = createElement("section", "memory-content");
     content.setAttribute("aria-label", `${activeTab} memory panel`);
@@ -209,10 +209,18 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       section.append(createText("h3", undefined, layer));
       for (const field of PROFILE_FIELDS.filter((item) => item.layer === layer)) {
         const row = createElement("div", "memory-profile-row");
-        row.append(createText("label", "memory-field-label", field.label));
+        const fieldId = `memory-field-${field.layer}-${field.field}`;
+        const label = document.createElement("label");
+        label.className = "memory-field-label";
+        label.htmlFor = fieldId;
+        label.setAttribute("for", fieldId);
+        label.textContent = field.label;
+        row.append(label);
         const value = getProfileValue(snapshot, field);
         const input = document.createElement(field.array ? "textarea" : "input") as HTMLInputElement;
         input.className = "memory-field-input";
+        input.id = fieldId;
+        input.setAttribute("id", fieldId);
         input.setAttribute("data-memory-field", field.field);
         input.setAttribute("aria-label", field.label);
         input.value = field.array ? (value as string[]).join("\n") : String(value ?? "");
@@ -266,6 +274,11 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       render();
     });
     controls.append(pinned);
+    const sort = createSelect("Sort by", ["updatedAt", "weight", "accessCount", "status"], filters.sort ?? "updatedAt", (value) => {
+      filters = { ...filters, sort: value as L2Filters["sort"] };
+      render();
+    });
+    controls.append(sort);
     content.append(controls);
 
     const rows = filterL2Rows(snapshot.l2, filters);
@@ -294,11 +307,17 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       editor.value = row.content;
       editor.setAttribute("aria-label", `Edit memory ${row.id}`);
       item.append(editor);
-      item.append(createButton("Save", `save-l2-${row.id}`, () => void saveL2(row.id, editor.value)));
-      item.append(createButton("Cancel", `cancel-l2-${row.id}`, () => {
+      const save = createButton("Save", `save-l2-${row.id}`, () => void saveL2(row.id, editor.value));
+      save.disabled = busy;
+      save.setAttribute("data-action", `save-l2-${row.id}`);
+      item.append(save);
+      const cancel = createButton("Cancel", `cancel-l2-${row.id}`, () => {
         editingId = undefined;
         render();
-      }));
+      });
+      cancel.disabled = busy;
+      cancel.setAttribute("data-action", `cancel-l2-${row.id}`);
+      item.append(cancel);
     } else {
       item.append(createText("p", "memory-event-content", row.content));
       const metadata = createText("p", "memory-muted", `Updated ${row.updatedAt} | Weight ${row.weight.toFixed(2)} | Accesses ${row.accessCount}`);
@@ -399,8 +418,11 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       render();
       return;
     }
-    await runMutation(() => options.api.updateL2({ id, content: content.trim() }));
-    editingId = undefined;
+    const succeeded = await runMutation(() => options.api.updateL2({ id, content: content.trim() }));
+    if (succeeded) {
+      editingId = undefined;
+      render();
+    }
   }
 
   async function deleteL2(id: string): Promise<void> {
@@ -421,16 +443,18 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     await runMutation(() => options.api.clearLayer(layer));
   }
 
-  async function runMutation(operation: () => Promise<MemoryMutationResult>): Promise<void> {
-    if (!model || busy) return;
+  async function runMutation(operation: () => Promise<MemoryMutationResult>): Promise<boolean> {
+    if (!model || busy) return false;
     const previous = model.snapshot;
     busy = true;
     errorMessage = undefined;
     render();
+    let succeeded = false;
     try {
       const result = await operation();
       const applied = model.applyMutation(result);
       if (!applied.ok) errorMessage = applied.error;
+      else succeeded = true;
     } catch {
       model = new MemoryViewModel(previous);
       errorMessage = "The memory action failed. Your previous view was restored.";
@@ -438,6 +462,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       busy = false;
       render();
     }
+    return succeeded;
   }
 
   function getProfileValue(snapshot: MemorySnapshot, field: ProfileField): string | string[] | undefined {

@@ -267,7 +267,7 @@ select {
 
 .memory-view {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto 42px minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   background: #ffffff;
@@ -328,6 +328,17 @@ select {
   margin: 10px 0;
   color: #62717f;
   font-size: 13px;
+}
+
+.memory-status {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  max-height: 42px;
+  margin: 0;
+  padding: 0 24px;
+  overflow: auto;
+  white-space: normal;
 }
 
 .memory-state {
