@@ -280,6 +280,53 @@ describe("memory view", () => {
     expect(api.getSnapshot).toHaveBeenCalledTimes(3);
   });
 
+  it("restores a superseded memory and refreshes its visible conflict state from governance events", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const before = createSnapshot();
+    before.l2[0] = {
+      ...before.l2[0],
+      status: "superseded",
+      isEnabled: false,
+      supersededBy: "memory-2",
+    };
+    const after = createSnapshot();
+    after.conflicts = [{
+      id: "conflict-restored",
+      sourceMemoryId: "memory-1",
+      targetMemoryId: "memory-2",
+      createdAt: "2026-07-04T00:00:00.000Z",
+      status: "queued",
+      score: 70,
+      priority: "normal",
+      attempts: 0,
+    }];
+    const api = createApi(before);
+    api.restoreL2 = vi.fn(async () => ({ ok: true as const, snapshot: after }));
+    api.getSnapshot = vi.fn()
+      .mockResolvedValueOnce(before)
+      .mockResolvedValue(after);
+    const onAgentEvent = vi.fn();
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document, onAgentEvent });
+
+    await view.show();
+    root.querySelector('[data-memory-tab="events"]')?.click();
+    root.querySelector('[data-action="restore-l2-memory-1"]')?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.restoreL2).toHaveBeenCalledWith("memory-1");
+    expect(root.querySelector('[data-action="restore-l2-memory-1"]')).toBeNull();
+    const listener = onAgentEvent.mock.calls[0]?.[0];
+    listener({ runId: "memory_restore_1", event: createMemoryGovernanceChangedEvent({ changedCount: 1 }) });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    root.querySelector('[data-memory-tab="conflicts"]')?.click();
+    expect(api.getSnapshot).toHaveBeenCalledTimes(2);
+    expect(root.textContent).toContain("conflict-restored");
+  });
+
   it("renders profile fields and saves through updateProfileField", async () => {
     const document = createFakeDocument();
     const root = document.createElement("section") as unknown as FakeElement;

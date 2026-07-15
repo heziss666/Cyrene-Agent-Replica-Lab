@@ -16,8 +16,8 @@ async function boot(): Promise<void> {
   const memoryRuntime = registerMemoryIpc({
     ipcMain,
     governance: createMemoryGovernanceService({ store: memoryStore }),
-    afterRestoreL2: async (id) => {
-      await chatRuntime.inspectRestoredMemory?.(id);
+    afterRestoreL2: async (id, context) => {
+      await chatRuntime.inspectRestoredMemory?.(id, context.sender, context.runId);
     },
   });
   const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime);

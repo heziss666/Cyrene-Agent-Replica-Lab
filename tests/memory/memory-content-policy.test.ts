@@ -57,9 +57,14 @@ describe("memory content policy", () => {
   it.each([
     "123 Example Street",
     "88 North Harbor Road",
+    "221B Baker Street",
+    "P.O. Box 123",
+    "PO Box 456",
     "\u5e7f\u4e1c\u7701\u6df1\u5733\u5e02\u5357\u5c71\u533a\u79d1\u6280\u56ed\u8def88\u53f7",
     "\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u4e2d\u5173\u6751\u5927\u885727\u53f7",
     "\u79d1\u6280\u56ed\u8def88\u53f7",
+    "\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u4e2d\u5173\u6751\u5927\u8857\u4e8c\u5341\u4e03\u53f7",
+    "\u4e0a\u6d77\u5e02\u9ec4\u6d66\u533a\u5357\u4eac\u4e1c\u8def88\u5f042\u53f7",
   ])("rejects concrete unlabeled addresses in user edits: %s", (content) => {
     expect(validateUserEditedMemoryContent(content)).toEqual({
       ok: false,
@@ -70,9 +75,14 @@ describe("memory content policy", () => {
   it.each([
     "123 Example Street",
     "88 North Harbor Road",
+    "221B Baker Street",
+    "P.O. Box 123",
+    "PO Box 456",
     "\u5e7f\u4e1c\u7701\u6df1\u5733\u5e02\u5357\u5c71\u533a\u79d1\u6280\u56ed\u8def88\u53f7",
     "\u4e0a\u6d77\u5e02\u6d66\u4e1c\u65b0\u533a\u4e16\u7eaa\u5927\u9053100\u53f7",
     "\u79d1\u6280\u56ed\u8def88\u53f7",
+    "\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u4e2d\u5173\u6751\u5927\u8857\u4e8c\u5341\u4e03\u53f7",
+    "\u4e0a\u6d77\u5e02\u9ec4\u6d66\u533a\u5357\u4eac\u4e1c\u8def88\u5f042\u53f7",
   ])("rejects concrete unlabeled addresses in model evidence: %s", (value) => {
     expect(validateModelMemoryContent({
       userMessage: value,
@@ -83,11 +93,30 @@ describe("memory content policy", () => {
 
   it.each([
     "The 2024 roadmap has 12 milestones",
+    "Version 221B is supported",
+    "Release v2.21B is ready",
+    "The review date is 2026-07-15",
     "Meet me on Main Street after work",
+    "I prefer Beijing for the conference",
     "\u6211\u559c\u6b22\u5317\u4eac\u7684\u79d1\u6280\u56ed",
+    "\u6211\u559c\u6b22\u4e0a\u6d77",
     "\u6280\u672f\u8def\u7ebf\u670988\u9879\u68c0\u67e5",
   ])("does not reject non-address content as an address: %s", (content) => {
     expect(validateUserEditedMemoryContent(content)).toMatchObject({ ok: true });
+  });
+
+  it.each([
+    "Version 221B is supported",
+    "Release v2.21B is ready",
+    "The review date is 2026-07-15",
+    "I prefer Beijing for the conference",
+    "\u6211\u559c\u6b22\u4e0a\u6d77",
+  ])("accepts non-address model evidence: %s", (content) => {
+    expect(validateModelMemoryContent({
+      userMessage: content,
+      evidenceQuote: content,
+      content,
+    })).toMatchObject({ ok: true });
   });
 
   it("normalizes accepted user edits in the result", () => {

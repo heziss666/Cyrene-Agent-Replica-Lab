@@ -345,6 +345,9 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       }));
       actions.append(actionButton(row.isPinned ? "Unpin" : "Pin", `pin-l2-${row.id}`, () => void setPinned(row)));
       actions.append(actionButton(row.isEnabled ? "Disable" : "Enable", `enable-l2-${row.id}`, () => void setEnabled(row)));
+      if (row.status === "superseded" || row.status === "merged") {
+        actions.append(actionButton("Restore", `restore-l2-${row.id}`, () => void restoreL2(row.id)));
+      }
       actions.append(actionButton("Delete", `delete-l2-${row.id}`, () => void deleteL2(row.id)));
       item.append(actions);
     }
@@ -479,6 +482,10 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
 
   async function setEnabled(row: MemorySnapshot["l2"][number]): Promise<void> {
     await runMutation(() => options.api.setL2Enabled({ id: row.id, enabled: !row.isEnabled }));
+  }
+
+  async function restoreL2(id: string): Promise<void> {
+    await runMutation(() => options.api.restoreL2(id));
   }
 
   async function clearMemoryLayer(layer: MemoryLayer): Promise<void> {

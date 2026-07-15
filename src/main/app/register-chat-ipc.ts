@@ -117,10 +117,11 @@ export interface RegisterChatIpcDeps {
 const RECENT_INJECTION_ROUNDS = 3;
 
 export interface ChatIpcRuntime {
+  closeAcceptance?(): Promise<void>;
   beginShutdown(): Promise<void>;
   flushBackgroundTasks(): Promise<void>;
   pendingBackgroundTaskCount(): number;
-  inspectRestoredMemory?(id: string): Promise<void>;
+  inspectRestoredMemory?(id: string, sender?: IpcSenderLike, runId?: string): Promise<void>;
 }
 
 function withoutSystemMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -221,6 +222,7 @@ export async function registerChatIpc(
   const serializeSessionOperation = createSerialExecutor();
   const acceptedSessionOperations = new Set<Promise<unknown>>();
   let shuttingDown = false;
+  let acceptanceClosedPromise: Promise<void> | undefined;
   let shutdownPromise: Promise<void> | undefined;
   let nextRunNumber = 1;
   const scheduledConflictIds = new Set<string>();
@@ -238,14 +240,18 @@ export async function registerChatIpc(
     return operation;
   }
 
-  function beginShutdown(): Promise<void> {
+  function closeAcceptance(): Promise<void> {
     shuttingDown = true;
-    shutdownPromise ??= (async () => {
+    acceptanceClosedPromise ??= (async () => {
       while (acceptedSessionOperations.size > 0) {
         await Promise.allSettled([...acceptedSessionOperations]);
       }
-      await flushBackgroundTasks();
     })();
+    return acceptanceClosedPromise;
+  }
+
+  function beginShutdown(): Promise<void> {
+    shutdownPromise ??= closeAcceptance().then(() => flushBackgroundTasks());
     return shutdownPromise;
   }
 
@@ -382,9 +388,14 @@ export async function registerChatIpc(
     for (const conflict of queued) scheduleResolver(conflict, sender, runId);
   }
 
-  async function inspectRestoredMemory(id: string): Promise<void> {
+  async function inspectRestoredMemory(
+    id: string,
+    sender?: IpcSenderLike,
+    runId?: string,
+  ): Promise<void> {
     await conflictService.inspectNewMemory(id);
-    await scheduleQueuedResolvers();
+    sendAgentEvent(sender, runId, createMemoryGovernanceChangedEvent({ changedCount: 1 }));
+    await scheduleQueuedResolvers(sender, runId);
   }
 
   deps.ipcMain.handle(
@@ -561,6 +572,7 @@ export async function registerChatIpc(
   );
 
   return {
+    closeAcceptance,
     beginShutdown,
     flushBackgroundTasks,
     pendingBackgroundTaskCount: () =>

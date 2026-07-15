@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   combineIpcShutdownRuntimes,
   registerMemoryIpc,
+  type MemoryIpcEventLike,
   type MemoryIpcMainLike,
   type MemoryIpcRuntime,
 } from "../../src/main/app/register-memory-ipc.js";
@@ -9,7 +10,7 @@ import type { ChatIpcRuntime } from "../../src/main/app/register-chat-ipc.js";
 import type { MemoryGovernanceService } from "../../src/main/memory/memory-governance.js";
 import { IPC_CHANNELS } from "../../src/shared/ipc-channels.js";
 
-type IpcHandler = (event: unknown, payload?: unknown) => Promise<unknown>;
+type IpcHandler = (event: MemoryIpcEventLike, payload?: unknown) => Promise<unknown>;
 
 interface FakeIpcMain extends MemoryIpcMainLike {
   handlers: Map<string, IpcHandler>;
@@ -147,10 +148,13 @@ describe("registerMemoryIpc", () => {
     let shutdownFinished = false;
     void shutdown.then(() => { shutdownFinished = true; });
 
-    expect(afterRestoreL2).toHaveBeenCalledWith("memory-1");
+    expect(afterRestoreL2).toHaveBeenCalledWith("memory-1", {
+      sender: undefined,
+      runId: "memory_restore_1",
+    });
     expect(shutdownFinished).toBe(false);
     inspection.resolve();
-    await expect(restore).resolves.toEqual({ ok: true, snapshot: {} });
+    await expect(restore).resolves.toEqual({ ok: true, snapshot: { kind: "snapshot" } });
     await expect(shutdown).resolves.toBeUndefined();
 
     const failureIpcMain = createFakeIpcMain();
@@ -159,7 +163,27 @@ describe("registerMemoryIpc", () => {
     });
     registerMemoryIpc({ ipcMain: failureIpcMain, governance, afterRestoreL2: failedInspection });
     await expect(handler(failureIpcMain, IPC_CHANNELS.memory.restoreL2)({}, "memory-1"))
-      .resolves.toEqual({ ok: true, snapshot: {} });
+      .resolves.toEqual({ ok: true, snapshot: { kind: "snapshot" } });
+  });
+
+  it("passes restore IPC sender context to inspection and returns the post-inspection snapshot", async () => {
+    const ipcMain = createFakeIpcMain();
+    const governance = createGovernance();
+    const sender = { send: vi.fn() };
+    const restoredSnapshot = { kind: "restored-snapshot" };
+    vi.mocked(governance.restoreL2).mockResolvedValue({ ok: true, snapshot: { kind: "before-inspection" } } as never);
+    vi.mocked(governance.snapshot).mockResolvedValue(restoredSnapshot as never);
+    const afterRestoreL2 = vi.fn(async () => undefined);
+    registerMemoryIpc({ ipcMain, governance, afterRestoreL2 });
+
+    const result = await handler(ipcMain, IPC_CHANNELS.memory.restoreL2)({ sender }, "memory-1");
+
+    expect(afterRestoreL2).toHaveBeenCalledWith(
+      "memory-1",
+      expect.objectContaining({ sender, runId: "memory_restore_1" }),
+    );
+    expect(result).toEqual({ ok: true, snapshot: restoredSnapshot });
+    expect(governance.snapshot).toHaveBeenCalledOnce();
   });
 
   it.each([
@@ -333,6 +357,49 @@ describe("registerMemoryIpc", () => {
 });
 
 describe("combineIpcShutdownRuntimes", () => {
+  it("closes both acceptance gates before waiting for restore scheduling and the final resolver tail", async () => {
+    const restoreScheduling = createDeferred<void>();
+    const resolverTail = createDeferred<void>();
+    let chatAccepting = true;
+    let memoryAccepting = true;
+    const chatRuntime: ChatIpcRuntime = {
+      closeAcceptance: vi.fn(async () => {
+        chatAccepting = false;
+      }),
+      beginShutdown: vi.fn(() => resolverTail.promise),
+      flushBackgroundTasks: vi.fn(() => resolverTail.promise),
+      pendingBackgroundTaskCount: () => 1,
+    };
+    const memoryRuntime: MemoryIpcRuntime = {
+      beginShutdown: vi.fn(() => {
+        memoryAccepting = false;
+        return restoreScheduling.promise;
+      }),
+      pendingOperationCount: () => 1,
+      dispose: vi.fn(),
+    };
+    const combined = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime);
+
+    const shutdown = combined.beginShutdown();
+    expect(chatRuntime.closeAcceptance).toHaveBeenCalledOnce();
+    expect(memoryRuntime.beginShutdown).toHaveBeenCalledOnce();
+    expect(chatAccepting).toBe(false);
+    expect(memoryAccepting).toBe(false);
+    expect(chatRuntime.beginShutdown).not.toHaveBeenCalled();
+
+    restoreScheduling.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(chatRuntime.beginShutdown).toHaveBeenCalledOnce();
+    let finished = false;
+    void shutdown.then(() => { finished = true; });
+    await Promise.resolve();
+    expect(finished).toBe(false);
+
+    resolverTail.resolve();
+    await expect(shutdown).resolves.toBeUndefined();
+  });
+
   it("starts both gates once and waits for both runtimes before rejecting safely", async () => {
     const memoryShutdown = createDeferred<void>();
     const chatRuntime: ChatIpcRuntime = {

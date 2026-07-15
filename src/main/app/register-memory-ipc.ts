@@ -8,9 +8,13 @@ import type {
 } from "../../shared/memory-api-types.js";
 import { IPC_CHANNELS } from "../../shared/ipc-channels.js";
 import type { MemoryGovernanceService } from "../memory/memory-governance.js";
-import type { ChatIpcRuntime } from "./register-chat-ipc.js";
+import type { ChatIpcRuntime, IpcSenderLike } from "./register-chat-ipc.js";
 
-type MemoryIpcHandler = (event: unknown, payload?: unknown) => Promise<unknown>;
+export interface MemoryIpcEventLike {
+  sender?: IpcSenderLike;
+}
+
+type MemoryIpcHandler = (event: MemoryIpcEventLike, payload?: unknown) => Promise<unknown>;
 
 export interface MemoryIpcMainLike {
   handle(channel: string, handler: MemoryIpcHandler): void;
@@ -26,7 +30,7 @@ export interface MemoryIpcRuntime {
 export interface RegisterMemoryIpcOptions {
   ipcMain: MemoryIpcMainLike;
   governance: MemoryGovernanceService;
-  afterRestoreL2?: (id: string) => Promise<void>;
+  afterRestoreL2?: (id: string, context: { sender?: IpcSenderLike; runId: string }) => Promise<void>;
 }
 
 const INVALID_PAYLOAD_MESSAGE = "Invalid memory IPC payload";
@@ -55,13 +59,27 @@ export function combineIpcShutdownRuntimes(
 
   function beginShutdown(): Promise<void> {
     if (!shutdownPromise) {
-      const chatShutdown = captureShutdown(() => chatRuntime.beginShutdown());
+      const chatAcceptance = chatRuntime.closeAcceptance === undefined
+        ? undefined
+        : captureShutdown(() => chatRuntime.closeAcceptance!());
       const memoryShutdown = captureShutdown(() => memoryRuntime.beginShutdown());
-      shutdownPromise = Promise.allSettled([chatShutdown, memoryShutdown]).then((results) => {
-        if (results.some((result) => result.status === "rejected")) {
+      const chatShutdown = chatAcceptance === undefined
+        ? captureShutdown(() => chatRuntime.beginShutdown())
+        : undefined;
+      shutdownPromise = (async () => {
+        const gateResults = await Promise.allSettled([
+          memoryShutdown,
+          ...(chatAcceptance === undefined ? [] : [chatAcceptance]),
+          ...(chatShutdown === undefined ? [] : [chatShutdown]),
+        ]);
+        const finalChatResults = chatAcceptance === undefined
+          ? []
+          : await Promise.allSettled([captureShutdown(() => chatRuntime.beginShutdown())]);
+        if (gateResults.some((result) => result.status === "rejected")
+          || finalChatResults.some((result) => result.status === "rejected")) {
           throw new Error("Background shutdown failed");
         }
-      });
+      })();
     }
     return shutdownPromise;
   }
@@ -72,7 +90,9 @@ export function combineIpcShutdownRuntimes(
     pendingBackgroundTaskCount: () => (
       chatRuntime.pendingBackgroundTaskCount() + memoryRuntime.pendingOperationCount()
     ),
-    inspectRestoredMemory: (id) => chatRuntime.inspectRestoredMemory?.(id) ?? Promise.resolve(),
+    inspectRestoredMemory: (id, sender, runId) => (
+      chatRuntime.inspectRestoredMemory?.(id, sender, runId) ?? Promise.resolve()
+    ),
   };
 }
 
@@ -85,6 +105,7 @@ export function registerMemoryIpc(
   let shuttingDown = false;
   let shutdownPromise: Promise<void> | undefined;
   let disposed = false;
+  let nextRestoreRunNumber = 1;
 
   void activeRegistrations.get(ipcMain)?.beginShutdown();
   activeRegistrations.set(ipcMain, { token: registrationToken, beginShutdown });
@@ -117,16 +138,16 @@ export function registerMemoryIpc(
   function registerHandler<T>(
     channel: string,
     parse: (payload: unknown) => T,
-    invoke: (input: T) => Promise<unknown>,
+    invoke: (input: T, event: MemoryIpcEventLike) => Promise<unknown>,
   ): void {
-    ipcMain.handle(channel, (_event, payload) => runOperation(async () => {
+    ipcMain.handle(channel, (event, payload) => runOperation(async () => {
       let input: T;
       try {
         input = parse(payload);
       } catch {
         throw new Error(INVALID_PAYLOAD_MESSAGE);
       }
-      return invokeGovernance(() => invoke(input));
+      return invokeGovernance(() => invoke(input, event));
     }));
   }
 
@@ -168,16 +189,23 @@ export function registerMemoryIpc(
   registerHandler(
     IPC_CHANNELS.memory.restoreL2,
     parseId,
-    async (id) => {
+    async (id, event) => {
       const result = await governance.restoreL2(id);
-      if (result.ok) {
-        try {
-          await options.afterRestoreL2?.(id);
-        } catch {
-          // Restore succeeds even when its best-effort conflict inspection cannot run.
-        }
+      if (!result.ok) return result;
+      try {
+        await options.afterRestoreL2?.(id, {
+          sender: event.sender,
+          runId: `memory_restore_${nextRestoreRunNumber}`,
+        });
+      } catch {
+        // Restore succeeds even when its best-effort conflict inspection cannot run.
       }
-      return result;
+      nextRestoreRunNumber += 1;
+      try {
+        return { ok: true, snapshot: await governance.snapshot() };
+      } catch {
+        return result;
+      }
     },
   );
   registerHandler(

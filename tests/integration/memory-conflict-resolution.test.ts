@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { registerChatIpc } from "../../src/main/app/register-chat-ipc.js";
-import { registerMemoryIpc } from "../../src/main/app/register-memory-ipc.js";
+import { registerChatIpc, type IpcSenderLike } from "../../src/main/app/register-chat-ipc.js";
+import { registerMemoryIpc, type MemoryIpcEventLike } from "../../src/main/app/register-memory-ipc.js";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import { createMemoryGovernanceService } from "../../src/main/memory/memory-governance.js";
 import type { MemoryStore } from "../../src/main/memory/memory-store.js";
@@ -281,7 +281,7 @@ describe("memory conflict resolution integration", () => {
       },
     };
     const chatHandlers = new Map<string, IpcHandler>();
-    const memoryHandlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>();
+    const memoryHandlers = new Map<string, (event: MemoryIpcEventLike, payload?: unknown) => Promise<unknown>>();
     const memoryRecall = {
       recall: vi.fn(async () => ({
         l0: file.l0,
@@ -315,7 +315,10 @@ describe("memory conflict resolution integration", () => {
       },
       memoryResolverQueue: createMemoryResolverQueue(),
     });
-    const afterRestoreL2 = vi.fn((id: string) => runtime.inspectRestoredMemory!(id));
+    const restoreSender = { send: vi.fn<(channel: string, payload: ChatAgentEventPayload) => void>() };
+    const afterRestoreL2 = vi.fn((id: string, context?: { sender?: IpcSenderLike; runId?: string }) => (
+      runtime.inspectRestoredMemory!(id, context?.sender, context?.runId)
+    ));
     registerMemoryIpc({
       ipcMain: {
         handle: (channel, handler) => memoryHandlers.set(channel, handler),
@@ -325,11 +328,14 @@ describe("memory conflict resolution integration", () => {
       afterRestoreL2,
     });
 
-    await expect(memoryHandlers.get(IPC_CHANNELS.memory.restoreL2)!({}, OLD_ID))
+    await expect(memoryHandlers.get(IPC_CHANNELS.memory.restoreL2)!({ sender: restoreSender }, OLD_ID))
       .resolves.toMatchObject({ ok: true });
     await runtime.flushBackgroundTasks();
 
-    expect(afterRestoreL2).toHaveBeenCalledWith(OLD_ID);
+    expect(afterRestoreL2).toHaveBeenCalledWith(OLD_ID, {
+      sender: restoreSender,
+      runId: "memory_restore_1",
+    });
     expect(memoryRecall.recall).toHaveBeenCalledWith(restored.content);
 
     expect(file.l2.find((row) => row.id === OLD_ID)).toMatchObject({
@@ -339,5 +345,14 @@ describe("memory conflict resolution integration", () => {
     });
     expect(file.l2.find((row) => row.id === "memory-current")?.conflictWith).toEqual([OLD_ID]);
     expect(file.conflictLogs).toMatchObject([{ status: "uncertain" }]);
+    const events = restoreSender.send.mock.calls.map(([, payload]) => payload.event);
+    expect(events.map((event) => event.type)).toEqual(expect.arrayContaining([
+      "memory_governance_changed",
+      "memory_conflict_detected",
+      "memory_resolver_started",
+      "memory_resolver_finished",
+    ]));
+    expect(JSON.stringify(events)).not.toContain(restored.content);
+    expect(JSON.stringify(events)).not.toContain(current.content);
   });
 });
