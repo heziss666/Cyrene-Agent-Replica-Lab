@@ -1,8 +1,9 @@
-import type { CyreneApi } from "../../shared/electron-api.js";
+import type { AgentEventListener, CyreneApi } from "../../shared/electron-api.js";
 import type {
   MemoryApi,
   MemoryLayer,
   MemoryMutationResult,
+  MemoryAuditReport,
   MemoryProfileLayer,
   MemorySnapshot,
   UpdateProfileFieldInput,
@@ -22,6 +23,7 @@ export interface MemoryViewOptions {
   api: CyreneApi["memory"];
   confirm?: (message: string) => boolean | Promise<boolean>;
   document?: Document;
+  onAgentEvent?: (listener: AgentEventListener) => void;
 }
 
 export interface MemoryViewController {
@@ -70,6 +72,8 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
   let busy = false;
   let errorMessage: string | undefined;
   let hasLoaded = false;
+  let auditReport: MemoryAuditReport | undefined;
+  let auditLoading = false;
 
   const controller: MemoryViewController = {
     async show() {
@@ -81,6 +85,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       render();
       try {
         model = new MemoryViewModel(await options.api.getSnapshot());
+        auditReport = undefined;
         hasLoaded = true;
         errorMessage = undefined;
       } catch {
@@ -96,6 +101,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       render();
       try {
         model = new MemoryViewModel(await options.api.getSnapshot());
+        auditReport = undefined;
         hasLoaded = true;
         errorMessage = undefined;
       } catch {
@@ -108,8 +114,18 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     setTab(tab) {
       activeTab = tab;
       render();
+      if (tab === "audit") void loadAuditReport();
     },
   };
+
+  const runtimeApi = (globalThis as { cyrene?: CyreneApi }).cyrene;
+  const onAgentEvent = options.onAgentEvent ?? runtimeApi?.chat.onAgentEvent;
+  onAgentEvent?.((payload) => {
+    if (payload.event.type === "memory_governance_changed"
+      || payload.event.type === "memory_resolver_finished") {
+      void controller.refresh();
+    }
+  });
 
   function render(): void {
     options.root.replaceChildren();
@@ -347,8 +363,12 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     for (const conflict of snapshot.conflicts) {
       const row = createElement("div", "memory-table-row");
       row.append(createText("span", undefined, conflict.id));
-      row.append(createText("span", undefined, `${conflict.status} | ${conflict.priority} | ${conflict.score.toFixed(2)}`));
+      row.append(createText("span", undefined, `Score ${conflict.score.toFixed(2)} | Priority ${conflict.priority} | State ${conflict.status}`));
       row.append(createText("span", undefined, `${conflict.sourceMemoryId} -> ${conflict.targetMemoryId}`));
+      row.append(createText("span", undefined, `Created ${conflict.createdAt}${conflict.finishedAt === undefined ? "" : ` | Finished ${conflict.finishedAt}`}`));
+      if (conflict.resolutionType !== undefined) {
+        row.append(createText("span", undefined, `Resolution ${conflict.resolutionType}${conflict.resolutionConfidence === undefined ? "" : ` | Confidence ${conflict.resolutionConfidence.toFixed(2)}`}`));
+      }
       list.append(row);
     }
     content.append(list);
@@ -373,19 +393,42 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
 
   function renderAudit(content: HTMLElement, snapshot: MemorySnapshot): void {
     content.append(createHeading("Audit"));
-    if (snapshot.audit.length === 0) {
-      content.append(createState("No audit entries.", false));
-      return;
-    }
+    if (snapshot.audit.length === 0) content.append(createState("No audit entries.", false));
     const list = createElement("div", "memory-table");
     for (const entry of snapshot.audit) {
       const row = createElement("div", "memory-table-row");
       row.append(createText("span", undefined, entry.operation));
       row.append(createText("span", undefined, `${entry.result} | ${entry.targetType} | ${entry.targetId ?? "none"}`));
-      row.append(createText("span", undefined, entry.createdAt));
+      row.append(createText("span", undefined, `${entry.createdAt}${entry.code === undefined ? "" : ` | Code ${entry.code}`}`));
       list.append(row);
     }
     content.append(list);
+    if (auditLoading) {
+      content.append(createState("Loading audit findings...", true));
+      return;
+    }
+    if (!auditReport || auditReport.findings.length === 0) return;
+    const findings = createElement("div", "memory-table");
+    for (const finding of auditReport.findings) {
+      const row = createElement("div", "memory-table-row");
+      row.append(createText("span", undefined, `${finding.code} | ${finding.severity} | ${finding.targetId}`));
+      findings.append(row);
+    }
+    content.append(findings);
+  }
+
+  async function loadAuditReport(): Promise<void> {
+    if (auditLoading || auditReport !== undefined) return;
+    auditLoading = true;
+    render();
+    try {
+      auditReport = await options.api.getAuditReport();
+    } catch {
+      auditReport = { ok: false, findings: [] };
+    } finally {
+      auditLoading = false;
+      render();
+    }
   }
 
   function renderRelations(content: HTMLElement): void {

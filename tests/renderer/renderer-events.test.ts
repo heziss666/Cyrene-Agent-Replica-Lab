@@ -3,6 +3,11 @@ import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import {
   createMemoryWriteFailedEvent,
   createMemoryWriteFinishedEvent,
+  createMemoryConflictDetectedEvent,
+  createMemoryGovernanceChangedEvent,
+  createMemoryResolverFailedEvent,
+  createMemoryResolverFinishedEvent,
+  createMemoryResolverStartedEvent,
 } from "../../src/main/agent/agent-events.js";
 import {
   formatRendererErrorMessage,
@@ -67,6 +72,11 @@ describe("formatRendererEvent", () => {
       { type: "memory_judge_finished", candidateCount: 2 },
       finished,
       failed,
+      createMemoryConflictDetectedEvent({ conflictId: "conflict-1", queuedCount: 1 }),
+      createMemoryResolverStartedEvent({ conflictId: "conflict-1", attempt: 1 }),
+      createMemoryResolverFinishedEvent({ conflictId: "conflict-1", status: "uncertain" }),
+      createMemoryResolverFailedEvent({ conflictId: "conflict-2", attempts: 3 }),
+      createMemoryGovernanceChangedEvent({ changedCount: 1 }),
     ];
 
     expect(events.map(formatRendererEvent)).toEqual([
@@ -77,6 +87,11 @@ describe("formatRendererEvent", () => {
       "Memory judge finished: 2 candidates",
       "Memory write finished: 1 written, 1 skipped (keys: L1.currentProject, L2)",
       "Memory write failed during judge: Memory judge unavailable",
+      "Memory conflict detected: conflict-1 (1 queued)",
+      "Memory resolver started: conflict-1 (attempt 1)",
+      "Memory resolver finished: conflict-1 (uncertain)",
+      "Memory resolver failed: conflict-2 (3 attempts)",
+      "Memory governance changed: 1 update",
     ]);
 
     const payload = JSON.stringify(events);
@@ -86,7 +101,8 @@ describe("formatRendererEvent", () => {
     expect(output).not.toContain("candidate secret");
     expect(output).not.toContain("API_KEY=secret");
     expect(output).not.toContain("evidence");
-    expect(output.length).toBeLessThan(400);
+    expect(output).not.toContain("dark mode");
+    expect(output.length).toBeLessThan(600);
   });
 });
 

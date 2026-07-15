@@ -39,6 +39,16 @@ export function formatRendererEvent(event: AgentEvent): string {
     }
     case "memory_write_failed":
       return `Memory write failed during ${event.stage}: ${getSafeMemoryWriteFailureMessage(event.stage)}`;
+    case "memory_conflict_detected":
+      return `Memory conflict detected: ${event.conflictId} (${event.queuedCount} queued)`;
+    case "memory_resolver_started":
+      return `Memory resolver started: ${event.conflictId} (attempt ${event.attempt})`;
+    case "memory_resolver_finished":
+      return `Memory resolver finished: ${event.conflictId} (${event.status})`;
+    case "memory_resolver_failed":
+      return `Memory resolver failed: ${event.conflictId} (${event.attempts} attempts)`;
+    case "memory_governance_changed":
+      return `Memory governance changed: ${event.changedCount} update${event.changedCount === 1 ? "" : "s"}`;
   }
 }
 

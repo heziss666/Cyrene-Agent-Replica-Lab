@@ -6,6 +6,11 @@ import type {
 } from "../../src/main/agent/agent-events.js";
 import {
   createAgentTraceCollector,
+  createMemoryConflictDetectedEvent,
+  createMemoryGovernanceChangedEvent,
+  createMemoryResolverFailedEvent,
+  createMemoryResolverFinishedEvent,
+  createMemoryResolverStartedEvent,
   createMemoryWriteFailedEvent,
   createMemoryWriteFinishedEvent,
   filterSafeMemoryWriteKeys,
@@ -245,6 +250,27 @@ describe("formatAgentEventForTerminal", () => {
     expect(output).not.toContain("API_KEY=secret");
     expect(output).not.toContain("evidence");
     expect(readonlyFinished.writes).toEqual(["L0.language"]);
+  });
+
+  it("creates frozen content-free conflict and resolver events", () => {
+    const events: AgentEvent[] = [
+      createMemoryConflictDetectedEvent({ conflictId: "conflict-1", queuedCount: 2 }),
+      createMemoryResolverStartedEvent({ conflictId: "conflict-1", attempt: 1 }),
+      createMemoryResolverFinishedEvent({ conflictId: "conflict-1", status: "resolved" }),
+      createMemoryResolverFailedEvent({ conflictId: "conflict-2", attempts: 3 }),
+      createMemoryGovernanceChangedEvent({ changedCount: 1 }),
+    ];
+
+    expect(events.map(formatAgentEventForTerminal)).toEqual([
+      "[memory] conflict detected id=conflict-1 queued=2",
+      "[memory] resolver started id=conflict-1 attempt=1",
+      "[memory] resolver finished id=conflict-1 status=resolved",
+      "[memory] resolver failed id=conflict-2 attempts=3",
+      "[memory] governance changed count=1",
+    ]);
+    expect(events.every(Object.isFrozen)).toBe(true);
+    expect(JSON.stringify(events)).not.toContain("dark mode");
+    expect(JSON.stringify(events)).not.toContain("model reason");
   });
 });
 

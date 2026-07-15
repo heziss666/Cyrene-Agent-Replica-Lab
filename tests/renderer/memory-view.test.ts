@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MemoryApi, MemorySnapshot } from "../../src/shared/memory-api-types.js";
+import {
+  createMemoryGovernanceChangedEvent,
+  createMemoryResolverFinishedEvent,
+} from "../../src/main/agent/agent-events.js";
 import { mountMemoryView } from "../../src/renderer/chat/memory-view.js";
 
 type FakeElement = {
@@ -155,9 +159,30 @@ function createSnapshot(): MemorySnapshot {
         conflictWith: [],
       },
     ],
-    conflicts: [],
+    conflicts: [{
+      id: "conflict-1",
+      sourceMemoryId: "memory-2",
+      targetMemoryId: "memory-1",
+      createdAt: "2026-07-03T00:00:00.000Z",
+      status: "resolved",
+      score: 85,
+      priority: "high",
+      attempts: 1,
+      resolutionType: "preference_evolution",
+      resolutionConfidence: 0.93,
+      finishedAt: "2026-07-03T00:01:00.000Z",
+    }],
     reflections: [],
-    audit: [],
+    audit: [{
+      id: "audit-1",
+      createdAt: "2026-07-03T00:01:00.000Z",
+      operation: "memory_conflict_resolution",
+      targetType: "conflict",
+      targetId: "conflict-1",
+      source: "automatic",
+      result: "success",
+      code: "resolved",
+    }],
     maintenance: { successfulWritesSinceMaintenance: 0, running: false },
   };
 }
@@ -238,6 +263,23 @@ describe("memory view", () => {
     expect(root.textContent).toContain("Memory");
   });
 
+  it("refreshes the rendered snapshot after governance and resolver completion events", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi(createSnapshot());
+    const onAgentEvent = vi.fn();
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document, onAgentEvent });
+    await view.show();
+
+    const listener = onAgentEvent.mock.calls[0]?.[0];
+    listener({ runId: "run-1", event: createMemoryGovernanceChangedEvent({ changedCount: 1 }) });
+    listener({ runId: "run-1", event: createMemoryResolverFinishedEvent({ conflictId: "conflict-1", status: "resolved" }) });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.getSnapshot).toHaveBeenCalledTimes(3);
+  });
+
   it("renders profile fields and saves through updateProfileField", async () => {
     const document = createFakeDocument();
     const root = document.createElement("section") as unknown as FakeElement;
@@ -313,6 +355,35 @@ describe("memory view", () => {
     expect(confirm).toHaveBeenCalledTimes(2);
     expect(api.deleteL2).not.toHaveBeenCalled();
     expect(api.clearLayer).not.toHaveBeenCalled();
+  });
+
+  it("renders complete conflict and audit metadata with text nodes only", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const api = createApi(createSnapshot());
+    api.getAuditReport = vi.fn(async () => ({
+      ok: true,
+      findings: [{ code: "missing_evidence", severity: "warning", targetId: "memory-2" }],
+    } satisfies Awaited<ReturnType<MemoryApi["getAuditReport"]>>));
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+    await view.show();
+
+    root.querySelector('[data-memory-tab="conflicts"]')?.click();
+    expect(root.textContent).toContain("Score 85.00");
+    expect(root.textContent).toContain("Priority high");
+    expect(root.textContent).toContain("State resolved");
+    expect(root.textContent).toContain("Resolution preference_evolution");
+    expect(root.textContent).toContain("Confidence 0.93");
+    expect(root.textContent).toContain("Created 2026-07-03T00:00:00.000Z");
+    expect(root.textContent).toContain("Finished 2026-07-03T00:01:00.000Z");
+
+    root.querySelector('[data-memory-tab="audit"]')?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(root.textContent).toContain("memory_conflict_resolution");
+    expect(root.textContent).toContain("success | conflict | conflict-1");
+    expect(root.textContent).toContain("Code resolved");
+    expect(root.textContent).toContain("missing_evidence | warning | memory-2");
   });
 
   it("rolls back failed mutations and displays a safe error", async () => {

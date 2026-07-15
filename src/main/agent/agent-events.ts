@@ -76,6 +76,40 @@ type MemoryWriteFailedEvent = {
   readonly message: MemoryWriteFailureMessage;
 } & MemoryWriteEventBrand;
 
+declare const memoryGovernanceEventBrand: unique symbol;
+type MemoryGovernanceEventBrand = {
+  readonly [memoryGovernanceEventBrand]: true;
+};
+
+type MemoryConflictDetectedEvent = {
+  readonly type: "memory_conflict_detected";
+  readonly conflictId: string;
+  readonly queuedCount: number;
+} & MemoryGovernanceEventBrand;
+
+type MemoryResolverStartedEvent = {
+  readonly type: "memory_resolver_started";
+  readonly conflictId: string;
+  readonly attempt: number;
+} & MemoryGovernanceEventBrand;
+
+type MemoryResolverFinishedEvent = {
+  readonly type: "memory_resolver_finished";
+  readonly conflictId: string;
+  readonly status: "resolved" | "uncertain" | "unchanged";
+} & MemoryGovernanceEventBrand;
+
+type MemoryResolverFailedEvent = {
+  readonly type: "memory_resolver_failed";
+  readonly conflictId: string;
+  readonly attempts: number;
+} & MemoryGovernanceEventBrand;
+
+type MemoryGovernanceChangedEvent = {
+  readonly type: "memory_governance_changed";
+  readonly changedCount: number;
+} & MemoryGovernanceEventBrand;
+
 export type AgentEvent =
   | {
       type: "run_started";
@@ -144,7 +178,12 @@ export type AgentEvent =
       candidateCount: number;
     }
   | MemoryWriteFinishedEvent
-  | MemoryWriteFailedEvent;
+  | MemoryWriteFailedEvent
+  | MemoryConflictDetectedEvent
+  | MemoryResolverStartedEvent
+  | MemoryResolverFinishedEvent
+  | MemoryResolverFailedEvent
+  | MemoryGovernanceChangedEvent;
 
 export interface CreateMemoryWriteFinishedEventInput {
   writtenCount: number;
@@ -173,6 +212,59 @@ export function createMemoryWriteFailedEvent(
     stage,
     message: getSafeMemoryWriteFailureMessage(stage),
   }) as MemoryWriteFailedEvent;
+}
+
+export function createMemoryConflictDetectedEvent(input: {
+  conflictId: string;
+  queuedCount: number;
+}): MemoryConflictDetectedEvent {
+  return Object.freeze({
+    type: "memory_conflict_detected" as const,
+    conflictId: input.conflictId,
+    queuedCount: input.queuedCount,
+  }) as MemoryConflictDetectedEvent;
+}
+
+export function createMemoryResolverStartedEvent(input: {
+  conflictId: string;
+  attempt: number;
+}): MemoryResolverStartedEvent {
+  return Object.freeze({
+    type: "memory_resolver_started" as const,
+    conflictId: input.conflictId,
+    attempt: input.attempt,
+  }) as MemoryResolverStartedEvent;
+}
+
+export function createMemoryResolverFinishedEvent(input: {
+  conflictId: string;
+  status: "resolved" | "uncertain" | "unchanged";
+}): MemoryResolverFinishedEvent {
+  return Object.freeze({
+    type: "memory_resolver_finished" as const,
+    conflictId: input.conflictId,
+    status: input.status,
+  }) as MemoryResolverFinishedEvent;
+}
+
+export function createMemoryResolverFailedEvent(input: {
+  conflictId: string;
+  attempts: number;
+}): MemoryResolverFailedEvent {
+  return Object.freeze({
+    type: "memory_resolver_failed" as const,
+    conflictId: input.conflictId,
+    attempts: input.attempts,
+  }) as MemoryResolverFailedEvent;
+}
+
+export function createMemoryGovernanceChangedEvent(input: {
+  changedCount: number;
+}): MemoryGovernanceChangedEvent {
+  return Object.freeze({
+    type: "memory_governance_changed" as const,
+    changedCount: input.changedCount,
+  }) as MemoryGovernanceChangedEvent;
 }
 
 export interface AgentTraceCollector {
@@ -219,6 +311,16 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
     }
     case "memory_write_failed":
       return `[memory] write failed stage=${event.stage} message=${getSafeMemoryWriteFailureMessage(event.stage)}`;
+    case "memory_conflict_detected":
+      return `[memory] conflict detected id=${event.conflictId} queued=${event.queuedCount}`;
+    case "memory_resolver_started":
+      return `[memory] resolver started id=${event.conflictId} attempt=${event.attempt}`;
+    case "memory_resolver_finished":
+      return `[memory] resolver finished id=${event.conflictId} status=${event.status}`;
+    case "memory_resolver_failed":
+      return `[memory] resolver failed id=${event.conflictId} attempts=${event.attempts}`;
+    case "memory_governance_changed":
+      return `[memory] governance changed count=${event.changedCount}`;
   }
 }
 

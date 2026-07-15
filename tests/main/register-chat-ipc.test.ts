@@ -378,6 +378,7 @@ describe("registerChatIpc", () => {
       "memory_judge_started",
       "memory_judge_finished",
       "memory_write_finished",
+      "memory_governance_changed",
     ]);
   });
 

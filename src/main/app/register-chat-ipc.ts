@@ -12,6 +12,11 @@ import {
   loadRuntimeModelConfig,
 } from "../../cli/chat.js";
 import {
+  createMemoryConflictDetectedEvent,
+  createMemoryGovernanceChangedEvent,
+  createMemoryResolverFailedEvent,
+  createMemoryResolverFinishedEvent,
+  createMemoryResolverStartedEvent,
   createMemoryWriteFailedEvent,
   createMemoryWriteFinishedEvent,
   type AgentEvent,
@@ -58,6 +63,18 @@ import {
   createMemoryWriteQueue,
   type MemoryWriteQueue,
 } from "../memory/memory-write-queue.js";
+import {
+  applyMemoryResolution,
+} from "../memory/memory-resolution-applier.js";
+import {
+  createMemoryResolver,
+  type MemoryResolver,
+} from "../memory/memory-resolver.js";
+import {
+  createMemoryResolverQueue,
+  type MemoryResolverQueue,
+} from "../memory/memory-resolver-queue.js";
+import type { ConflictLog, L2MemoryV2, MemoryEvidence } from "../memory/memory-types.js";
 import { openAICompatibleAdapter } from "../vendors/openai-compatible.js";
 import type { ModelConfig } from "../config/model-config.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
@@ -92,6 +109,8 @@ export interface RegisterChatIpcDeps {
   ) => MemoryConflictService;
   createMemoryManager?: typeof createMemoryManager;
   memoryWriteQueue?: MemoryWriteQueue;
+  memoryResolver?: MemoryResolver;
+  memoryResolverQueue?: MemoryResolverQueue;
   buildMemoryContext?: typeof buildDefaultMemoryContext;
 }
 
@@ -135,6 +154,14 @@ function includesL1Memory(result: MemoryRecallResult): boolean {
   return hasText(result.l1.currentProject)
     || result.l1.recentGoals.some(hasText)
     || result.l1.recentPreferences.some(hasText);
+}
+
+function onlyRecallableL2(result: MemoryRecallResult): MemoryRecallResult {
+  return {
+    ...result,
+    l2: result.l2.filter(({ memory }) => memory.isEnabled
+      && (memory.status === "active" || memory.status === "aging")),
+  };
 }
 
 function createSerialExecutor() {
@@ -185,6 +212,8 @@ export async function registerChatIpc(
       conflictService,
     });
   const memoryWriteQueue = deps.memoryWriteQueue ?? createMemoryWriteQueue();
+  const memoryResolver = deps.memoryResolver ?? createMemoryResolver({ getConfig, adapter });
+  const memoryResolverQueue = deps.memoryResolverQueue ?? createMemoryResolverQueue();
   const buildMemoryContext = deps.buildMemoryContext ?? buildDefaultMemoryContext;
   const toolRegistry = getToolRegistry() as ToolRegistry;
   const session = createChatSession(await loadConfig());
@@ -193,6 +222,7 @@ export async function registerChatIpc(
   let shuttingDown = false;
   let shutdownPromise: Promise<void> | undefined;
   let nextRunNumber = 1;
+  const scheduledConflictIds = new Set<string>();
 
   function runSessionOperation<T>(task: () => Promise<T>): Promise<T> {
     if (shuttingDown) {
@@ -213,9 +243,132 @@ export async function registerChatIpc(
       while (acceptedSessionOperations.size > 0) {
         await Promise.allSettled([...acceptedSessionOperations]);
       }
-      await memoryWriteQueue.flush();
+      await flushBackgroundTasks();
     })();
     return shutdownPromise;
+  }
+
+  async function flushBackgroundTasks(): Promise<void> {
+    await memoryWriteQueue.flush();
+    await memoryResolverQueue.flush();
+  }
+
+  async function startResolverAttempt(conflictId: string): Promise<{
+    conflict: ConflictLog;
+    source: L2MemoryV2;
+    target: L2MemoryV2;
+    sourceEvidence: MemoryEvidence[];
+    targetEvidence: MemoryEvidence[];
+  } | undefined> {
+    let attempt: {
+      conflict: ConflictLog;
+      source: L2MemoryV2;
+      target: L2MemoryV2;
+      sourceEvidence: MemoryEvidence[];
+      targetEvidence: MemoryEvidence[];
+    } | undefined;
+    await memoryStore.update((draft) => {
+      const conflict = draft.conflictLogs.find((item) => item.id === conflictId);
+      if (!conflict || (conflict.status !== "queued" && conflict.status !== "processing")) return;
+      const source = draft.l2.find((item) => item.id === conflict.sourceMemoryId);
+      const target = draft.l2.find((item) => item.id === conflict.targetMemoryId);
+      if (!source || !target) return;
+      conflict.status = "processing";
+      conflict.attempts += 1;
+      attempt = {
+        conflict: structuredClone(conflict),
+        source: structuredClone(source),
+        target: structuredClone(target),
+        sourceEvidence: draft.evidence
+          .filter((item) => item.memoryId === source.id && source.evidenceIds.includes(item.id))
+          .map((item) => structuredClone(item)),
+        targetEvidence: draft.evidence
+          .filter((item) => item.memoryId === target.id && target.evidenceIds.includes(item.id))
+          .map((item) => structuredClone(item)),
+      };
+    });
+    return attempt;
+  }
+
+  async function markResolverFailure(conflictId: string): Promise<number> {
+    let attempts = 0;
+    await memoryStore.update((draft) => {
+      const conflict = draft.conflictLogs.find((item) => item.id === conflictId);
+      if (!conflict || (conflict.status !== "queued" && conflict.status !== "processing")) return;
+      conflict.status = "failed";
+      conflict.finishedAt = new Date().toISOString();
+      attempts = conflict.attempts;
+    });
+    return attempts;
+  }
+
+  function scheduleResolver(
+    conflict: ConflictLog,
+    sender: IpcSenderLike,
+    runId: string,
+  ): void {
+    if (scheduledConflictIds.has(conflict.id)) return;
+    scheduledConflictIds.add(conflict.id);
+    sendAgentEvent(sender, runId, createMemoryConflictDetectedEvent({
+      conflictId: conflict.id,
+      queuedCount: memoryResolverQueue.pendingCount() + 1,
+    }));
+    memoryResolverQueue.schedule({
+      id: conflict.id,
+      priority: conflict.priority,
+      createdAt: conflict.createdAt,
+      run: async () => {
+        const attempt = await startResolverAttempt(conflict.id);
+        if (!attempt) {
+          sendAgentEvent(sender, runId, createMemoryResolverFinishedEvent({
+            conflictId: conflict.id,
+            status: "unchanged",
+          }));
+          return;
+        }
+        sendAgentEvent(sender, runId, createMemoryResolverStartedEvent({
+          conflictId: conflict.id,
+          attempt: attempt.conflict.attempts,
+        }));
+        const resolution = await memoryResolver.resolve(attempt);
+        const applied = await applyMemoryResolution({
+          store: memoryStore,
+          conflict: attempt.conflict,
+          source: attempt.source,
+          target: attempt.target,
+          sourceEvidenceIds: attempt.sourceEvidence.map((item) => item.id),
+          targetEvidenceIds: attempt.targetEvidence.map((item) => item.id),
+          resolution,
+        });
+        if (!applied.applied) {
+          sendAgentEvent(sender, runId, createMemoryResolverFinishedEvent({
+            conflictId: conflict.id,
+            status: "unchanged",
+          }));
+          return;
+        }
+        const resolved = (await memoryStore.load()).conflictLogs.find((item) => item.id === conflict.id);
+        sendAgentEvent(sender, runId, createMemoryResolverFinishedEvent({
+          conflictId: conflict.id,
+          status: resolved?.status === "uncertain" ? "uncertain" : "resolved",
+        }));
+        sendAgentEvent(sender, runId, createMemoryGovernanceChangedEvent({ changedCount: 1 }));
+      },
+      onFinalFailure: async () => {
+        const attempts = await markResolverFailure(conflict.id);
+        sendAgentEvent(sender, runId, createMemoryResolverFailedEvent({
+          conflictId: conflict.id,
+          attempts,
+        }));
+        sendAgentEvent(sender, runId, createMemoryGovernanceChangedEvent({ changedCount: 1 }));
+      },
+    });
+  }
+
+  async function scheduleQueuedResolvers(sender: IpcSenderLike, runId: string): Promise<void> {
+    const queued = (await memoryStore.load()).conflictLogs
+      .filter((conflict) => conflict.status === "queued");
+    for (const conflict of queued) scheduleResolver(conflict, sender, runId);
   }
 
   deps.ipcMain.handle(
@@ -231,7 +384,7 @@ export async function registerChatIpc(
         let memoryContext = "";
         sendAgentEvent(event.sender, runId, { type: "memory_recall_started" });
         try {
-          const recalledMemory = await memoryRecall.recall(text);
+          const recalledMemory = onlyRecallableL2(await memoryRecall.recall(text));
           recentInjectionRounds.push(recalledMemory.l2.map(({ memory }) => memory.id));
           if (recentInjectionRounds.length > RECENT_INJECTION_ROUNDS) {
             recentInjectionRounds.shift();
@@ -313,6 +466,12 @@ export async function registerChatIpc(
                 runId,
                 createMemoryWriteFinishedEvent(summary),
               );
+              if (summary.writtenCount > 0) {
+                sendAgentEvent(event.sender, runId, createMemoryGovernanceChangedEvent({
+                  changedCount: summary.writtenCount,
+                }));
+              }
+              await scheduleQueuedResolvers(event.sender, runId);
             } catch (error) {
               sendAgentEvent(
                 event.sender,
@@ -387,8 +546,10 @@ export async function registerChatIpc(
 
   return {
     beginShutdown,
-    flushBackgroundTasks: () => memoryWriteQueue.flush(),
+    flushBackgroundTasks,
     pendingBackgroundTaskCount: () =>
-      acceptedSessionOperations.size + memoryWriteQueue.pendingCount(),
+      acceptedSessionOperations.size
+        + memoryWriteQueue.pendingCount()
+        + memoryResolverQueue.pendingCount(),
   };
 }
