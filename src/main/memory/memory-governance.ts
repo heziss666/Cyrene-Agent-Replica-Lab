@@ -542,6 +542,7 @@ function collectOwnedEvidenceIds(draft: MemoryFile, memory: L2MemoryV2): Set<str
 function restoreMemory(draft: MemoryFile, id: string, timestamp: string): void {
   const memory = requireMemory(draft, id);
   memory.status = "active";
+  memory.isEnabled = true;
   memory.syncStatus = "pending_sync";
   memory.conflictWith = [];
   delete memory.supersededBy;

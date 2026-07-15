@@ -218,9 +218,19 @@ describe("registerChatIpc", () => {
       })),
     }));
     const recalledIds = ["first", "second", "third", "fourth"];
+    const inactiveNeighbor = {
+      ...l2Memory("inactive", "Inactive memory"),
+      isEnabled: false,
+    };
     const memoryRecall = {
       recall: vi.fn(async (query: string) => query === "new memory"
-        ? recallWithL2("neighbor", 0.91)
+        ? {
+          ...recallWithL2("neighbor", 0.91),
+          l2: [
+            { memory: inactiveNeighbor, score: 0.99 },
+            { memory: l2Memory("neighbor", "Neighbor memory"), score: 0.91 },
+          ],
+        }
         : recallWithL2(recalledIds.shift() ?? "unexpected")),
     };
     const deps = createFakeDeps(successfulAgent(), {

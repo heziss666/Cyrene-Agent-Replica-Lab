@@ -26,6 +26,7 @@ export interface MemoryIpcRuntime {
 export interface RegisterMemoryIpcOptions {
   ipcMain: MemoryIpcMainLike;
   governance: MemoryGovernanceService;
+  afterRestoreL2?: (id: string) => Promise<void>;
 }
 
 const INVALID_PAYLOAD_MESSAGE = "Invalid memory IPC payload";
@@ -71,6 +72,7 @@ export function combineIpcShutdownRuntimes(
     pendingBackgroundTaskCount: () => (
       chatRuntime.pendingBackgroundTaskCount() + memoryRuntime.pendingOperationCount()
     ),
+    inspectRestoredMemory: (id) => chatRuntime.inspectRestoredMemory?.(id) ?? Promise.resolve(),
   };
 }
 
@@ -166,7 +168,17 @@ export function registerMemoryIpc(
   registerHandler(
     IPC_CHANNELS.memory.restoreL2,
     parseId,
-    (id) => governance.restoreL2(id),
+    async (id) => {
+      const result = await governance.restoreL2(id);
+      if (result.ok) {
+        try {
+          await options.afterRestoreL2?.(id);
+        } catch {
+          // Restore succeeds even when its best-effort conflict inspection cannot run.
+        }
+      }
+      return result;
+    },
   );
   registerHandler(
     IPC_CHANNELS.memory.clearLayer,

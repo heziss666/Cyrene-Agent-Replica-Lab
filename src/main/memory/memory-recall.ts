@@ -25,7 +25,11 @@ import {
   type VectorRetriever,
 } from "../rag/vector-retriever.js";
 import type { MemoryStore } from "./memory-store.js";
-import type { L2MemoryV2, MemoryRecallResult } from "./memory-types.js";
+import {
+  isRecallableL2,
+  type L2MemoryV2,
+  type MemoryRecallResult,
+} from "./memory-types.js";
 
 const SEARCH_TOP_K = 5;
 const DEFAULT_MIN_SCORE = 0.35;
@@ -130,7 +134,8 @@ export function createMemoryRecallService(
     const memoryFile = await options.store.load();
     const l0 = structuredClone(memoryFile.l0);
     const l1 = structuredClone(memoryFile.l1);
-    if (memoryFile.l2.length === 0) {
+    const recallableL2 = memoryFile.l2.filter(isRecallableL2);
+    if (recallableL2.length === 0) {
       if (memoryVectorIndex) {
         try {
           await memoryVectorIndex.initialize();
@@ -150,13 +155,13 @@ export function createMemoryRecallService(
     }
 
     const knowledgeBase: KnowledgeBase = createKnowledgeBaseFactory(
-      memoryDocuments(memoryFile.l2),
+      memoryDocuments(recallableL2),
       undefined,
       { vectorRetriever },
     );
     const response = await knowledgeBase.search(query, SEARCH_TOP_K);
     const memoriesById = new Map(
-      memoryFile.l2.map((memory) => [memory.id, memory]),
+      recallableL2.map((memory) => [memory.id, memory]),
     );
     const highestByMemoryId = new Map<
       string,

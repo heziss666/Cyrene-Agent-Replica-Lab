@@ -132,6 +132,36 @@ describe("registerMemoryIpc", () => {
     expect(governance.audit).toHaveBeenCalledOnce();
   });
 
+  it("runs and tracks best-effort restored-memory inspection without exposing its failure", async () => {
+    const ipcMain = createFakeIpcMain();
+    const governance = createGovernance();
+    const inspection = createDeferred<void>();
+    const afterRestoreL2 = vi.fn(() => inspection.promise);
+    vi.mocked(governance.restoreL2).mockResolvedValue({ ok: true, snapshot: {} } as never);
+    const runtime = registerMemoryIpc({ ipcMain, governance, afterRestoreL2 });
+
+    const restore = handler(ipcMain, IPC_CHANNELS.memory.restoreL2)({}, "memory-1");
+    await Promise.resolve();
+    await Promise.resolve();
+    const shutdown = runtime.beginShutdown();
+    let shutdownFinished = false;
+    void shutdown.then(() => { shutdownFinished = true; });
+
+    expect(afterRestoreL2).toHaveBeenCalledWith("memory-1");
+    expect(shutdownFinished).toBe(false);
+    inspection.resolve();
+    await expect(restore).resolves.toEqual({ ok: true, snapshot: {} });
+    await expect(shutdown).resolves.toBeUndefined();
+
+    const failureIpcMain = createFakeIpcMain();
+    const failedInspection = vi.fn(async () => {
+      throw new Error("private inspection detail");
+    });
+    registerMemoryIpc({ ipcMain: failureIpcMain, governance, afterRestoreL2: failedInspection });
+    await expect(handler(failureIpcMain, IPC_CHANNELS.memory.restoreL2)({}, "memory-1"))
+      .resolves.toEqual({ ok: true, snapshot: {} });
+  });
+
   it.each([
     ["snapshot payload", IPC_CHANNELS.memory.getSnapshot, { unexpected: true }],
     ["profile array", IPC_CHANNELS.memory.updateProfileField, []],

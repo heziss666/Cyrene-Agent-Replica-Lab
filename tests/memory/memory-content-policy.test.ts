@@ -54,6 +54,42 @@ describe("memory content policy", () => {
     });
   });
 
+  it.each([
+    "123 Example Street",
+    "88 North Harbor Road",
+    "\u5e7f\u4e1c\u7701\u6df1\u5733\u5e02\u5357\u5c71\u533a\u79d1\u6280\u56ed\u8def88\u53f7",
+    "\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u4e2d\u5173\u6751\u5927\u885727\u53f7",
+    "\u79d1\u6280\u56ed\u8def88\u53f7",
+  ])("rejects concrete unlabeled addresses in user edits: %s", (content) => {
+    expect(validateUserEditedMemoryContent(content)).toEqual({
+      ok: false,
+      code: "forbidden_sensitive_data",
+    });
+  });
+
+  it.each([
+    "123 Example Street",
+    "88 North Harbor Road",
+    "\u5e7f\u4e1c\u7701\u6df1\u5733\u5e02\u5357\u5c71\u533a\u79d1\u6280\u56ed\u8def88\u53f7",
+    "\u4e0a\u6d77\u5e02\u6d66\u4e1c\u65b0\u533a\u4e16\u7eaa\u5927\u9053100\u53f7",
+    "\u79d1\u6280\u56ed\u8def88\u53f7",
+  ])("rejects concrete unlabeled addresses in model evidence: %s", (value) => {
+    expect(validateModelMemoryContent({
+      userMessage: value,
+      evidenceQuote: value,
+      content: value,
+    })).toEqual({ ok: false, code: "forbidden_sensitive_data" });
+  });
+
+  it.each([
+    "The 2024 roadmap has 12 milestones",
+    "Meet me on Main Street after work",
+    "\u6211\u559c\u6b22\u5317\u4eac\u7684\u79d1\u6280\u56ed",
+    "\u6280\u672f\u8def\u7ebf\u670988\u9879\u68c0\u67e5",
+  ])("does not reject non-address content as an address: %s", (content) => {
+    expect(validateUserEditedMemoryContent(content)).toMatchObject({ ok: true });
+  });
+
   it("normalizes accepted user edits in the result", () => {
     expect(validateUserEditedMemoryContent("  Ａｌｅｘ\n  Smith  ")).toEqual({
       ok: true,

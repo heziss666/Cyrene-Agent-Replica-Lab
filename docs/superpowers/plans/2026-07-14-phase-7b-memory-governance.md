@@ -626,3 +626,15 @@ Expected: all commands exit 0.
 git add src/main/app/register-chat-ipc.ts src/main/app/register-memory-ipc.ts src/main/app/background-memory-shutdown.ts src/main/agent/agent-events.ts src/renderer/chat/renderer-events.ts src/renderer/chat/memory-view.ts tests/main/register-chat-ipc.test.ts tests/main/register-memory-ipc.test.ts tests/agent/agent-events.test.ts tests/renderer/renderer-events.test.ts tests/integration/memory-conflict-resolution.test.ts
 git commit -m "feat: complete phase 7b memory governance"
 ```
+
+## Task 9 Release-Blocker Hardening Report
+
+Completed the final Phase 7B hardening wave without modifying `\u5386\u53f2\u4f1a\u8bdd.txt` or rewriting git history.
+
+- Content policy now rejects unlabeled concrete English and Chinese street addresses on both model and user-edit paths, while retaining narrow non-address controls.
+- Resolver application rejection returns conflicts to the bounded resolver retry path; invalid output reaches `failed`, stale pin/edit resolves from a fresh snapshot, and disabled records reach a safe `failed` state.
+- Recall and the runtime conflict-neighbor provider apply `isRecallableL2` before retrieval ranking; unsynced summaries and inactive lifecycle states cannot occupy vector top-K.
+- Memory IPC restore re-enables the explicitly restored L2 record, invokes best-effort runtime inspection, schedules queued resolution, and participates in accepted-operation shutdown tracking.
+- Chinese correction and preference-evolution detection now uses Han topic n-grams plus narrow Chinese intent cues.
+
+Verification: focused Phase 7B tests, full test suite, typecheck, production build, and whitespace diff check all completed successfully.

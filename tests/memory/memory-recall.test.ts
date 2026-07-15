@@ -16,6 +16,7 @@ import {
 } from "../../src/main/rag/knowledge-base.js";
 import type {
   KnowledgeChunk,
+  KnowledgeDocument,
   KnowledgeSearchResponse,
 } from "../../src/main/rag/rag-types.js";
 import { hashText } from "../../src/main/rag/text-hash.js";
@@ -363,6 +364,49 @@ describe("createMemoryRecallService", () => {
       { memory: memory1, score: 0.9 },
       { memory: memory2, score: 0.8 },
     ]);
+  });
+
+  it("filters non-recallable rows before vector top-K so they cannot crowd active memories", async () => {
+    const disabled = { ...createMemory("disabled"), isEnabled: false };
+    const superseded = { ...createMemory("superseded"), status: "superseded" as const };
+    const unsyncedSummary = {
+      ...createMemory("summary"),
+      isSummary: true,
+      syncStatus: "pending_sync" as const,
+    };
+    const active = createMemory("active");
+    const aging = { ...createMemory("aging"), status: "aging" as const };
+    const knowledgeBase = createFakeKnowledgeBase({
+      mode: "vector",
+      results: [
+        { chunk: createChunk(disabled), score: 0.99 },
+        { chunk: createChunk(superseded), score: 0.98 },
+        { chunk: createChunk(unsyncedSummary), score: 0.97 },
+        { chunk: createChunk(active), score: 0.96 },
+        { chunk: createChunk(aging), score: 0.95 },
+      ],
+    });
+    const receivedDocuments: KnowledgeDocument[][] = [];
+    const createKnowledgeBaseFactory = vi.fn((documents?: KnowledgeDocument[]) => {
+      receivedDocuments.push(documents ?? []);
+      return knowledgeBase;
+    });
+    const service = createMemoryRecallService({
+      store: createStore(createMemoryFile([
+        disabled,
+        superseded,
+        unsyncedSummary,
+        active,
+        aging,
+      ])),
+      vectorRetriever: createRetriever(),
+      createKnowledgeBase: createKnowledgeBaseFactory,
+    });
+
+    const result = await service.recall("query");
+
+    expect(receivedDocuments[0]?.map((document) => document.id)).toEqual(["active", "aging"]);
+    expect(result.l2.map(({ memory }) => memory.id)).toEqual(["active", "aging"]);
   });
 
   it("requests five results, filters scores below 0.35, and returns at most three", async () => {

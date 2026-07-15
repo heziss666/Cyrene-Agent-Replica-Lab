@@ -58,7 +58,7 @@ import {
   createMemoryStore,
   type MemoryStore,
 } from "../memory/memory-store.js";
-import type { MemoryRecallResult } from "../memory/memory-types.js";
+import { isRecallableL2, type MemoryRecallResult } from "../memory/memory-types.js";
 import {
   createMemoryWriteQueue,
   type MemoryWriteQueue,
@@ -120,6 +120,7 @@ export interface ChatIpcRuntime {
   beginShutdown(): Promise<void>;
   flushBackgroundTasks(): Promise<void>;
   pendingBackgroundTaskCount(): number;
+  inspectRestoredMemory?(id: string): Promise<void>;
 }
 
 function withoutSystemMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -127,10 +128,11 @@ function withoutSystemMessages(messages: ChatMessage[]): ChatMessage[] {
 }
 
 function sendAgentEvent(
-  sender: IpcSenderLike,
-  runId: string,
+  sender: IpcSenderLike | undefined,
+  runId: string | undefined,
   agentEvent: AgentEvent,
 ): void {
+  if (!sender || !runId) return;
   try {
     sender.send(IPC_CHANNELS.chat.agentEvent, { runId, event: agentEvent });
   } catch {
@@ -159,8 +161,7 @@ function includesL1Memory(result: MemoryRecallResult): boolean {
 function onlyRecallableL2(result: MemoryRecallResult): MemoryRecallResult {
   return {
     ...result,
-    l2: result.l2.filter(({ memory }) => memory.isEnabled
-      && (memory.status === "active" || memory.status === "aging")),
+    l2: result.l2.filter(({ memory }) => isRecallableL2(memory)),
   };
 }
 
@@ -200,7 +201,7 @@ export async function registerChatIpc(
     vectorNeighbors: async (memory, limit) => {
       const recalled = await memoryRecall.recall(memory.content);
       return recalled.l2
-        .filter(({ memory: neighbor }) => neighbor.id !== memory.id)
+        .filter(({ memory: neighbor }) => neighbor.id !== memory.id && isRecallableL2(neighbor))
         .slice(0, limit)
         .map(({ memory: neighbor, score }) => ({ memoryId: neighbor.id, similarity: score }));
     },
@@ -272,7 +273,11 @@ export async function registerChatIpc(
       if (!conflict || (conflict.status !== "queued" && conflict.status !== "processing")) return;
       const source = draft.l2.find((item) => item.id === conflict.sourceMemoryId);
       const target = draft.l2.find((item) => item.id === conflict.targetMemoryId);
-      if (!source || !target) return;
+      if (!source || !target || !isRecallableL2(source) || !isRecallableL2(target)) {
+        conflict.status = "failed";
+        conflict.finishedAt = new Date().toISOString();
+        return;
+      }
       conflict.status = "processing";
       conflict.attempts += 1;
       attempt = {
@@ -302,10 +307,19 @@ export async function registerChatIpc(
     return attempts;
   }
 
+  async function markResolverRetryable(conflictId: string): Promise<void> {
+    await memoryStore.update((draft) => {
+      const conflict = draft.conflictLogs.find((item) => item.id === conflictId);
+      if (!conflict || conflict.status !== "processing") return;
+      conflict.status = "queued";
+      delete conflict.finishedAt;
+    });
+  }
+
   function scheduleResolver(
     conflict: ConflictLog,
-    sender: IpcSenderLike,
-    runId: string,
+    sender?: IpcSenderLike,
+    runId?: string,
   ): void {
     if (scheduledConflictIds.has(conflict.id)) return;
     scheduledConflictIds.add(conflict.id);
@@ -341,11 +355,8 @@ export async function registerChatIpc(
           resolution,
         });
         if (!applied.applied) {
-          sendAgentEvent(sender, runId, createMemoryResolverFinishedEvent({
-            conflictId: conflict.id,
-            status: "unchanged",
-          }));
-          return;
+          await markResolverRetryable(conflict.id);
+          throw new Error(`Memory resolution ${applied.code}`);
         }
         const resolved = (await memoryStore.load()).conflictLogs.find((item) => item.id === conflict.id);
         sendAgentEvent(sender, runId, createMemoryResolverFinishedEvent({
@@ -365,10 +376,15 @@ export async function registerChatIpc(
     });
   }
 
-  async function scheduleQueuedResolvers(sender: IpcSenderLike, runId: string): Promise<void> {
+  async function scheduleQueuedResolvers(sender?: IpcSenderLike, runId?: string): Promise<void> {
     const queued = (await memoryStore.load()).conflictLogs
       .filter((conflict) => conflict.status === "queued");
     for (const conflict of queued) scheduleResolver(conflict, sender, runId);
+  }
+
+  async function inspectRestoredMemory(id: string): Promise<void> {
+    await conflictService.inspectNewMemory(id);
+    await scheduleQueuedResolvers();
   }
 
   deps.ipcMain.handle(
@@ -551,5 +567,6 @@ export async function registerChatIpc(
       acceptedSessionOperations.size
         + memoryWriteQueue.pendingCount()
         + memoryResolverQueue.pendingCount(),
+    inspectRestoredMemory,
   };
 }

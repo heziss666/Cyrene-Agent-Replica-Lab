@@ -33,6 +33,8 @@ const jwtLikePattern = /(?<![A-Za-z0-9_-])eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-
 const githubPatLikePattern = /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/iu;
 const awsAccessKeyLikePattern = /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/u;
 const exactAddressPattern = /\b(?:(?:my|home|residential|mailing|exact)\s+address|address\s*(?::|is\b|at\b))|(?:\u6211\u7684)?(?:\u5bb6\u5ead|\u5c45\u4f4f|\u90ae\u5bc4|\u8be6\u7ec6|\u7cbe\u786e)?\u5730\u5740(?:\u662f|\u4e3a|[\uff1a:])/iu;
+const englishStreetAddressPattern = /(?<![\p{L}\p{N}])\p{Nd}{1,5}(?:-\p{Nd}{1,5})?\s+(?:[a-z][a-z.'-]*\s+){0,4}(?:street|st\.?|avenue|ave\.?|road|rd\.?|boulevard|blvd\.?|lane|ln\.?|drive|dr\.?|court|ct\.?|place|pl\.?|way|terrace|ter\.?|parkway|pkwy\.?|circle|cir\.?|highway|hwy\.?)\b/iu;
+const chineseStreetAddressPattern = /(?:\p{Script=Han}{1,20})(?:\u5927\u9053|\u8def|\u8857|\u9053|\u5df7|\u5f04)\p{Nd}{1,5}\u53f7/u;
 const medicalPrivacyPattern = /\b(?:medical|health|diagnos(?:is|ed)|disease|medication|allerg(?:y|ic)|doctor|hospital|therapy|patient|cancer|hiv|aids|diabetes|pregnan(?:t|cy)|mental\s+health)\b|\u533b\u7597|\u5065\u5eb7|\u8bca\u65ad|\u60a3\u6709|\u75be\u75c5|\u75c5\u53f2|\u7528\u836f|\u8fc7\u654f|\u533b\u751f|\u533b\u9662|\u6cbb\u7597|\u764c\u75c7|\u827e\u6ecb|\u7cd6\u5c3f\u75c5|\u6000\u5b55/u;
 const legalPrivacyPattern = /\b(?:legal|lawsuit|litigation|attorney|lawyer|court\s+case|arrested|convicted|custody|divorce|criminal\s+charges?|charged\s+with|criminal\s+record|probation|bankruptcy)\b|\u6cd5\u5f8b|\u8bc9\u8bbc|\u5f8b\u5e08|\u6cd5\u9662|\u6848\u4ef6|\u88ab\u6355|\u5b9a\u7f6a|\u79bb\u5a5a|\u5211\u4e8b\u6307\u63a7|\u72af\u7f6a\u8bb0\u5f55|\u7f13\u5211|\u7834\u4ea7/u;
 const negationPattern = /\b(?:not|no|never|without|neither|nor|cannot|can't|won't|don't|doesn't|didn't)\b|\u4e0d(?:\u662f|\u559c\u6b22|\u4f7f\u7528|\u60f3|\u8981|\u4f1a)|\u6ca1\u6709|\u4ece\u672a|\u5e76\u975e|\u4e0d\u4f1a|\u672a\u66fe|\u65e0\u610f/iu;
@@ -109,6 +111,8 @@ function containsNeverStorableData(value: string): boolean {
     || githubPatLikePattern.test(normalized)
     || awsAccessKeyLikePattern.test(normalized)
     || exactAddressPattern.test(normalized)
+    || englishStreetAddressPattern.test(normalized)
+    || chineseStreetAddressPattern.test(normalized)
     || sensitiveCompactLabels.some((label) => compact.includes(label));
 }
 

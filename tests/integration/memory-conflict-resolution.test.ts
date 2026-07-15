@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { registerChatIpc } from "../../src/main/app/register-chat-ipc.js";
+import { registerMemoryIpc } from "../../src/main/app/register-memory-ipc.js";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
+import { createMemoryGovernanceService } from "../../src/main/memory/memory-governance.js";
 import type { MemoryStore } from "../../src/main/memory/memory-store.js";
 import type { L2MemoryV2, MemoryCandidate, MemoryFile, MemoryRecallResult } from "../../src/main/memory/memory-types.js";
 import { createEmptyMemoryFileV2 } from "../../src/main/memory/memory-types.js";
@@ -156,6 +158,80 @@ describe("memory conflict resolution integration", () => {
     expect(file.conflictLogs).toMatchObject([{ status: "uncertain", resolutionType: "uncertain" }]);
   });
 
+  it.each([
+    ["pins", async (fixture: ReturnType<typeof createRuntimeFixture>) => {
+      const conflict = fixture.memoryFile.read().conflictLogs[0]!;
+      await fixture.memoryFile.store.update((draft) => {
+        draft.l2.find((row) => row.id === conflict.targetMemoryId)!.isPinned = true;
+      });
+    }, "uncertain"],
+    ["disables", async (fixture: ReturnType<typeof createRuntimeFixture>) => {
+      const conflict = fixture.memoryFile.read().conflictLogs[0]!;
+      await fixture.memoryFile.store.update((draft) => {
+        draft.l2.find((row) => row.id === conflict.targetMemoryId)!.isEnabled = false;
+      });
+    }, "failed"],
+    ["edits", async (fixture: ReturnType<typeof createRuntimeFixture>) => {
+      const conflict = fixture.memoryFile.read().conflictLogs[0]!;
+      await fixture.memoryFile.store.update((draft) => {
+        draft.l2.find((row) => row.id === conflict.targetMemoryId)!.content = "I prefer monochrome mode";
+      });
+    }, "resolved"],
+  ])("does not strand a resolver in processing when concurrent governance %s a conflict memory", async (_name, mutate, expectedStatus) => {
+    const started = createDeferred<void>();
+    const finish = createDeferred<MemoryResolution>();
+    const resolver: MemoryResolver = { resolve: vi.fn(async (input) => {
+      started.resolve();
+      return finish.promise;
+    }) };
+    const fixture = createRuntimeFixture({ resolver });
+    const runtime = await fixture.runtime;
+    const send = fixture.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+    await send({ sender: fixture.sender }, NEW_CONTENT);
+    await started.promise;
+    await mutate(fixture);
+    const conflict = fixture.memoryFile.read().conflictLogs[0]!;
+    const source = fixture.memoryFile.read().l2.find((row) => row.id === conflict.sourceMemoryId)!;
+    const target = fixture.memoryFile.read().l2.find((row) => row.id === conflict.targetMemoryId)!;
+    finish.resolve({
+      resolutionType: "preference_evolution",
+      sourceMemoryId: source.id,
+      targetMemoryId: target.id,
+      status: "resolved",
+      confidence: 0.93,
+      reason: "newer preference",
+      actions: ["supersede_target"],
+    });
+    await runtime.flushBackgroundTasks();
+
+    expect(fixture.memoryFile.read().conflictLogs[0]).toMatchObject({
+      status: expectedStatus,
+    });
+    expect(fixture.memoryFile.read().conflictLogs[0]?.status).not.toBe("processing");
+  });
+
+  it("fails invalid resolver output instead of leaving the conflict processing", async () => {
+    const fixture = createRuntimeFixture({
+      resolver: {
+        resolve: async (input): Promise<MemoryResolution> => ({
+          resolutionType: "preference_evolution",
+          sourceMemoryId: input.target.id,
+          targetMemoryId: input.source.id,
+          status: "resolved",
+          confidence: 0.93,
+          reason: "invalid pairing",
+          actions: ["supersede_target"],
+        }),
+      },
+    });
+    await sendPreference(fixture);
+
+    expect(fixture.memoryFile.read().conflictLogs).toMatchObject([{
+      status: "failed",
+      attempts: 3,
+    }]);
+  });
+
   it("drains an accepted resolver operation through the single shutdown barrier", async () => {
     const started = createDeferred<void>();
     const finish = createDeferred<MemoryResolution>();
@@ -179,5 +255,89 @@ describe("memory conflict resolution integration", () => {
     finish.resolve({ resolutionType: "preference_evolution", sourceMemoryId: source.id, targetMemoryId: target.id, status: "resolved", confidence: 0.93, reason: "newer preference", actions: ["supersede_target"] });
     await shutdown;
     expect(drained).toBe(true);
+  });
+
+  it("restores a superseded memory through IPC and schedules an executable conflict inspection", async () => {
+    const restored = memory(OLD_ID, "I use Python", "2026-07-15T00:00:00.000Z");
+    restored.status = "superseded";
+    restored.isEnabled = false;
+    restored.supersededBy = "memory-current";
+    const current = memory("memory-current", "I no longer use Python", "2026-07-16T00:00:00.000Z");
+    let file: MemoryFile = {
+      ...createEmptyMemoryFileV2(),
+      l2: [restored, current],
+      evidence: [
+        { id: `evidence-${restored.id}`, memoryId: restored.id, quote: restored.content, capturedAt: restored.createdAt, source: "conversation", sourceMemoryIds: [] },
+        { id: `evidence-${current.id}`, memoryId: current.id, quote: current.content, capturedAt: current.createdAt, source: "conversation", sourceMemoryIds: [] },
+      ],
+    };
+    const store: MemoryStore = {
+      load: async () => structuredClone(file),
+      update: async (mutator) => {
+        const draft = structuredClone(file);
+        mutator(draft);
+        file = draft;
+        return structuredClone(file);
+      },
+    };
+    const chatHandlers = new Map<string, IpcHandler>();
+    const memoryHandlers = new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>();
+    const memoryRecall = {
+      recall: vi.fn(async () => ({
+        l0: file.l0,
+        l1: file.l1,
+        l2: file.l2.map((row) => ({ memory: structuredClone(row), score: 0.95 })),
+      })),
+    };
+    const runtime = await registerChatIpc({
+      ipcMain: { handle: (channel, handler) => chatHandlers.set(channel, handler) },
+      runAgent: vi.fn(),
+      createConfig: () => config,
+      createToolRegistry: () => ({ getEnabledToolSpecs: () => [] }),
+      createPromptComposer: () => ({ composeSystemPrompt: () => "system" }),
+      loadPersonaConfig: async () => ({ styleId: "default" }),
+      savePersonaConfig: async () => undefined,
+      adapter: { id: "fake", buildRequest: vi.fn(), parseResponse: vi.fn(), appendToolResults: vi.fn() },
+      memoryStore: store,
+      memoryRecall,
+      memoryJudge: { judge: vi.fn(async () => []) },
+      memoryWriteQueue: createMemoryWriteQueue(),
+      memoryResolver: {
+        resolve: async (input) => ({
+          resolutionType: "uncertain",
+          sourceMemoryId: input.source.id,
+          targetMemoryId: input.target.id,
+          status: "uncertain",
+          confidence: 0.5,
+          reason: "needs review",
+          actions: ["mark_uncertain"],
+        }),
+      },
+      memoryResolverQueue: createMemoryResolverQueue(),
+    });
+    const afterRestoreL2 = vi.fn((id: string) => runtime.inspectRestoredMemory!(id));
+    registerMemoryIpc({
+      ipcMain: {
+        handle: (channel, handler) => memoryHandlers.set(channel, handler),
+        removeHandler: (channel) => memoryHandlers.delete(channel),
+      },
+      governance: createMemoryGovernanceService({ store }),
+      afterRestoreL2,
+    });
+
+    await expect(memoryHandlers.get(IPC_CHANNELS.memory.restoreL2)!({}, OLD_ID))
+      .resolves.toMatchObject({ ok: true });
+    await runtime.flushBackgroundTasks();
+
+    expect(afterRestoreL2).toHaveBeenCalledWith(OLD_ID);
+    expect(memoryRecall.recall).toHaveBeenCalledWith(restored.content);
+
+    expect(file.l2.find((row) => row.id === OLD_ID)).toMatchObject({
+      status: "active",
+      isEnabled: true,
+      conflictWith: ["memory-current"],
+    });
+    expect(file.l2.find((row) => row.id === "memory-current")?.conflictWith).toEqual([OLD_ID]);
+    expect(file.conflictLogs).toMatchObject([{ status: "uncertain" }]);
   });
 });
