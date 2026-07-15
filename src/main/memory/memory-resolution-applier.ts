@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { MemoryStore } from "./memory-store.js";
-import { isValidMemoryResolution, type MemoryResolution } from "./memory-resolver.js";
+import { isStrictlyNewer, isValidMemoryResolution, type MemoryResolution } from "./memory-resolver.js";
 import type { ConflictLog, L2MemoryV2, MemoryAuditEntry, MemoryFile } from "./memory-types.js";
 
 const AUDIT_LIMIT = 500;
@@ -44,7 +44,11 @@ export async function applyMemoryResolution(input: ApplyMemoryResolutionInput): 
     const destructiveTarget = targetForDestructiveAction(input.resolution, source, target);
     const canDestructivelyApply = input.resolution.resolutionType !== "direct_conflict"
       || (input.resolution.confidence >= 0.85 && hasCompleteEvidence(source, draft) && hasCompleteEvidence(target, draft));
-    const mustDowngrade = destructiveTarget !== undefined && (destructiveTarget.isPinned || !canDestructivelyApply);
+    const validPreferenceEvolution = input.resolution.resolutionType !== "preference_evolution"
+      || (isStrictlyNewer(source, target) && !target.isPinned);
+    const mustDowngrade = destructiveTarget !== undefined && (
+      destructiveTarget.isPinned || !canDestructivelyApply || !validPreferenceEvolution
+    );
     if (mustDowngrade || input.resolution.resolutionType === "uncertain") {
       resolveUncertain(conflict, input.resolution, timestamp);
     } else if (destructiveTarget) {
@@ -56,10 +60,6 @@ export async function applyMemoryResolution(input: ApplyMemoryResolutionInput): 
       clearConflictPair(source, target);
       resolveConflict(conflict, input.resolution, timestamp);
     } else {
-      source.status = "active";
-      source.isEnabled = true;
-      target.status = "active";
-      target.isEnabled = true;
       clearConflictPair(source, target);
       resolveConflict(conflict, input.resolution, timestamp);
     }
@@ -86,8 +86,18 @@ function matchesConflict(current: ConflictLog, expected: ConflictLog): boolean {
 }
 
 function matchesSnapshot(memory: L2MemoryV2, expected: L2MemoryV2, evidenceIds: readonly string[], file: MemoryFile): boolean {
-  return memory.updatedAt === expected.updatedAt
+  return memory.content === expected.content
+    && memory.createdAt === expected.createdAt
+    && memory.updatedAt === expected.updatedAt
+    && memory.isPinned === expected.isPinned
+    && memory.isEnabled === expected.isEnabled
+    && memory.status === expected.status
+    && memory.weight === expected.weight
+    && memory.supersededBy === expected.supersededBy
+    && memory.mergedInto === expected.mergedInto
+    && sameIds(memory.evidenceIds, expected.evidenceIds)
     && sameIds(memory.evidenceIds, evidenceIds)
+    && sameIds(memory.conflictWith, expected.conflictWith)
     && evidenceIds.every((id) => file.evidence.some((item) => item.id === id && item.memoryId === memory.id));
 }
 

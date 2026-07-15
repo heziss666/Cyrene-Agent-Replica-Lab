@@ -51,7 +51,7 @@ Return exactly one JSON object and no prose. Its exact keys are resolutionType, 
 resolutionType is exactly one of unrelated, context_difference, preference_evolution, direct_conflict, uncertain.
 status is resolved for unrelated, context_difference, preference_evolution, or direct_conflict; status is uncertain only for uncertain.
 confidence is a JSON number from 0 to 1. sourceMemoryId and targetMemoryId must exactly match the supplied IDs.
-actions is a one-item JSON array: keep_both for unrelated/context_difference; supersede_source or supersede_target for preference_evolution/direct_conflict; mark_uncertain for uncertain.
+actions is a one-item JSON array: keep_both for unrelated/context_difference; supersede_target for preference_evolution; supersede_source or supersede_target for direct_conflict; mark_uncertain for uncertain.
 reason is a non-empty concise explanation based only on the supplied data.`;
 
 export function createMemoryResolver(options: CreateMemoryResolverOptions): MemoryResolver {
@@ -100,7 +100,11 @@ export function parseMemoryResolution(text: string, input: MemoryResolverInput):
     reason: parsed.reason,
     actions: [parsed.actions[0] as MemoryResolutionAction],
   };
-  if (!hasAllowedStatusAndAction(result)) throw invalidResponse();
+  if (!hasAllowedStatusAndAction(result)
+    || (result.resolutionType === "preference_evolution"
+      && !isStrictlyNewer(input.source, input.target))) {
+    throw invalidResponse();
+  }
   return result;
 }
 
@@ -124,11 +128,20 @@ function hasAllowedStatusAndAction(value: MemoryResolution): boolean {
     case "context_difference":
       return value.status === "resolved" && action === "keep_both";
     case "preference_evolution":
+      return value.status === "resolved" && action === "supersede_target";
     case "direct_conflict":
       return value.status === "resolved" && (action === "supersede_source" || action === "supersede_target");
     case "uncertain":
       return value.status === "uncertain" && action === "mark_uncertain";
   }
+}
+
+export function isStrictlyNewer(source: L2MemoryV2, target: L2MemoryV2): boolean {
+  const sourceCreatedAt = Date.parse(source.createdAt);
+  const targetCreatedAt = Date.parse(target.createdAt);
+  return Number.isFinite(sourceCreatedAt)
+    && Number.isFinite(targetCreatedAt)
+    && sourceCreatedAt > targetCreatedAt;
 }
 
 function toPromptPayload(input: MemoryResolverInput): object {

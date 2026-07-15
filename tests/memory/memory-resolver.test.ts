@@ -6,10 +6,11 @@ import type { VendorAdapter } from "../../src/main/vendors/types.js";
 import type { ConflictLog, L2MemoryV2, MemoryEvidence } from "../../src/main/memory/memory-types.js";
 
 const TIME = "2026-07-15T00:00:00.000Z";
+const SOURCE_TIME = "2026-07-15T00:01:00.000Z";
 const config: ModelConfig = { provider: "deepseek", baseUrl: "https://api.deepseek.com", model: "deepseek-chat", apiKey: "test" };
 
-function memory(id: string, content: string): L2MemoryV2 {
-  return { id, content, confidence: 0.9, importance: "medium", evidenceIds: [`e-${id}`], createdAt: TIME, updatedAt: TIME, lastAccessedAt: TIME, accessCount: 0, weight: 0.8, isPinned: false, isEnabled: true, status: "active", syncStatus: "synced", isSummary: false, sourceMemoryIds: [], sourceSnapshots: [], conflictWith: [id === "new" ? "old" : "new"] };
+function memory(id: string, content: string, overrides: Partial<L2MemoryV2> = {}): L2MemoryV2 {
+  return { id, content, confidence: 0.9, importance: "medium", evidenceIds: [`e-${id}`], createdAt: id === "new" ? SOURCE_TIME : TIME, updatedAt: TIME, lastAccessedAt: TIME, accessCount: 0, weight: 0.8, isPinned: false, isEnabled: true, status: "active", syncStatus: "synced", isSummary: false, sourceMemoryIds: [], sourceSnapshots: [], conflictWith: [id === "new" ? "old" : "new"], ...overrides };
 }
 
 const conflict: ConflictLog = { id: "conflict-1", sourceMemoryId: "new", targetMemoryId: "old", createdAt: TIME, status: "queued", score: 90, priority: "high", attempts: 0, signals: {} };
@@ -46,6 +47,15 @@ describe("createMemoryResolver", () => {
   ])("rejects an invalid model object", async (response) => {
     const { resolver } = resolverReturning(JSON.stringify(response));
     await expect(resolver.resolve({ conflict, source: memory("new", "new"), target: memory("old", "old"), sourceEvidence: [evidence[0]!], targetEvidence: [evidence[1]!] })).rejects.toThrow("Invalid memory resolver response");
+  });
+
+  it.each([
+    { response: { ...valid, actions: ["supersede_source"] }, source: memory("new", "new"), target: memory("old", "old") },
+    { response: valid, source: memory("new", "new", { createdAt: TIME }), target: memory("old", "old", { createdAt: TIME }) },
+    { response: valid, source: memory("new", "new", { createdAt: TIME }), target: memory("old", "old", { createdAt: SOURCE_TIME }) },
+  ])("rejects an unsafe preference evolution action or source age", async ({ response, source, target }) => {
+    const { resolver } = resolverReturning(JSON.stringify(response));
+    await expect(resolver.resolve({ conflict, source, target, sourceEvidence: [evidence[0]!], targetEvidence: [evidence[1]!] })).rejects.toThrow("Invalid memory resolver response");
   });
 
   it("accepts one fenced object but rejects fenced prose or more than one object", async () => {
