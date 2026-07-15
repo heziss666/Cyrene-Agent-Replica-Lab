@@ -24,7 +24,7 @@ export class RecentMemoryTracker {
   }
 
   penaltyFor(memoryId: string, semanticScore: number): number {
-    if (semanticScore >= SEMANTIC_SCORE_THRESHOLD) {
+    if (!(semanticScore < SEMANTIC_SCORE_THRESHOLD)) {
       return 0;
     }
 

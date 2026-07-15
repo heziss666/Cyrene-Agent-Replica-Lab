@@ -13,6 +13,7 @@ describe("RecentMemoryTracker", () => {
     expect(tracker.penaltyFor("m2", 0.60)).toBe(0.06);
     expect(tracker.penaltyFor("m3", 0.60)).toBe(0.06);
     expect(tracker.penaltyFor("m1", 0.80)).toBe(0);
+    expect(tracker.penaltyFor("m1", Number.NaN)).toBe(0);
   });
 
   it("deduplicates IDs within a turn and retains only the three newest turns", () => {
