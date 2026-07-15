@@ -25,6 +25,10 @@ export interface PersonaStyleResult {
   styleId: StyleId;
 }
 
+export interface MemoryMaintenanceRunResult {
+  runId: string;
+}
+
 export interface CyreneApi {
   chat: {
     sendMessage: (text: string) => Promise<ChatSendResult>;
@@ -35,5 +39,7 @@ export interface CyreneApi {
     getStyle: () => Promise<PersonaStyleResult>;
     setStyle: (styleId: StyleId) => Promise<PersonaStyleResult>;
   };
-  memory: MemoryApi;
+  memory: MemoryApi & {
+    runMaintenance?: () => Promise<MemoryMaintenanceRunResult>;
+  };
 }

@@ -122,7 +122,10 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
   const onAgentEvent = options.onAgentEvent ?? runtimeApi?.chat.onAgentEvent;
   onAgentEvent?.((payload) => {
     if (payload.event.type === "memory_governance_changed"
-      || payload.event.type === "memory_resolver_finished") {
+      || payload.event.type === "memory_resolver_finished"
+      || payload.event.type === "memory_maintenance_started"
+      || payload.event.type === "memory_maintenance_finished"
+      || payload.event.type === "memory_maintenance_failed") {
       void controller.refresh();
     }
   });
@@ -191,6 +194,11 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
 
   function renderOverview(content: HTMLElement, snapshot: MemorySnapshot): void {
     const counts = getOverviewCounts(snapshot);
+    const lifecycleCounts = {
+      active: snapshot.l2.filter((memory) => memory.status === "active").length,
+      aging: snapshot.l2.filter((memory) => memory.status === "aging").length,
+      archived: snapshot.l2.filter((memory) => memory.status === "archived").length,
+    };
     content.append(createHeading("Overview"));
     const grid = createElement("div", "memory-summary-grid");
     for (const [label, value] of [
@@ -202,6 +210,9 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       ["Conflicts", counts.conflicts],
       ["Reflections", counts.reflections],
       ["Audit entries", counts.audit],
+      ["Active", lifecycleCounts.active],
+      ["Aging", lifecycleCounts.aging],
+      ["Archived", lifecycleCounts.archived],
     ] as const) {
       const item = createElement("div", "memory-summary-item");
       item.append(createText("span", "memory-summary-label", label));
@@ -216,6 +227,38 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
         ? `Last maintenance: ${snapshot.maintenance.lastMaintenanceAt}`
         : "No maintenance run recorded.";
     content.append(maintenance);
+    const nextTrigger = Math.max(
+      0,
+      10 - snapshot.maintenance.successfulWritesSinceMaintenance,
+    );
+    content.append(createText(
+      "p",
+      "memory-muted",
+      `${nextTrigger} successful writes until next maintenance.`,
+    ));
+    const runMaintenance = actionButton("↻", "run-maintenance", () => {
+      void requestMaintenance();
+    });
+    runMaintenance.setAttribute("aria-label", "Run memory maintenance");
+    runMaintenance.title = "Run memory maintenance";
+    content.append(runMaintenance);
+  }
+
+  async function requestMaintenance(): Promise<void> {
+    if (busy) return;
+    busy = true;
+    errorMessage = undefined;
+    render();
+    try {
+      if (!options.api.runMaintenance) throw new Error("Maintenance IPC unavailable");
+      await options.api.runMaintenance();
+      model = new MemoryViewModel(await options.api.getSnapshot());
+    } catch {
+      errorMessage = "Memory maintenance could not be started.";
+    } finally {
+      busy = false;
+      render();
+    }
   }
 
   function renderProfile(content: HTMLElement, snapshot: MemorySnapshot): void {

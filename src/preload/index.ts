@@ -60,6 +60,9 @@ const api: CyreneApi = {
     getAuditReport: async () => {
       return ipcRenderer.invoke(IPC_CHANNELS.memory.getAuditReport);
     },
+    runMaintenance: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.memory.runMaintenance);
+    },
   },
 };
 

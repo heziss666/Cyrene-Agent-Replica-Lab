@@ -65,6 +65,7 @@ import {
   createMemoryWriteQueue,
   type MemoryWriteQueue,
 } from "../memory/memory-write-queue.js";
+import type { MemoryScheduler } from "../memory/memory-scheduler.js";
 import {
   applyMemoryResolution,
 } from "../memory/memory-resolution-applier.js";
@@ -115,6 +116,7 @@ export interface RegisterChatIpcDeps {
   memoryWriteQueue?: MemoryWriteQueue;
   memoryResolver?: MemoryResolver;
   memoryResolverQueue?: MemoryResolverQueue;
+  memoryScheduler?: Pick<MemoryScheduler, "recordSuccessfulWrite">;
   buildMemoryContext?: typeof buildDefaultMemoryContext;
 }
 
@@ -527,6 +529,15 @@ export async function registerChatIpc(
                 sendAgentEvent(event.sender, runId, createMemoryGovernanceChangedEvent({
                   changedCount: summary.writtenCount,
                 }));
+                try {
+                  await deps.memoryScheduler?.recordSuccessfulWrite();
+                } catch (error) {
+                  sendAgentEvent(
+                    event.sender,
+                    runId,
+                    createMemoryWriteFailedEvent("write", error),
+                  );
+                }
               }
               await scheduleQueuedResolvers(event.sender, runId);
             } catch (error) {

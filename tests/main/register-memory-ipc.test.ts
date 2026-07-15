@@ -47,7 +47,7 @@ function createGovernance(): MemoryGovernanceService {
 }
 
 function memoryChannels(): string[] {
-  return Object.values(IPC_CHANNELS.memory);
+  return [...Object.values(IPC_CHANNELS.memory), IPC_CHANNELS.memory.runMaintenance];
 }
 
 function handler(ipcMain: FakeIpcMain, channel: string): IpcHandler {
@@ -67,7 +67,7 @@ function createDeferred<T>() {
 }
 
 describe("registerMemoryIpc", () => {
-  it("registers exactly ten fixed channels and replaces stale handlers", () => {
+  it("registers all fixed channels and replaces stale handlers", () => {
     const ipcMain = createFakeIpcMain();
     for (const channel of memoryChannels()) {
       ipcMain.handlers.set(channel, vi.fn());
@@ -77,6 +77,48 @@ describe("registerMemoryIpc", () => {
 
     expect([...ipcMain.handlers.keys()]).toEqual(memoryChannels());
     expect(ipcMain.removedChannels).toEqual(memoryChannels());
+  });
+
+  it("routes repeated manual maintenance requests through the shared scheduler", async () => {
+    const ipcMain = createFakeIpcMain();
+    const scheduler = {
+      runNow: vi.fn(async () => "maintenance-run-7"),
+      beginShutdown: vi.fn(async () => undefined),
+      pendingCount: () => 1,
+    };
+    registerMemoryIpc({ ipcMain, governance: createGovernance(), memoryScheduler: scheduler });
+
+    const runMaintenance = handler(ipcMain, IPC_CHANNELS.memory.runMaintenance);
+    await expect(Promise.all([runMaintenance({}), runMaintenance({})])).resolves.toEqual([
+      { runId: "maintenance-run-7" },
+      { runId: "maintenance-run-7" },
+    ]);
+    expect(scheduler.runNow).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects new manual maintenance after shutdown and drains accepted maintenance", async () => {
+    const ipcMain = createFakeIpcMain();
+    const maintenance = createDeferred<void>();
+    const scheduler = {
+      runNow: vi.fn(async () => "maintenance-run-8"),
+      beginShutdown: vi.fn(() => maintenance.promise),
+      pendingCount: () => 1,
+    };
+    const runtime = registerMemoryIpc({
+      ipcMain,
+      governance: createGovernance(),
+      memoryScheduler: scheduler,
+    });
+
+    const shutdown = runtime.beginShutdown();
+    await expect(handler(ipcMain, IPC_CHANNELS.memory.runMaintenance)({}))
+      .rejects.toThrow("Memory IPC is shutting down");
+    let finished = false;
+    void shutdown.then(() => { finished = true; });
+    await Promise.resolve();
+    expect(finished).toBe(false);
+    maintenance.resolve();
+    await expect(shutdown).resolves.toBeUndefined();
   });
 
   it("dispatches valid payloads to the matching governance methods", async () => {
@@ -322,13 +364,15 @@ describe("registerMemoryIpc", () => {
     const removalsAfterReplacement = ipcMain.removedChannels.length;
 
     first.dispose();
-    expect(ipcMain.handlers.size).toBe(10);
+    expect(ipcMain.handlers.size).toBe(memoryChannels().length);
     expect(ipcMain.removedChannels).toHaveLength(removalsAfterReplacement);
 
     second.dispose();
     second.dispose();
     expect(ipcMain.handlers.size).toBe(0);
-    expect(ipcMain.removedChannels).toHaveLength(removalsAfterReplacement + 10);
+    expect(ipcMain.removedChannels).toHaveLength(
+      removalsAfterReplacement + memoryChannels().length,
+    );
   });
 
   it("closes the old acceptance gate when a registration is replaced", async () => {
@@ -357,6 +401,27 @@ describe("registerMemoryIpc", () => {
 });
 
 describe("combineIpcShutdownRuntimes", () => {
+  it("drains accepted chat and resolver work before shutting down maintenance", async () => {
+    const calls: string[] = [];
+    const chatRuntime: ChatIpcRuntime = {
+      closeAcceptance: vi.fn(async () => { calls.push("chat-acceptance"); }),
+      beginShutdown: vi.fn(async () => { calls.push("chat-and-resolver-drain"); }),
+      flushBackgroundTasks: vi.fn(async () => undefined),
+      pendingBackgroundTaskCount: () => 1,
+    };
+    const memoryRuntime: MemoryIpcRuntime = {
+      closeAcceptance: vi.fn(async () => { calls.push("memory-acceptance"); }),
+      beginShutdown: vi.fn(async () => { calls.push("maintenance-drain"); }),
+      pendingOperationCount: () => 1,
+      dispose: vi.fn(),
+    };
+
+    await combineIpcShutdownRuntimes(chatRuntime, memoryRuntime).beginShutdown();
+
+    expect(calls.slice(0, 2).sort()).toEqual(["chat-acceptance", "memory-acceptance"]);
+    expect(calls.slice(2)).toEqual(["chat-and-resolver-drain", "maintenance-drain"]);
+  });
+
   it("closes both acceptance gates before waiting for restore scheduling and the final resolver tail", async () => {
     const restoreScheduling = createDeferred<void>();
     const resolverTail = createDeferred<void>();

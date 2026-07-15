@@ -463,6 +463,44 @@ describe("registerChatIpc", () => {
     ]);
   });
 
+  it("records one successful scheduler write after a persisted memory write", async () => {
+    const maintenance = createDeferred<void>();
+    const memoryScheduler = {
+      recordSuccessfulWrite: vi.fn(async () => {
+        await maintenance.promise;
+        return undefined;
+      }),
+    };
+    const memoryManager = {
+      writeCandidates: vi.fn(async () => ({
+        candidateCount: 1,
+        writtenCount: 1,
+        skippedCount: 0,
+        writes: ["L2"],
+      })),
+    };
+    const memoryWriteQueue = createMemoryWriteQueue();
+    const deps = createFakeDeps(successfulAgent("Stored."), {
+      memoryJudge: { judge: vi.fn(async () => [{ kind: "L2" }]) } as never,
+      memoryManager,
+      memoryWriteQueue,
+      memoryScheduler,
+    });
+    const runtime = await registerChatIpc(deps);
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    const reply = send({ sender: createSender().sender }, "remember this");
+
+    await expect(reply).resolves.toMatchObject({ reply: "Stored." });
+    expect(memoryScheduler.recordSuccessfulWrite).toHaveBeenCalledOnce();
+    let flushed = false;
+    const flush = runtime.flushBackgroundTasks().then(() => { flushed = true; });
+    await Promise.resolve();
+    expect(flushed).toBe(false);
+    maintenance.resolve();
+    await flush;
+  });
+
   it("drains an accepted in-flight model request and its memory write during shutdown", async () => {
     const modelStarted = createDeferred<void>();
     const finishModel = createDeferred<void>();

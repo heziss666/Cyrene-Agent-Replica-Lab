@@ -49,6 +49,12 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `Memory resolver failed: ${event.conflictId} (${event.attempts} attempts)`;
     case "memory_governance_changed":
       return `Memory governance changed: ${event.changedCount} update${event.changedCount === 1 ? "" : "s"}`;
+    case "memory_maintenance_started":
+      return `Memory maintenance started: ${event.pendingCount} pending`;
+    case "memory_maintenance_finished":
+      return `Memory maintenance finished: ${event.activeToAging} aging, ${event.agingToArchived} archived, ${event.weightUpdated} weights, ${event.l1Expired} L1 expired`;
+    case "memory_maintenance_failed":
+      return `Memory maintenance failed: ${event.failedStepCount} step${event.failedStepCount === 1 ? "" : "s"}`;
   }
 }
 

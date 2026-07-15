@@ -110,6 +110,24 @@ type MemoryGovernanceChangedEvent = {
   readonly changedCount: number;
 } & MemoryGovernanceEventBrand;
 
+type MemoryMaintenanceStartedEvent = {
+  readonly type: "memory_maintenance_started";
+  readonly pendingCount: number;
+} & MemoryGovernanceEventBrand;
+
+type MemoryMaintenanceFinishedEvent = {
+  readonly type: "memory_maintenance_finished";
+  readonly activeToAging: number;
+  readonly agingToArchived: number;
+  readonly weightUpdated: number;
+  readonly l1Expired: number;
+} & MemoryGovernanceEventBrand;
+
+type MemoryMaintenanceFailedEvent = {
+  readonly type: "memory_maintenance_failed";
+  readonly failedStepCount: number;
+} & MemoryGovernanceEventBrand;
+
 export type AgentEvent =
   | {
       type: "run_started";
@@ -183,7 +201,10 @@ export type AgentEvent =
   | MemoryResolverStartedEvent
   | MemoryResolverFinishedEvent
   | MemoryResolverFailedEvent
-  | MemoryGovernanceChangedEvent;
+  | MemoryGovernanceChangedEvent
+  | MemoryMaintenanceStartedEvent
+  | MemoryMaintenanceFinishedEvent
+  | MemoryMaintenanceFailedEvent;
 
 export interface CreateMemoryWriteFinishedEventInput {
   writtenCount: number;
@@ -267,6 +288,43 @@ export function createMemoryGovernanceChangedEvent(input: {
   }) as MemoryGovernanceChangedEvent;
 }
 
+export function createMemoryMaintenanceStartedEvent(input: {
+  pendingCount: number;
+}): MemoryMaintenanceStartedEvent {
+  return Object.freeze({
+    type: "memory_maintenance_started" as const,
+    pendingCount: safeCount(input.pendingCount),
+  }) as MemoryMaintenanceStartedEvent;
+}
+
+export function createMemoryMaintenanceFinishedEvent(input: {
+  activeToAging: number;
+  agingToArchived: number;
+  weightUpdated: number;
+  l1Expired: number;
+}): MemoryMaintenanceFinishedEvent {
+  return Object.freeze({
+    type: "memory_maintenance_finished" as const,
+    activeToAging: safeCount(input.activeToAging),
+    agingToArchived: safeCount(input.agingToArchived),
+    weightUpdated: safeCount(input.weightUpdated),
+    l1Expired: safeCount(input.l1Expired),
+  }) as MemoryMaintenanceFinishedEvent;
+}
+
+export function createMemoryMaintenanceFailedEvent(input: {
+  failedStepCount: number;
+}): MemoryMaintenanceFailedEvent {
+  return Object.freeze({
+    type: "memory_maintenance_failed" as const,
+    failedStepCount: safeCount(input.failedStepCount),
+  }) as MemoryMaintenanceFailedEvent;
+}
+
+function safeCount(value: number): number {
+  return Number.isSafeInteger(value) && value > 0 ? value : 0;
+}
+
 export interface AgentTraceCollector {
   events: AgentEvent[];
   onEvent: (event: AgentEvent) => void;
@@ -321,6 +379,12 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[memory] resolver failed id=${event.conflictId} attempts=${event.attempts}`;
     case "memory_governance_changed":
       return `[memory] governance changed count=${event.changedCount}`;
+    case "memory_maintenance_started":
+      return `[memory] maintenance started pending=${event.pendingCount}`;
+    case "memory_maintenance_finished":
+      return `[memory] maintenance finished aging=${event.activeToAging} archived=${event.agingToArchived} weights=${event.weightUpdated} l1Expired=${event.l1Expired}`;
+    case "memory_maintenance_failed":
+      return `[memory] maintenance failed steps=${event.failedStepCount}`;
   }
 }
 

@@ -34,6 +34,12 @@ function createRuntime(
   };
 }
 
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
 function createEvent() {
   return { preventDefault: vi.fn() };
 }
@@ -121,5 +127,22 @@ describe("registerBackgroundMemoryShutdown", () => {
     );
     expect(logger.mock.calls.flat().join(" ")).not.toContain("sk-secret-value");
     expect(app.quit).toHaveBeenCalledOnce();
+  });
+
+  it("waits for the combined chat, resolver, and maintenance drain", async () => {
+    const app = createFakeApp();
+    const drain = deferred();
+    const runtime = createRuntime(() => 3, vi.fn(() => drain.promise));
+    registerBackgroundMemoryShutdown({ app, runtime });
+    const event = createEvent();
+
+    const quitting = triggerBeforeQuit(app, event);
+    await Promise.resolve();
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(app.quit).not.toHaveBeenCalled();
+
+    drain.resolve();
+    await quitting;
+    await vi.waitFor(() => expect(app.quit).toHaveBeenCalledOnce());
   });
 });

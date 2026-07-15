@@ -8,6 +8,7 @@ import type {
 } from "../../shared/memory-api-types.js";
 import { IPC_CHANNELS } from "../../shared/ipc-channels.js";
 import type { MemoryGovernanceService } from "../memory/memory-governance.js";
+import type { MemoryScheduler } from "../memory/memory-scheduler.js";
 import type { ChatIpcRuntime, IpcSenderLike } from "./register-chat-ipc.js";
 
 export interface MemoryIpcEventLike {
@@ -22,6 +23,7 @@ export interface MemoryIpcMainLike {
 }
 
 export interface MemoryIpcRuntime {
+  closeAcceptance?(): Promise<void>;
   beginShutdown(): Promise<void>;
   pendingOperationCount(): number;
   dispose(): void;
@@ -30,6 +32,7 @@ export interface MemoryIpcRuntime {
 export interface RegisterMemoryIpcOptions {
   ipcMain: MemoryIpcMainLike;
   governance: MemoryGovernanceService;
+  memoryScheduler?: Pick<MemoryScheduler, "runNow" | "beginShutdown" | "pendingCount">;
   afterRestoreL2?: (id: string, context: { sender?: IpcSenderLike; runId: string }) => Promise<void>;
 }
 
@@ -42,7 +45,10 @@ const L0_STRING_FIELDS = new Set(["preferredName", "occupation", "language"]);
 const L0_ARRAY_FIELDS = new Set(["longTermInterests", "permanentNotes"]);
 const L1_STRING_FIELDS = new Set(["currentProject"]);
 const L1_ARRAY_FIELDS = new Set(["recentGoals", "recentPreferences"]);
-const MEMORY_CHANNELS = Object.values(IPC_CHANNELS.memory);
+const MEMORY_CHANNELS = [
+  ...Object.values(IPC_CHANNELS.memory),
+  IPC_CHANNELS.memory.runMaintenance,
+];
 
 interface ActiveRegistration {
   token: object;
@@ -62,21 +68,31 @@ export function combineIpcShutdownRuntimes(
       const chatAcceptance = chatRuntime.closeAcceptance === undefined
         ? undefined
         : captureShutdown(() => chatRuntime.closeAcceptance!());
-      const memoryShutdown = captureShutdown(() => memoryRuntime.beginShutdown());
+      const memoryAcceptance = memoryRuntime.closeAcceptance === undefined
+        ? undefined
+        : captureShutdown(() => memoryRuntime.closeAcceptance!());
+      const memoryShutdown = memoryAcceptance === undefined
+        ? captureShutdown(() => memoryRuntime.beginShutdown())
+        : undefined;
       const chatShutdown = chatAcceptance === undefined
         ? captureShutdown(() => chatRuntime.beginShutdown())
         : undefined;
       shutdownPromise = (async () => {
         const gateResults = await Promise.allSettled([
-          memoryShutdown,
+          ...(memoryAcceptance === undefined ? [] : [memoryAcceptance]),
+          ...(memoryShutdown === undefined ? [] : [memoryShutdown]),
           ...(chatAcceptance === undefined ? [] : [chatAcceptance]),
           ...(chatShutdown === undefined ? [] : [chatShutdown]),
         ]);
         const finalChatResults = chatAcceptance === undefined
           ? []
           : await Promise.allSettled([captureShutdown(() => chatRuntime.beginShutdown())]);
+        const finalMemoryResults = memoryAcceptance === undefined
+          ? []
+          : await Promise.allSettled([captureShutdown(() => memoryRuntime.beginShutdown())]);
         if (gateResults.some((result) => result.status === "rejected")
-          || finalChatResults.some((result) => result.status === "rejected")) {
+          || finalChatResults.some((result) => result.status === "rejected")
+          || finalMemoryResults.some((result) => result.status === "rejected")) {
           throw new Error("Background shutdown failed");
         }
       })();
@@ -125,6 +141,15 @@ export function registerMemoryIpc(
       () => acceptedOperations.delete(operation),
     );
     return operation;
+  }
+
+  function closeAcceptance(): Promise<void> {
+    shuttingDown = true;
+    return (async () => {
+      while (acceptedOperations.size > 0) {
+        await Promise.allSettled([...acceptedOperations]);
+      }
+    })();
   }
 
   async function invokeGovernance<T>(operation: () => Promise<T>): Promise<T> {
@@ -218,13 +243,19 @@ export function registerMemoryIpc(
     parseNoPayload,
     () => governance.audit(),
   );
+  registerHandler(
+    IPC_CHANNELS.memory.runMaintenance,
+    parseNoPayload,
+    async () => {
+      if (!options.memoryScheduler) throw new Error(OPERATION_FAILED_MESSAGE);
+      return { runId: await options.memoryScheduler.runNow() };
+    },
+  );
 
   function beginShutdown(): Promise<void> {
-    shuttingDown = true;
     shutdownPromise ??= (async () => {
-      while (acceptedOperations.size > 0) {
-        await Promise.allSettled([...acceptedOperations]);
-      }
+      await closeAcceptance();
+      await options.memoryScheduler?.beginShutdown();
     })();
     return shutdownPromise;
   }
@@ -240,8 +271,11 @@ export function registerMemoryIpc(
   }
 
   return {
+    closeAcceptance,
     beginShutdown,
-    pendingOperationCount: () => acceptedOperations.size,
+    pendingOperationCount: () => (
+      acceptedOperations.size + (options.memoryScheduler?.pendingCount() ?? 0)
+    ),
     dispose,
   };
 }
