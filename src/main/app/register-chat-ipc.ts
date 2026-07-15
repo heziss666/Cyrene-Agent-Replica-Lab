@@ -54,6 +54,8 @@ import {
   createMemoryRecallService,
   type MemoryRecallService,
 } from "../memory/memory-recall.js";
+import { MemoryAccessService } from "../memory/memory-access-service.js";
+import { RecentMemoryTracker } from "../memory/recent-memory-tracker.js";
 import {
   createMemoryStore,
   type MemoryStore,
@@ -102,6 +104,8 @@ export interface RegisterChatIpcDeps {
   adapter?: VendorAdapter;
   memoryStore?: MemoryStore;
   memoryRecall?: MemoryRecallService;
+  memoryAccessService?: Pick<MemoryAccessService, "recordInjected">;
+  recentMemoryTracker?: RecentMemoryTracker;
   memoryJudge?: MemoryJudge;
   memoryManager?: MemoryManager;
   createMemoryConflictService?: (
@@ -113,8 +117,6 @@ export interface RegisterChatIpcDeps {
   memoryResolverQueue?: MemoryResolverQueue;
   buildMemoryContext?: typeof buildDefaultMemoryContext;
 }
-
-const RECENT_INJECTION_ROUNDS = 3;
 
 export interface ChatIpcRuntime {
   closeAcceptance?(): Promise<void>;
@@ -192,11 +194,13 @@ export async function registerChatIpc(
     ?? ((config: PersonaConfig) => savePersonaConfig(personaConfigPath, config));
   const adapter = deps.adapter ?? openAICompatibleAdapter;
   const memoryStore = deps.memoryStore ?? createMemoryStore();
+  const recentMemoryTracker = deps.recentMemoryTracker ?? new RecentMemoryTracker();
   const memoryRecall = deps.memoryRecall
-    ?? createMemoryRecallService({ store: memoryStore });
+    ?? createMemoryRecallService({ store: memoryStore, recentMemoryTracker });
+  const memoryAccessService = deps.memoryAccessService
+    ?? new MemoryAccessService({ store: memoryStore });
   const memoryJudge = deps.memoryJudge
     ?? createMemoryJudge({ getConfig, adapter });
-  const recentInjectionRounds: string[][] = [];
   const conflictService = (deps.createMemoryConflictService ?? createMemoryConflictService)({
     store: memoryStore,
     vectorNeighbors: async (memory, limit) => {
@@ -206,7 +210,9 @@ export async function registerChatIpc(
         .slice(0, limit)
         .map(({ memory: neighbor, score }) => ({ memoryId: neighbor.id, similarity: score }));
     },
-    recentInjectionIds: () => [...new Set(recentInjectionRounds.flat())],
+    recentInjectionIds: () => [
+      ...new Set(recentMemoryTracker.snapshot().flatMap(({ ids }) => ids)),
+    ],
   });
   const memoryManager = deps.memoryManager
     ?? (deps.createMemoryManager ?? createMemoryManager)({
@@ -409,14 +415,14 @@ export async function registerChatIpc(
         const styleId = session.getStyle();
         const transition = session.getPendingStyleTransition();
         let memoryContext = "";
+        let injectedL2Ids: string[] | undefined;
         sendAgentEvent(event.sender, runId, { type: "memory_recall_started" });
         try {
           const recalledMemory = onlyRecallableL2(await memoryRecall.recall(text));
-          recentInjectionRounds.push(recalledMemory.l2.map(({ memory }) => memory.id));
-          if (recentInjectionRounds.length > RECENT_INJECTION_ROUNDS) {
-            recentInjectionRounds.shift();
-          }
           memoryContext = buildMemoryContext(recalledMemory);
+          injectedL2Ids = recalledMemory.l2
+            .filter(({ memory }) => hasText(memory.content))
+            .map(({ memory }) => memory.id);
           sendAgentEvent(event.sender, runId, {
             type: "memory_recall_finished",
             l0Included: includesL0Memory(recalledMemory),
@@ -453,6 +459,30 @@ export async function registerChatIpc(
         const persistedMessages = withoutSystemMessages(result.messages);
         session.replaceMessages(persistedMessages);
         session.acknowledgeStyleTransition(transition);
+
+        if (injectedL2Ids) {
+          recentMemoryTracker.recordInjected(runId, injectedL2Ids);
+          if (injectedL2Ids.length > 0) {
+            try {
+              const ids = [...injectedL2Ids];
+              memoryWriteQueue.schedule(async () => {
+                await memoryAccessService.recordInjected(ids);
+              }, (error) => {
+                sendAgentEvent(
+                  event.sender,
+                  runId,
+                  createMemoryWriteFailedEvent("write", error),
+                );
+              });
+            } catch (error) {
+              sendAgentEvent(
+                event.sender,
+                runId,
+                createMemoryWriteFailedEvent("write", error),
+              );
+            }
+          }
+        }
 
         try {
           memoryWriteQueue.schedule(async () => {
@@ -540,6 +570,7 @@ export async function registerChatIpc(
     async (): Promise<ChatClearResult> => {
       return runSessionOperation(async () => {
         session.clear();
+        recentMemoryTracker.clear();
         return {
           cleared: true,
           messageCount: session.getMessages().length,

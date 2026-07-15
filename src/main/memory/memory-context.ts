@@ -1,4 +1,4 @@
-import type { MemoryRecallResult } from "./memory-types.js";
+import type { ConflictLog, MemoryRecallResult } from "./memory-types.js";
 
 const SAFETY_PREAMBLE = [
   "【内部长期记忆上下文】",
@@ -44,6 +44,29 @@ function renderSection(title: string, lines: string[]): string | undefined {
   return lines.length > 0 ? `${title}\n${lines.join("\n")}` : undefined;
 }
 
+function renderUnresolvedConflicts(result: MemoryRecallResult): string | undefined {
+  const conflictLogs = (result as MemoryRecallResult & { conflictLogs?: ConflictLog[] })
+    .conflictLogs ?? [];
+  const memoriesById = new Map(result.l2.map(({ memory }) => [memory.id, memory]));
+  const renderedIds = new Set<string>();
+  const lines: string[] = [];
+
+  for (const conflict of conflictLogs) {
+    if (conflict.status !== "queued"
+      && conflict.status !== "processing"
+      && conflict.status !== "uncertain") continue;
+    for (const id of [conflict.sourceMemoryId, conflict.targetMemoryId]) {
+      if (renderedIds.has(id)) continue;
+      const memory = memoriesById.get(id);
+      if (!memory) continue;
+      lines.push(...renderListValue(memory.content));
+      renderedIds.add(id);
+    }
+  }
+
+  return renderSection("鏈喅璁板繂鍐茬獊", lines);
+}
+
 export function buildMemoryContext(result: MemoryRecallResult): string {
   const l0 = renderSection("L0 稳定画像：", [
     ...renderListValue(result.l0.preferredName, "用户希望被称为："),
@@ -61,7 +84,9 @@ export function buildMemoryContext(result: MemoryRecallResult): string {
     "L2 相关事件：",
     result.l2.flatMap(({ memory }) => renderListValue(memory.content)),
   );
-  const sections = [l0, l1, l2].filter((section): section is string => section !== undefined);
+  const conflicts = renderUnresolvedConflicts(result);
+  const sections = [l0, l1, l2, conflicts]
+    .filter((section): section is string => section !== undefined);
 
   return sections.length > 0
     ? `${SAFETY_PREAMBLE}\n\n${sections.join("\n\n")}`

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
 import { registerChatIpc } from "../../src/main/app/register-chat-ipc.js";
 import { buildMemoryContext } from "../../src/main/memory/memory-context.js";
+import { RecentMemoryTracker } from "../../src/main/memory/recent-memory-tracker.js";
 import type { MemoryStore } from "../../src/main/memory/memory-store.js";
 import type {
   L2MemoryV2,
@@ -337,6 +338,76 @@ describe("registerChatIpc", () => {
     );
   });
 
+  it("reinforces exactly injected L2 IDs asynchronously after the main reply", async () => {
+    const accessDeferred = createDeferred<{ updatedIds: string[] }>();
+    const memoryAccessService = { recordInjected: vi.fn(() => accessDeferred.promise) };
+    const recentMemoryTracker = new RecentMemoryTracker();
+    const disabled = { ...l2Memory("disabled", "Disabled"), isEnabled: false };
+    const memoryRecall = {
+      recall: vi.fn(async (): Promise<MemoryRecallResult> => ({
+        ...recallWithL2("first"),
+        l2: [
+          { memory: l2Memory("first", "First"), score: 0.8 },
+          { memory: l2Memory("second", "Second"), score: 0.7 },
+          { memory: disabled, score: 0.99 },
+        ],
+      })),
+    };
+    const memoryWriteQueue = createMemoryWriteQueue();
+    const deps = createFakeDeps(successfulAgent(), {
+      memoryRecall,
+      memoryAccessService,
+      recentMemoryTracker,
+      memoryWriteQueue,
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await expect(send({ sender }, "hello")).resolves.toMatchObject({ reply: "reply" });
+    await vi.waitFor(() => expect(memoryAccessService.recordInjected).toHaveBeenCalledOnce());
+
+    expect(memoryAccessService.recordInjected).toHaveBeenCalledWith(["first", "second"]);
+    expect(recentMemoryTracker.snapshot()).toEqual([{
+      turnId: "run_1",
+      ids: ["first", "second"],
+    }]);
+    expect(runtime.pendingBackgroundTaskCount()).toBeGreaterThan(0);
+
+    accessDeferred.resolve({ updatedIds: ["first", "second"] });
+    await runtime.flushBackgroundTasks();
+  });
+
+  it("reports access reinforcement failure with fixed write-stage metadata", async () => {
+    const memoryAccessService = {
+      recordInjected: vi.fn(async () => {
+        throw new Error("access leaked secret");
+      }),
+    };
+    const memoryWriteQueue = createMemoryWriteQueue();
+    const deps = createFakeDeps(successfulAgent(), {
+      memoryRecall: { recall: vi.fn(async () => recallWithL2("memory-1")) },
+      memoryAccessService,
+      memoryWriteQueue,
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "hello");
+    await runtime.flushBackgroundTasks();
+
+    const failures = sentEvents(sender).filter(
+      (event) => event.type === "memory_write_failed" && event.stage === "write",
+    );
+    expect(failures).toContainEqual({
+      type: "memory_write_failed",
+      stage: "write",
+      message: "Memory write unavailable",
+    });
+    expect(JSON.stringify(failures)).not.toContain("access leaked secret");
+  });
+
   it("returns the reply before a deferred MemoryJudge completes", async () => {
     const judgeDeferred = createDeferred<MemoryCandidate[]>();
     const memoryJudge = { judge: vi.fn(() => judgeDeferred.promise) };
@@ -519,6 +590,24 @@ describe("registerChatIpc", () => {
       { role: "system", content: "system:default:steady" },
       { role: "user", content: "new chat" },
     ]);
+  });
+
+  it("clears recent injection tracking on new chat without updating persistent access", async () => {
+    const recentMemoryTracker = new RecentMemoryTracker();
+    recentMemoryTracker.recordInjected("old-turn", ["memory-1"]);
+    const memoryAccessService = { recordInjected: vi.fn(async () => ({ updatedIds: [] })) };
+    const deps = createFakeDeps(successfulAgent(), {
+      recentMemoryTracker,
+      memoryAccessService,
+    });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const clear = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.clearSession)!;
+
+    await expect(clear({ sender })).resolves.toEqual({ cleared: true, messageCount: 0 });
+
+    expect(recentMemoryTracker.snapshot()).toEqual([]);
+    expect(memoryAccessService.recordInjected).not.toHaveBeenCalled();
   });
 
   it("isolates a judge failure and continues later queued memory work", async () => {

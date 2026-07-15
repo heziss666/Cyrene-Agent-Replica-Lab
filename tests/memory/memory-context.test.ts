@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildMemoryContext } from "../../src/main/memory/memory-context.js";
-import type { MemoryRecallResult } from "../../src/main/memory/memory-types.js";
+import type {
+  ConflictLog,
+  MemoryRecallResult,
+} from "../../src/main/memory/memory-types.js";
 
 function emptyRecall(): MemoryRecallResult {
   return {
@@ -86,6 +89,40 @@ describe("buildMemoryContext", () => {
     expect(context).not.toContain("evidence");
     expect(context).not.toContain("score");
     expect(context).not.toContain("memory-1");
+  });
+
+  it("renders both sides of an unresolved recalled conflict without resolver reason or evidence", () => {
+    const result = recallWithL2("Prefer TypeScript");
+    result.l2.push({
+      memory: {
+        ...result.l2[0].memory,
+        id: "memory-2",
+        content: "Prefer Python",
+        evidenceIds: ["raw-evidence-secret"],
+      },
+      score: 0.7,
+    });
+    const conflict: ConflictLog = {
+      id: "conflict-1",
+      sourceMemoryId: "memory-1",
+      targetMemoryId: "memory-2",
+      createdAt: "2026-07-14T08:00:00.000Z",
+      status: "uncertain",
+      score: 90,
+      priority: "high",
+      attempts: 1,
+      signals: {},
+      resolutionReason: "resolver-reason-secret",
+    };
+    const recalledWithConflicts = Object.assign(result, { conflictLogs: [conflict] });
+
+    const context = buildMemoryContext(recalledWithConflicts);
+
+    expect(context).toContain("鏈喅璁板繂鍐茬獊");
+    expect(context).toContain("- Prefer TypeScript");
+    expect(context).toContain("- Prefer Python");
+    expect(context).not.toContain("resolver-reason-secret");
+    expect(context).not.toContain("raw-evidence-secret");
   });
 
   it("preserves instruction-like multiline content as prefixed data", () => {

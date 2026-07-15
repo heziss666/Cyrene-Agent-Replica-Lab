@@ -25,8 +25,10 @@ import {
   type VectorRetriever,
 } from "../rag/vector-retriever.js";
 import type { MemoryStore } from "./memory-store.js";
+import type { RecentMemoryTracker } from "./recent-memory-tracker.js";
 import {
   isRecallableL2,
+  type ConflictLog,
   type L2MemoryV2,
   type MemoryRecallResult,
 } from "./memory-types.js";
@@ -57,6 +59,20 @@ export interface MemoryRecallService {
   recall(query: string): Promise<MemoryRecallResult>;
 }
 
+export type RankedMemoryResult = MemoryRecallResult["l2"][number] & {
+  semanticScore: number;
+  finalScore: number;
+};
+
+export type RankedMemoryRecallResult = Omit<MemoryRecallResult, "l2"> & {
+  l2: RankedMemoryResult[];
+  conflictLogs?: ConflictLog[];
+};
+
+export interface RankedMemoryRecallService extends MemoryRecallService {
+  recall(query: string): Promise<RankedMemoryRecallResult>;
+}
+
 export interface CreateMemoryRecallServiceOptions {
   store: MemoryStore;
   embeddingProvider?: EmbeddingProvider;
@@ -68,6 +84,7 @@ export interface CreateMemoryRecallServiceOptions {
   createKnowledgeBase?: typeof createKnowledgeBase;
   minScore?: number;
   maxResults?: number;
+  recentMemoryTracker?: Pick<RecentMemoryTracker, "penaltyFor">;
   logger?: (message: string) => void;
 }
 
@@ -121,16 +138,16 @@ function memoryDocuments(
 
 export function createMemoryRecallService(
   options: CreateMemoryRecallServiceOptions,
-): MemoryRecallService {
+): RankedMemoryRecallService {
   const { vectorRetriever, memoryVectorIndex } =
     resolveMemoryVectorDependencies(options);
   const createKnowledgeBaseFactory = options.createKnowledgeBase
     ?? createKnowledgeBase;
-  const minScore = options.minScore ?? DEFAULT_MIN_SCORE;
-  const maxResults = options.maxResults ?? DEFAULT_MAX_RESULTS;
+  const minScore = Math.max(options.minScore ?? DEFAULT_MIN_SCORE, DEFAULT_MIN_SCORE);
+  const maxResults = Math.min(options.maxResults ?? DEFAULT_MAX_RESULTS, DEFAULT_MAX_RESULTS);
   const serializeRecall = createSerialExecutor();
 
-  async function runRecall(query: string): Promise<MemoryRecallResult> {
+  async function runRecall(query: string): Promise<RankedMemoryRecallResult> {
     const memoryFile = await options.store.load();
     const l0 = structuredClone(memoryFile.l0);
     const l1 = structuredClone(memoryFile.l1);
@@ -163,32 +180,53 @@ export function createMemoryRecallService(
     const memoriesById = new Map(
       recallableL2.map((memory) => [memory.id, memory]),
     );
-    const highestByMemoryId = new Map<
-      string,
-      MemoryRecallResult["l2"][number]
-    >();
+    const highestByMemoryId = new Map<string, RankedMemoryResult>();
 
     for (const result of response.results) {
       if (result.score < minScore) continue;
       const memory = memoriesById.get(result.chunk.documentId);
       if (!memory) continue;
       const current = highestByMemoryId.get(memory.id);
-      if (!current || result.score > current.score) {
-        highestByMemoryId.set(memory.id, { memory, score: result.score });
+      if (!current || result.score > current.semanticScore) {
+        const semanticScore = result.score;
+        const weightBoost = Math.min(0.08, memory.weight * 0.08);
+        const pinBoost = memory.isPinned ? 0.03 : 0;
+        const recentPenalty = options.recentMemoryTracker?.penaltyFor(
+          memory.id,
+          semanticScore,
+        ) ?? 0;
+        highestByMemoryId.set(memory.id, {
+          memory,
+          score: semanticScore,
+          semanticScore,
+          finalScore: semanticScore + weightBoost + pinBoost - recentPenalty,
+        });
       }
     }
 
-    const recallResult: MemoryRecallResult = {
+    const rankedL2 = [...highestByMemoryId.values()]
+      .sort(
+        (left, right) => right.finalScore - left.finalScore
+          || right.semanticScore - left.semanticScore
+          || left.memory.id.localeCompare(right.memory.id),
+      )
+      .slice(0, maxResults);
+    const recalledIds = new Set(rankedL2.map(({ memory }) => memory.id));
+    const conflictLogs = memoryFile.conflictLogs.filter((conflict) =>
+      (conflict.status === "queued"
+        || conflict.status === "processing"
+        || conflict.status === "uncertain")
+      && recalledIds.has(conflict.sourceMemoryId)
+      && recalledIds.has(conflict.targetMemoryId));
+    const recallResult: RankedMemoryRecallResult = {
       l0,
       l1,
-      l2: [...highestByMemoryId.values()]
-        .sort(
-          (left, right) => right.score - left.score
-            || left.memory.id.localeCompare(right.memory.id),
-        )
-        .slice(0, maxResults),
+      l2: rankedL2,
       retrievalMode: response.mode,
     };
+    if (conflictLogs.length > 0) {
+      recallResult.conflictLogs = structuredClone(conflictLogs);
+    }
     if (response.warning !== undefined) {
       recallResult.warning = response.warning;
     }

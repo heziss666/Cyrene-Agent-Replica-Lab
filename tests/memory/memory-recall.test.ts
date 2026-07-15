@@ -8,6 +8,7 @@ import type {
   L2Memory,
   MemoryFile,
 } from "../../src/main/memory/memory-types.js";
+import { RecentMemoryTracker } from "../../src/main/memory/recent-memory-tracker.js";
 import type { EmbeddingProvider } from "../../src/main/rag/embedding-provider.js";
 import { createInMemoryVectorIndex } from "../../src/main/rag/in-memory-vector-index.js";
 import {
@@ -361,8 +362,8 @@ describe("createMemoryRecallService", () => {
       5,
     );
     expect(result.l2).toEqual([
-      { memory: memory1, score: 0.9 },
-      { memory: memory2, score: 0.8 },
+      expect.objectContaining({ memory: memory1, score: 0.9, semanticScore: 0.9 }),
+      expect.objectContaining({ memory: memory2, score: 0.8, semanticScore: 0.8 }),
     ]);
   });
 
@@ -525,6 +526,81 @@ describe("createMemoryRecallService", () => {
 
     const result = await service.recall("query");
 
-    expect(result.l2).toEqual([{ memory: memory1, score: 0.8 }]);
+    expect(result.l2).toEqual([
+      expect.objectContaining({ memory: memory1, score: 0.8, semanticScore: 0.8 }),
+    ]);
+  });
+
+  it("ranks eligible rows with bounded modifiers while enforcing the raw threshold and top three", async () => {
+    const weighted = { ...createMemory("weighted"), weight: 1 };
+    const pinned = { ...createMemory("pinned"), weight: 1, isPinned: true };
+    const recent = { ...createMemory("recent"), weight: 1 };
+    const fourth = { ...createMemory("fourth"), weight: 0 };
+    const boostedBelowThreshold = { ...createMemory("below-threshold"), weight: 1, isPinned: true };
+    const archived = { ...createMemory("archived"), status: "archived" as const };
+    const merged = { ...createMemory("merged"), status: "merged" as const };
+    const tracker = new RecentMemoryTracker();
+    tracker.recordInjected("turn-1", [recent.id]);
+    tracker.recordInjected("turn-2", [recent.id]);
+    const knowledgeBase = createFakeKnowledgeBase({
+      mode: "vector",
+      results: [
+        { chunk: createChunk(archived), score: 0.99 },
+        { chunk: createChunk(merged), score: 0.98 },
+        { chunk: createChunk(recent), score: 0.79 },
+        { chunk: createChunk(weighted), score: 0.70 },
+        { chunk: createChunk(pinned), score: 0.65 },
+        { chunk: createChunk(fourth), score: 0.60 },
+        { chunk: createChunk(boostedBelowThreshold), score: 0.34 },
+      ],
+    });
+    const service = createMemoryRecallService({
+      store: createStore(createMemoryFile([
+        weighted, pinned, recent, fourth, boostedBelowThreshold, archived, merged,
+      ])),
+      vectorRetriever: createRetriever(),
+      createKnowledgeBase: vi.fn(() => knowledgeBase),
+      recentMemoryTracker: tracker,
+      minScore: 0,
+    });
+
+    const result = await service.recall("query");
+
+    expect(result.l2).toHaveLength(3);
+    expect(result.l2.map(({ memory }) => memory.id)).toEqual(["weighted", "pinned", "recent"]);
+    expect(result.l2.map(({ score }) => score)).toEqual([0.70, 0.65, 0.79]);
+    expect(result.l2.map((row) => (row as typeof row & { semanticScore: number }).semanticScore))
+      .toEqual([0.70, 0.65, 0.79]);
+    const finalScores = result.l2.map(
+      (row) => (row as typeof row & { finalScore: number }).finalScore,
+    );
+    expect(finalScores[0]).toBeCloseTo(0.78);
+    expect(finalScores[1]).toBeCloseTo(0.76);
+    expect(finalScores[2]).toBeCloseTo(0.75);
+  });
+
+  it("breaks final-score ties by semantic score and then memory ID", async () => {
+    const highSemantic = { ...createMemory("z-high-semantic"), weight: 0 };
+    const lowSemanticA = { ...createMemory("a-low-semantic"), weight: 1 };
+    const lowSemanticB = { ...createMemory("b-low-semantic"), weight: 1 };
+    const knowledgeBase = createFakeKnowledgeBase({
+      mode: "vector",
+      results: [
+        { chunk: createChunk(lowSemanticB), score: 0.60 },
+        { chunk: createChunk(highSemantic), score: 0.68 },
+        { chunk: createChunk(lowSemanticA), score: 0.60 },
+      ],
+    });
+    const service = createMemoryRecallService({
+      store: createStore(createMemoryFile([lowSemanticB, highSemantic, lowSemanticA])),
+      vectorRetriever: createRetriever(),
+      createKnowledgeBase: vi.fn(() => knowledgeBase),
+    });
+
+    const result = await service.recall("query");
+
+    expect(result.l2.map(({ memory }) => memory.id)).toEqual([
+      "z-high-semantic", "a-low-semantic", "b-low-semantic",
+    ]);
   });
 });
