@@ -12,6 +12,7 @@ import {
   changeSelectedStyle,
   loadSelectedStyle,
 } from "./style-selector.js";
+import { mountMemoryView } from "./memory-view.js";
 import "./style.css";
 
 declare global {
@@ -27,6 +28,10 @@ const events = document.querySelector<HTMLOListElement>("#events");
 const status = document.querySelector<HTMLElement>("#status");
 const newChatButton = document.querySelector<HTMLButtonElement>("#new-chat-button");
 const styleSelectElement = document.querySelector<HTMLSelectElement>("#style-select");
+const chatViewElement = document.querySelector<HTMLElement>("#chat-view");
+const memoryViewElement = document.querySelector<HTMLElement>("#memory-view");
+const chatViewButtonElement = document.querySelector<HTMLButtonElement>("#chat-view-button");
+const memoryViewButtonElement = document.querySelector<HTMLButtonElement>("#memory-view-button");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -42,8 +47,27 @@ const eventList = requireElement(events, "events");
 const statusBadge = requireElement(status, "status");
 const newChat = requireElement(newChatButton, "new-chat-button");
 const styleSelect = requireElement(styleSelectElement, "style-select");
+const chatView = requireElement(chatViewElement, "chat-view");
+const memoryView = requireElement(memoryViewElement, "memory-view");
+const chatViewButton = requireElement(chatViewButtonElement, "chat-view-button");
+const memoryViewButton = requireElement(memoryViewButtonElement, "memory-view-button");
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
+
+const memoryPanel = mountMemoryView({
+  root: memoryView,
+  api: window.cyrene.memory,
+});
+
+function setActiveView(view: "chat" | "memory"): void {
+  const isMemory = view === "memory";
+  chatView.hidden = isMemory;
+  memoryView.hidden = !isMemory;
+  chatViewButton.classList.toggle("is-active", !isMemory);
+  memoryViewButton.classList.toggle("is-active", isMemory);
+  chatViewButton.setAttribute("aria-pressed", String(!isMemory));
+  memoryViewButton.setAttribute("aria-pressed", String(isMemory));
+}
 
 function appendMessage(role: "user" | "agent", text: string): void {
   const item = document.createElement("article");
@@ -92,6 +116,16 @@ async function initializeStyleSelector(): Promise<void> {
 
 window.cyrene.chat.onAgentEvent((payload) => {
   appendEvent(formatRendererEventPayload(payload));
+});
+
+chatViewButton.addEventListener("click", () => {
+  setActiveView("chat");
+  messageInput.focus();
+});
+
+memoryViewButton.addEventListener("click", async () => {
+  setActiveView("memory");
+  await memoryPanel.show();
 });
 
 styleSelect.addEventListener("change", async () => {

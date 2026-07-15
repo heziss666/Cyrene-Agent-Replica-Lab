@@ -8,28 +8,36 @@
   </head>
   <body>
     <main class="shell">
-      <section class="chat-pane" aria-label="Chat">
+      <section class="workspace">
         <header class="topbar">
           <div>
             <h1>Cyrene Agent</h1>
             <p>Replica Lab</p>
           </div>
           <div class="topbar-actions">
+            <nav class="view-switch" aria-label="Primary views">
+              <button id="chat-view-button" class="view-switch-button is-active" type="button" aria-pressed="true">Chat</button>
+              <button id="memory-view-button" class="view-switch-button" type="button" aria-pressed="false">Memory</button>
+            </nav>
             <label class="style-control" for="style-select">
-              <span>风格</span>
-              <select id="style-select" aria-label="回复风格"></select>
+              <span>Style</span>
+              <select id="style-select" aria-label="Reply style"></select>
             </label>
             <button id="new-chat-button" class="secondary-button" type="button">New Chat</button>
             <span id="status" class="status">Ready</span>
           </div>
         </header>
 
-        <div id="messages" class="messages"></div>
+        <section id="chat-view" class="chat-pane" aria-label="Chat">
+          <div id="messages" class="messages"></div>
 
-        <form id="chat-form" class="composer">
-          <input id="message-input" type="text" autocomplete="off" placeholder="输入一句话..." />
-          <button type="submit">Send</button>
-        </form>
+          <form id="chat-form" class="composer">
+            <input id="message-input" type="text" autocomplete="off" placeholder="Type a message..." />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+
+        <section id="memory-view" class="memory-view" aria-label="Memory" hidden></section>
       </section>
 
       <aside class="event-pane" aria-label="Agent events">
