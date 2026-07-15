@@ -64,7 +64,7 @@ function renderUnresolvedConflicts(result: MemoryRecallResult): string | undefin
     }
   }
 
-  return renderSection("鏈喅璁板繂鍐茬獊", lines);
+  return renderSection("未决记忆冲突", lines);
 }
 
 export function buildMemoryContext(result: MemoryRecallResult): string {

@@ -118,7 +118,7 @@ describe("buildMemoryContext", () => {
 
     const context = buildMemoryContext(recalledWithConflicts);
 
-    expect(context).toContain("鏈喅璁板繂鍐茬獊");
+    expect(context).toContain("未决记忆冲突");
     expect(context).toContain("- Prefer TypeScript");
     expect(context).toContain("- Prefer Python");
     expect(context).not.toContain("resolver-reason-secret");
