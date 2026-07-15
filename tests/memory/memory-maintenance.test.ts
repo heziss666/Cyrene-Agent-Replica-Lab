@@ -92,6 +92,55 @@ describe("MaintenanceCoordinator", () => {
     expect(store.read().maintenance.running).toBe(false);
   });
 
+  it("captures one fixed now and passes it to decay and L1 expiry", async () => {
+    const store = createStore();
+    const later = new Date(NOW.getTime() + 60_000);
+    const now = vi.fn(() => NOW).mockReturnValueOnce(NOW).mockReturnValue(later);
+    const runDecay = vi.fn(async (_at: Date) => ({}));
+    const expireL1 = vi.fn(async (_at: Date) => ({}));
+    const coordinator = new MaintenanceCoordinator({
+      store,
+      resolverQueue: { flush: vi.fn(async () => undefined) },
+      decayService: { runDecay },
+      l1ExpiryService: { expireL1 },
+      audit: vi.fn(async () => ({})),
+      now,
+      idFactory: () => "run-audit",
+    });
+
+    await coordinator.runNow("manual");
+
+    expect(now).toHaveBeenCalledOnce();
+    expect(runDecay).toHaveBeenCalledWith(NOW);
+    expect(expireL1).toHaveBeenCalledWith(NOW);
+    expect(runDecay.mock.calls[0]?.[0]).toBe(expireL1.mock.calls[0]?.[0]);
+    expect(store.read().maintenance.lastMaintenanceAt).toBe(NOW.toISOString());
+  });
+
+  it("always clears running when final audit ID generation throws", async () => {
+    const store = createStore();
+    const coordinator = new MaintenanceCoordinator({
+      store,
+      resolverQueue: { flush: vi.fn(async () => undefined) },
+      decayService: { runDecay: vi.fn(async () => ({})) },
+      l1ExpiryService: { expireL1: vi.fn(async () => ({})) },
+      audit: vi.fn(async () => ({})),
+      now: () => NOW,
+      idFactory: () => { throw new Error("ID source unavailable"); },
+    });
+
+    await expect(coordinator.runNow("manual")).resolves.toEqual(expect.objectContaining({
+      errorCodes: [],
+    }));
+
+    expect(store.read().maintenance.running).toBe(false);
+    expect(store.read().maintenance.lastMaintenanceAt).toBe(NOW.toISOString());
+    expect(store.read().auditLogs.at(-1)).toEqual(expect.objectContaining({
+      id: expect.stringMatching(/^maintenance-audit-fallback-/),
+      operation: "run_maintenance",
+    }));
+  });
+
   it("records absent future stages as not configured", async () => {
     const store = createStore();
     const coordinator = new MaintenanceCoordinator({

@@ -42,11 +42,11 @@ interface ResolverQueueLike {
 }
 
 interface DecayServiceLike {
-  runDecay(): Promise<unknown>;
+  runDecay(now: Date): Promise<unknown>;
 }
 
 interface L1ExpiryServiceLike {
-  expireL1(): Promise<unknown>;
+  expireL1(now: Date): Promise<unknown>;
 }
 
 type MaintenanceCallback = () => Promise<unknown> | unknown;
@@ -83,7 +83,7 @@ export class MaintenanceCoordinator {
 
   async runNow(reason: MaintenanceReason): Promise<MaintenanceRunSummary> {
     await this.initialize();
-    validNow(this.now());
+    const runAt = validNow(this.now());
     await this.options.store.update((draft) => {
       draft.maintenance.running = true;
       draft.maintenance.successfulWritesSinceMaintenance = 0;
@@ -95,7 +95,7 @@ export class MaintenanceCoordinator {
       const decaySucceeded = await this.runRequired(
         summary,
         "decay",
-        () => this.options.decayService.runDecay(),
+        () => this.options.decayService.runDecay(runAt),
       );
       if (!decaySucceeded) {
         skipDependencies(summary, [
@@ -105,7 +105,7 @@ export class MaintenanceCoordinator {
         const expirySucceeded = await this.runRequired(
           summary,
           "l1-expiry",
-          () => this.options.l1ExpiryService.expireL1(),
+          () => this.options.l1ExpiryService.expireL1(runAt),
         );
         if (!expirySucceeded) {
           skipDependencies(summary, ["reflection", "compression", "entity-graph"]);
@@ -126,14 +126,14 @@ export class MaintenanceCoordinator {
       await this.runRequired(summary, "audit", this.options.audit);
       return summary;
     } finally {
-      const finishedAt = validNow(this.now());
+      const auditId = safeAuditId(this.idFactory, runAt, reason);
       await this.options.store.update((draft) => {
         draft.maintenance.running = false;
-        draft.maintenance.lastMaintenanceAt = finishedAt.toISOString();
+        draft.maintenance.lastMaintenanceAt = runAt.toISOString();
         const lastErrorCode = summary.errorCodes.at(-1);
         if (lastErrorCode === undefined) delete draft.maintenance.lastErrorCode;
         else draft.maintenance.lastErrorCode = lastErrorCode;
-        appendRunAudit(draft, finishedAt, reason, lastErrorCode, this.idFactory);
+        appendRunAudit(draft, runAt, reason, lastErrorCode, auditId);
       });
     }
   }
@@ -147,7 +147,7 @@ export class MaintenanceCoordinator {
       draft.maintenance.running = false;
       draft.maintenance.lastErrorCode = STALE_RUNNING_RECOVERY_CODE;
       const audit: MemoryAuditEntry = {
-        id: this.idFactory(),
+        id: safeAuditId(this.idFactory, now, "recovery"),
         createdAt: now.toISOString(),
         operation: "recover_maintenance",
         targetType: "maintenance",
@@ -202,10 +202,10 @@ function appendRunAudit(
   now: Date,
   reason: MaintenanceReason,
   errorCode: string | undefined,
-  idFactory: () => string,
+  auditId: string,
 ): void {
   const audit: MemoryAuditEntry = {
-    id: idFactory(),
+    id: auditId,
     createdAt: now.toISOString(),
     operation: "run_maintenance",
     targetType: "maintenance",
@@ -214,6 +214,18 @@ function appendRunAudit(
     code: errorCode ?? "MEMORY_MAINTENANCE_COMPLETED",
   };
   draft.auditLogs = [...draft.auditLogs, audit].slice(-AUDIT_LIMIT);
+}
+
+function safeAuditId(
+  idFactory: () => string,
+  now: Date,
+  reason: MaintenanceReason | "recovery",
+): string {
+  try {
+    return idFactory();
+  } catch {
+    return `maintenance-audit-fallback-${now.getTime()}-${reason}`;
+  }
 }
 
 function validNow(value: Date): Date {

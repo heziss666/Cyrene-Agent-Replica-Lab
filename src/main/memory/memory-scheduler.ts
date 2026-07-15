@@ -28,6 +28,7 @@ export class MemoryScheduler {
   private activeRunId?: string;
   private followUpReason?: MaintenanceReason;
   private tail: Promise<void> = Promise.resolve();
+  private readonly acceptedOperations = new Set<Promise<unknown>>();
   private shuttingDown = false;
   private shutdownPromise?: Promise<void>;
 
@@ -43,22 +44,36 @@ export class MemoryScheduler {
     return this.initialization;
   }
 
-  async recordSuccessfulWrite(): Promise<string | undefined> {
-    this.assertAccepting();
+  recordSuccessfulWrite(): Promise<string | undefined> {
+    try {
+      this.assertAccepting();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return this.trackAccepted(this.recordAcceptedWrite());
+  }
+
+  requestMaintenance(reason: MaintenanceReason): Promise<string> {
+    try {
+      this.assertAccepting();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return this.trackAccepted(this.requestAcceptedMaintenance(reason));
+  }
+
+  private async recordAcceptedWrite(): Promise<string | undefined> {
     await this.initialization;
-    this.assertAccepting();
     let trigger = false;
     await this.store.update((draft) => {
       draft.maintenance.successfulWritesSinceMaintenance += 1;
       trigger = draft.maintenance.successfulWritesSinceMaintenance >= WRITE_TRIGGER;
     });
-    return trigger ? this.requestMaintenance("write_count") : undefined;
+    return trigger ? this.requestAcceptedMaintenance("write_count") : undefined;
   }
 
-  async requestMaintenance(reason: MaintenanceReason): Promise<string> {
-    this.assertAccepting();
+  private async requestAcceptedMaintenance(reason: MaintenanceReason): Promise<string> {
     await this.initialization;
-    this.assertAccepting();
     this.clearTimer();
 
     if (this.activeRunId !== undefined) {
@@ -81,11 +96,15 @@ export class MemoryScheduler {
   }
 
   async flush(): Promise<void> {
-    await this.initialization;
     while (true) {
+      const accepted = [...this.acceptedOperations];
+      await Promise.allSettled(accepted);
+      await this.initialization;
       const stableTail = this.tail;
       await stableTail;
-      if (stableTail === this.tail && this.pendingCount() === 0) return;
+      if (stableTail === this.tail
+        && this.pendingCount() === 0
+        && this.acceptedOperations.size === 0) return;
     }
   }
 
@@ -138,6 +157,14 @@ export class MemoryScheduler {
   private clearTimer(): void {
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
+  }
+
+  private trackAccepted<T>(operation: Promise<T>): Promise<T> {
+    this.acceptedOperations.add(operation);
+    void operation.finally(() => {
+      this.acceptedOperations.delete(operation);
+    }).catch(() => undefined);
+    return operation;
   }
 
   private assertAccepting(): void {

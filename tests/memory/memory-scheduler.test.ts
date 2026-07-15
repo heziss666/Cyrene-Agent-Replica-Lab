@@ -150,4 +150,39 @@ describe("MemoryScheduler", () => {
     await shutdown;
     expect(drained).toBe(true);
   });
+
+  it("drains a request accepted before shutdown while initialization is pending", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(START);
+    const initial = createEmptyMemoryFileV2();
+    initial.maintenance.lastMaintenanceAt = START.toISOString();
+    const store = createStore(initial);
+    const initialization = deferred();
+    const maintenance = deferred();
+    const runNow = vi.fn(() => maintenance.promise);
+    const scheduler = new MemoryScheduler({
+      store,
+      coordinator: {
+        initialize: vi.fn(() => initialization.promise),
+        runNow,
+      },
+      now: () => new Date(Date.now()),
+      idFactory: () => "accepted-run",
+    });
+
+    const accepted = scheduler.requestMaintenance("manual");
+    let drained = false;
+    const shutdown = scheduler.beginShutdown().then(() => { drained = true; });
+    await expect(scheduler.requestMaintenance("manual"))
+      .rejects.toThrow("MEMORY_MAINTENANCE_SHUTTING_DOWN");
+
+    initialization.resolve();
+    await expect(accepted).resolves.toBe("accepted-run");
+    await vi.waitFor(() => expect(runNow).toHaveBeenCalledOnce());
+    expect(drained).toBe(false);
+
+    maintenance.resolve();
+    await shutdown;
+    expect(drained).toBe(true);
+  });
 });
