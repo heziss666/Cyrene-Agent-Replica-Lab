@@ -32,9 +32,55 @@ interface CandidateSource {
   recentInjection: boolean;
 }
 
+interface MemoryConflictSnapshot {
+  content: string;
+  updatedAt: string;
+  evidenceFingerprint: string;
+}
+
 function hasEvidence(memory: L2MemoryV2, evidence: readonly MemoryEvidence[]): boolean {
   const evidenceIds = new Set(memory.evidenceIds);
   return evidence.some((item) => item.memoryId === memory.id && evidenceIds.has(item.id));
+}
+
+function evidenceFingerprint(memory: L2MemoryV2, evidence: readonly MemoryEvidence[]): string {
+  const evidenceById = new Map(
+    evidence
+      .filter((item) => item.memoryId === memory.id)
+      .map((item) => [item.id, item]),
+  );
+  return [...memory.evidenceIds]
+    .sort()
+    .map((id) => {
+      const item = evidenceById.get(id);
+      return JSON.stringify(item === undefined ? [id] : [
+        item.id,
+        item.memoryId,
+        item.quote,
+        item.capturedAt,
+        item.source,
+        [...item.sourceMemoryIds].sort(),
+      ]);
+    })
+    .join("|");
+}
+
+function snapshot(memory: L2MemoryV2, evidence: readonly MemoryEvidence[]): MemoryConflictSnapshot {
+  return {
+    content: memory.content,
+    updatedAt: memory.updatedAt,
+    evidenceFingerprint: evidenceFingerprint(memory, evidence),
+  };
+}
+
+function matchesSnapshot(
+  memory: L2MemoryV2,
+  evidence: readonly MemoryEvidence[],
+  expected: MemoryConflictSnapshot,
+): boolean {
+  return memory.content === expected.content
+    && memory.updatedAt === expected.updatedAt
+    && evidenceFingerprint(memory, evidence) === expected.evidenceFingerprint;
 }
 
 function isInspectableTarget(memory: L2MemoryV2): boolean {
@@ -51,8 +97,7 @@ export function createMemoryConflictService(
   const now = options.now ?? (() => new Date());
   const idFactory = options.idFactory ?? randomUUID;
 
-  return {
-    async inspectNewMemory(id) {
+  async function inspectNewMemory(id: string, allowReinspection: boolean): Promise<void> {
       const file = await options.store.load();
       const source = file.l2.find((memory) => memory.id === id);
       if (!source || !isInspectableTarget(source)) return;
@@ -106,19 +151,35 @@ export function createMemoryConflictService(
         });
         const priority = score.priority;
         return score.score >= 35 && priority !== undefined
-          ? [{ targetId, score, priority }]
+          ? [{
+            targetId,
+            score,
+            priority,
+            sourceSnapshot: snapshot(source, file.evidence),
+            targetSnapshot: snapshot(target, file.evidence),
+          }]
           : [];
       });
       if (decisions.length === 0) return;
 
       const createdAt = now().toISOString();
+      let requiresReinspection = false;
       await options.store.update((draft) => {
         const currentSource = draft.l2.find((memory) => memory.id === id);
-        if (!currentSource || !isInspectableTarget(currentSource)) return;
+        if (!currentSource || !isInspectableTarget(currentSource)) {
+          requiresReinspection = true;
+          return;
+        }
 
         for (const decision of decisions) {
           const target = draft.l2.find((memory) => memory.id === decision.targetId);
-          if (!target || !isInspectableTarget(target) || currentSource.conflictWith.includes(target.id)) {
+          if (!target || !isInspectableTarget(target)
+            || !matchesSnapshot(currentSource, draft.evidence, decision.sourceSnapshot)
+            || !matchesSnapshot(target, draft.evidence, decision.targetSnapshot)) {
+            requiresReinspection = true;
+            continue;
+          }
+          if (currentSource.conflictWith.includes(target.id)) {
             continue;
           }
           addConflictReference(currentSource, target.id);
@@ -139,6 +200,14 @@ export function createMemoryConflictService(
           draft.conflictLogs = draft.conflictLogs.slice(-MAX_CONFLICT_LOGS);
         }
       });
+      if (requiresReinspection && allowReinspection) {
+        await inspectNewMemory(id, false);
+      }
+  }
+
+  return {
+    inspectNewMemory(id) {
+      return inspectNewMemory(id, true);
     },
   };
 }

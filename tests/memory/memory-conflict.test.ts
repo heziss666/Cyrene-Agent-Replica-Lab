@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { findPossibleConflictCandidate } from "../../src/main/memory/memory-conflict.js";
 
 describe("findPossibleConflictCandidate", () => {
@@ -30,5 +30,13 @@ describe("findPossibleConflictCandidate", () => {
   it("treats identical normalized content as a duplicate rather than a conflict", () => {
     expect(findPossibleConflictCandidate("  I USE  Python ", "i use python"))
       .toEqual(expect.objectContaining({ isCandidate: false, duplicate: true }));
+  });
+
+  it("does not depend on locale-sensitive lowercasing", () => {
+    const localeLower = vi.spyOn(String.prototype, "toLocaleLowerCase");
+
+    findPossibleConflictCandidate("I no longer use Python", "I use Python");
+
+    expect(localeLower).not.toHaveBeenCalled();
   });
 });

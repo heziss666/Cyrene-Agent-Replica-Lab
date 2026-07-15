@@ -3,10 +3,7 @@ import {
   normalizeMemoryContent,
   validateModelMemoryContent,
 } from "./memory-content-policy.js";
-import {
-  createMemoryConflictService,
-  type MemoryConflictService,
-} from "./memory-conflict-service.js";
+import type { MemoryConflictService } from "./memory-conflict-service.js";
 import type { MemoryStore } from "./memory-store.js";
 import type {
   L0Field,
@@ -52,6 +49,7 @@ export interface MemoryManager {
   writeCandidates(input: {
     userMessage: string;
     candidates: MemoryCandidate[];
+    onConflictEvent?: (event: MemoryConflictEvent) => void;
   }): Promise<MemoryWriteSummary>;
 }
 
@@ -72,11 +70,7 @@ export function createMemoryManager(options: {
 }): MemoryManager {
   const now = options.now ?? (() => new Date());
   const idFactory = options.idFactory ?? randomUUID;
-  const conflictService = options.conflictService ?? createMemoryConflictService({
-    store: options.store,
-    vectorNeighbors: async () => [],
-    recentInjectionIds: () => [],
-  });
+  const conflictService = options.conflictService;
 
   return {
     async writeCandidates(input) {
@@ -97,11 +91,13 @@ export function createMemoryManager(options: {
       });
 
       for (const id of writtenL2Ids) {
+        if (!conflictService) continue;
         try {
           await conflictService.inspectNewMemory(id);
         } catch {
           try {
-            options.onConflictEvent?.(MEMORY_CONFLICT_DETECTION_FAILED_EVENT);
+            (input.onConflictEvent ?? options.onConflictEvent)
+              ?.(MEMORY_CONFLICT_DETECTION_FAILED_EVENT);
           } catch {
             // Conflict reporting is best effort and must not affect a persisted memory.
           }

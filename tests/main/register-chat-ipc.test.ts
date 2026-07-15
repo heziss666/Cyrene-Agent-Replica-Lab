@@ -4,6 +4,7 @@ import { registerChatIpc } from "../../src/main/app/register-chat-ipc.js";
 import { buildMemoryContext } from "../../src/main/memory/memory-context.js";
 import type { MemoryStore } from "../../src/main/memory/memory-store.js";
 import type {
+  L2MemoryV2,
   MemoryCandidate,
   MemoryFile,
   MemoryRecallResult,
@@ -54,6 +55,39 @@ function emptyMemoryFile(): MemoryFile {
 function emptyRecall(): MemoryRecallResult {
   const memory = emptyMemoryFile();
   return { l0: memory.l0, l1: memory.l1, l2: [] };
+}
+
+function l2Memory(id: string, content: string): L2MemoryV2 {
+  return {
+    id,
+    content,
+    confidence: 0.9,
+    importance: "medium",
+    evidenceIds: [],
+    createdAt: "2026-07-15T00:00:00.000Z",
+    updatedAt: "2026-07-15T00:00:00.000Z",
+    lastAccessedAt: "2026-07-15T00:00:00.000Z",
+    accessCount: 0,
+    weight: 0.8,
+    isPinned: false,
+    isEnabled: true,
+    status: "active",
+    syncStatus: "synced",
+    isSummary: false,
+    sourceMemoryIds: [],
+    sourceSnapshots: [],
+    conflictWith: [],
+  };
+}
+
+function recallWithL2(id: string, score = 0.8): MemoryRecallResult {
+  const memory = emptyMemoryFile();
+  return {
+    l0: memory.l0,
+    l1: memory.l1,
+    l2: [{ memory: l2Memory(id, `Memory ${id}`), score }],
+    retrievalMode: "vector",
+  };
 }
 
 function createDeferred<T>() {
@@ -168,6 +202,92 @@ function successfulAgent(reply = "reply") {
 }
 
 describe("registerChatIpc", () => {
+  it("wires default conflict inspection to recall neighbors and the three latest injected-ID sets", async () => {
+    let conflictOptions: Parameters<NonNullable<RegisterDeps["createMemoryConflictService"]>>[0] | undefined;
+    const inspectNewMemory = vi.fn(async () => undefined);
+    const createMemoryConflictService: NonNullable<RegisterDeps["createMemoryConflictService"]> = vi.fn((options) => {
+      conflictOptions = options;
+      return { inspectNewMemory };
+    });
+    const createMemoryManager: NonNullable<RegisterDeps["createMemoryManager"]> = vi.fn((_options) => ({
+      writeCandidates: vi.fn(async () => ({
+        candidateCount: 0,
+        writtenCount: 0,
+        skippedCount: 0,
+        writes: [],
+      })),
+    }));
+    const recalledIds = ["first", "second", "third", "fourth"];
+    const memoryRecall = {
+      recall: vi.fn(async (query: string) => query === "new memory"
+        ? recallWithL2("neighbor", 0.91)
+        : recallWithL2(recalledIds.shift() ?? "unexpected")),
+    };
+    const deps = createFakeDeps(successfulAgent(), {
+      memoryManager: undefined,
+      memoryRecall,
+      createMemoryConflictService,
+      createMemoryManager,
+      memoryWriteQueue: createMemoryWriteQueue(),
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "one");
+    await send({ sender }, "two");
+    await send({ sender }, "three");
+    await send({ sender }, "four");
+    await runtime.flushBackgroundTasks();
+
+    expect(createMemoryConflictService).toHaveBeenCalledOnce();
+    expect(createMemoryManager).toHaveBeenCalledWith(expect.objectContaining({
+      conflictService: { inspectNewMemory },
+    }));
+    const vectorNeighbors = conflictOptions!.vectorNeighbors;
+    const recentInjectionIds = conflictOptions!.recentInjectionIds;
+    await expect(vectorNeighbors(l2Memory("new", "new memory"), 5)).resolves.toEqual([
+      { memoryId: "neighbor", similarity: 0.91 },
+    ]);
+    expect(recentInjectionIds()).toEqual(["second", "third", "fourth"]);
+  });
+
+  it("maps a default conflict inspection failure to one fixed safe write event", async () => {
+    const createMemoryConflictService = vi.fn(() => ({ inspectNewMemory: vi.fn() }));
+    const createMemoryManager = vi.fn(() => ({
+      writeCandidates: vi.fn(async ({ onConflictEvent }) => {
+        onConflictEvent({ type: "memory_conflict_detection_failed" });
+        return {
+          candidateCount: 1,
+          writtenCount: 1,
+          skippedCount: 0,
+          writes: ["L2"],
+        };
+      }),
+    }));
+    const deps = createFakeDeps(successfulAgent(), {
+      memoryManager: undefined,
+      memoryJudge: { judge: vi.fn(async () => [validCandidate]) },
+      createMemoryConflictService,
+      createMemoryManager,
+      memoryWriteQueue: createMemoryWriteQueue(),
+    });
+    const runtime = await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "Call me Alex");
+    await runtime.flushBackgroundTasks();
+
+    expect(sentEvents(sender).filter((event) => (
+      event.type === "memory_write_failed" && event.stage === "write"
+    ))).toEqual([{
+      type: "memory_write_failed",
+      stage: "write",
+      message: "Memory write unavailable",
+    }]);
+  });
+
   it("injects recalled memory into the current system message", async () => {
     const memoryRecall = {
       recall: vi.fn(async (): Promise<MemoryRecallResult> => ({
@@ -246,10 +366,10 @@ describe("registerChatIpc", () => {
     judgeDeferred.resolve([validCandidate]);
     await runtime.flushBackgroundTasks();
 
-    expect(memoryManager.writeCandidates).toHaveBeenCalledWith({
+    expect(memoryManager.writeCandidates).toHaveBeenCalledWith(expect.objectContaining({
       userMessage: "Call me Alex",
       candidates: [validCandidate],
-    });
+    }));
     expect(runtime.pendingBackgroundTaskCount()).toBe(0);
     expect(sentEventTypes(sender).filter((type) => type.startsWith("memory_"))).toEqual([
       "memory_recall_started",
@@ -423,10 +543,10 @@ describe("registerChatIpc", () => {
 
     expect(memoryJudge.judge).toHaveBeenCalledTimes(2);
     expect(memoryManager.writeCandidates).toHaveBeenCalledOnce();
-    expect(memoryManager.writeCandidates).toHaveBeenCalledWith({
+    expect(memoryManager.writeCandidates).toHaveBeenCalledWith(expect.objectContaining({
       userMessage: "Call me Alex",
       candidates: [validCandidate],
-    });
+    }));
     const judgeFailures = sentEvents(sender).filter(
       (event) => event.type === "memory_write_failed" && event.stage === "judge",
     );
@@ -546,10 +666,10 @@ describe("registerChatIpc", () => {
     await expect(runtime.flushBackgroundTasks()).resolves.toBeUndefined();
 
     expect(memoryJudge.judge).toHaveBeenCalledOnce();
-    expect(memoryManager.writeCandidates).toHaveBeenCalledWith({
+    expect(memoryManager.writeCandidates).toHaveBeenCalledWith(expect.objectContaining({
       userMessage: "Call me Alex",
       candidates: [validCandidate],
-    });
+    }));
     expect(runtime.pendingBackgroundTaskCount()).toBe(0);
   });
 

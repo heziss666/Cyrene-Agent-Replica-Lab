@@ -37,6 +37,11 @@ import {
   type MemoryJudge,
 } from "../memory/memory-judge.js";
 import {
+  createMemoryConflictService,
+  type CreateMemoryConflictServiceOptions,
+  type MemoryConflictService,
+} from "../memory/memory-conflict-service.js";
+import {
   createMemoryManager,
   type MemoryManager,
 } from "../memory/memory-manager.js";
@@ -82,9 +87,15 @@ export interface RegisterChatIpcDeps {
   memoryRecall?: MemoryRecallService;
   memoryJudge?: MemoryJudge;
   memoryManager?: MemoryManager;
+  createMemoryConflictService?: (
+    options: CreateMemoryConflictServiceOptions,
+  ) => MemoryConflictService;
+  createMemoryManager?: typeof createMemoryManager;
   memoryWriteQueue?: MemoryWriteQueue;
   buildMemoryContext?: typeof buildDefaultMemoryContext;
 }
+
+const RECENT_INJECTION_ROUNDS = 3;
 
 export interface ChatIpcRuntime {
   beginShutdown(): Promise<void>;
@@ -156,8 +167,23 @@ export async function registerChatIpc(
     ?? createMemoryRecallService({ store: memoryStore });
   const memoryJudge = deps.memoryJudge
     ?? createMemoryJudge({ getConfig, adapter });
+  const recentInjectionRounds: string[][] = [];
+  const conflictService = (deps.createMemoryConflictService ?? createMemoryConflictService)({
+    store: memoryStore,
+    vectorNeighbors: async (memory, limit) => {
+      const recalled = await memoryRecall.recall(memory.content);
+      return recalled.l2
+        .filter(({ memory: neighbor }) => neighbor.id !== memory.id)
+        .slice(0, limit)
+        .map(({ memory: neighbor, score }) => ({ memoryId: neighbor.id, similarity: score }));
+    },
+    recentInjectionIds: () => [...new Set(recentInjectionRounds.flat())],
+  });
   const memoryManager = deps.memoryManager
-    ?? createMemoryManager({ store: memoryStore });
+    ?? (deps.createMemoryManager ?? createMemoryManager)({
+      store: memoryStore,
+      conflictService,
+    });
   const memoryWriteQueue = deps.memoryWriteQueue ?? createMemoryWriteQueue();
   const buildMemoryContext = deps.buildMemoryContext ?? buildDefaultMemoryContext;
   const toolRegistry = getToolRegistry() as ToolRegistry;
@@ -206,6 +232,10 @@ export async function registerChatIpc(
         sendAgentEvent(event.sender, runId, { type: "memory_recall_started" });
         try {
           const recalledMemory = await memoryRecall.recall(text);
+          recentInjectionRounds.push(recalledMemory.l2.map(({ memory }) => memory.id));
+          if (recentInjectionRounds.length > RECENT_INJECTION_ROUNDS) {
+            recentInjectionRounds.shift();
+          }
           memoryContext = buildMemoryContext(recalledMemory);
           sendAgentEvent(event.sender, runId, {
             type: "memory_recall_finished",
@@ -270,6 +300,13 @@ export async function registerChatIpc(
               const summary = await memoryManager.writeCandidates({
                 userMessage: text,
                 candidates,
+                onConflictEvent: () => {
+                  sendAgentEvent(
+                    event.sender,
+                    runId,
+                    createMemoryWriteFailedEvent("write"),
+                  );
+                },
               });
               sendAgentEvent(
                 event.sender,

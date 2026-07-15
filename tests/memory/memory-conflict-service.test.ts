@@ -50,19 +50,33 @@ function file(memories: L2MemoryV2[]): MemoryFile {
   };
 }
 
-function createStore(initial: MemoryFile): MemoryStore & { read(): MemoryFile; updateCalls: number } {
+function createStore(initial: MemoryFile): MemoryStore & {
+  read(): MemoryFile;
+  updateCalls: number;
+  mutateBeforeNextUpdate(mutator: (draft: MemoryFile) => void): void;
+} {
   let current = structuredClone(initial);
-  const store: MemoryStore & { read(): MemoryFile; updateCalls: number } = {
+  let beforeNextUpdate: ((draft: MemoryFile) => void) | undefined;
+  const store: MemoryStore & {
+    read(): MemoryFile;
+    updateCalls: number;
+    mutateBeforeNextUpdate(mutator: (draft: MemoryFile) => void): void;
+  } = {
     updateCalls: 0,
     load: vi.fn(async () => structuredClone(current)),
     async update(mutator) {
       store.updateCalls += 1;
       const draft = structuredClone(current);
+      beforeNextUpdate?.(draft);
+      beforeNextUpdate = undefined;
       mutator(draft);
       current = draft;
       return structuredClone(current);
     },
     read: () => structuredClone(current),
+    mutateBeforeNextUpdate(mutator) {
+      beforeNextUpdate = mutator;
+    },
   };
   return store;
 }
@@ -119,5 +133,29 @@ describe("MemoryConflictService", () => {
 
     expect(store.updateCalls).toBe(0);
     expect(store.read().conflictLogs).toEqual([]);
+  });
+
+  it("skips a stale target and reinspects instead of committing a log scored from old content", async () => {
+    const source = memory("new", "I no longer use Python");
+    const target = memory("old", "I use Python");
+    const store = createStore(file([source, target]));
+    store.mutateBeforeNextUpdate((draft) => {
+      const staleTarget = draft.l2.find((item) => item.id === "old")!;
+      staleTarget.content = "I use Rust";
+      staleTarget.updatedAt = "2026-07-16T00:00:00.000Z";
+      draft.evidence[1].quote = "I use Rust";
+    });
+    const service = createMemoryConflictService({
+      store,
+      vectorNeighbors: async () => [{ memoryId: "old", similarity: 0.9 }],
+      recentInjectionIds: () => [],
+      idFactory: () => "stale-conflict",
+    });
+
+    await service.inspectNewMemory(source.id);
+
+    expect(store.read().conflictLogs).toEqual([]);
+    expect(store.read().l2.find((item) => item.id === "new")?.conflictWith).toEqual([]);
+    expect(store.read().l2.find((item) => item.id === "old")?.conflictWith).toEqual([]);
   });
 });

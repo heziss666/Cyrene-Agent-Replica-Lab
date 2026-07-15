@@ -17,7 +17,7 @@ const PREFERENCE_PATTERN = /\b(prefer|like|dislike|want)\b/i;
 const EVOLUTION_PATTERN = /\b(now|previously|before|instead|changed|switch(?:ed)?|anymore)\b/i;
 
 function normalize(value: string): string {
-  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function topicTerms(value: string): Set<string> {
