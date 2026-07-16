@@ -5,6 +5,7 @@ import {
   createMemoryWriteFinishedEvent,
   createMemoryConflictDetectedEvent,
   createMemoryGovernanceChangedEvent,
+  createMemoryIntelligenceFinishedEvent,
   createMemoryResolverFailedEvent,
   createMemoryResolverFinishedEvent,
   createMemoryResolverStartedEvent,
@@ -77,6 +78,7 @@ describe("formatRendererEvent", () => {
       createMemoryResolverFinishedEvent({ conflictId: "conflict-1", status: "uncertain" }),
       createMemoryResolverFailedEvent({ conflictId: "conflict-2", attempts: 3 }),
       createMemoryGovernanceChangedEvent({ changedCount: 1 }),
+      createMemoryIntelligenceFinishedEvent({ proposedCount: 2, acceptedCount: 1, skippedCount: 1, compressedCount: 1, nodeCount: 3, relationCount: 2 }),
     ];
 
     expect(events.map(formatRendererEvent)).toEqual([
@@ -92,6 +94,7 @@ describe("formatRendererEvent", () => {
       "Memory resolver finished: conflict-1 (uncertain)",
       "Memory resolver failed: conflict-2 (3 attempts)",
       "Memory governance changed: 1 update",
+      "Memory insight: promoted 1/2, skipped 1, compressed 1, graph 3/2",
     ]);
 
     const payload = JSON.stringify(events);

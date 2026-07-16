@@ -9,6 +9,7 @@ import type {
 import { IPC_CHANNELS } from "../../shared/ipc-channels.js";
 import type { MemoryGovernanceService } from "../memory/memory-governance.js";
 import type { MemoryScheduler } from "../memory/memory-scheduler.js";
+import type { EntityGraphService } from "../memory/entity-graph.js";
 import type { ChatIpcRuntime, IpcSenderLike } from "./register-chat-ipc.js";
 
 export interface MemoryIpcEventLike {
@@ -33,6 +34,7 @@ export interface RegisterMemoryIpcOptions {
   ipcMain: MemoryIpcMainLike;
   governance: MemoryGovernanceService;
   memoryScheduler?: Pick<MemoryScheduler, "runNow" | "beginShutdown" | "pendingCount">;
+  entityGraph?: Pick<EntityGraphService, "load">;
   afterRestoreL2?: (id: string, context: { sender?: IpcSenderLike; runId: string }) => Promise<void>;
 }
 
@@ -179,7 +181,16 @@ export function registerMemoryIpc(
   registerHandler(
     IPC_CHANNELS.memory.getSnapshot,
     parseNoPayload,
-    () => governance.snapshot(),
+    async () => {
+      const snapshot = await governance.snapshot();
+      if (!options.entityGraph) return snapshot;
+      try {
+        const graph = await options.entityGraph.load();
+        return { ...snapshot, entityGraph: { generatedAt: graph.generatedAt, nodes: graph.nodes, relations: graph.relations } };
+      } catch {
+        return snapshot;
+      }
+    },
   );
   registerHandler(
     IPC_CHANNELS.memory.updateProfileField,

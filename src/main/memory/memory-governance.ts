@@ -398,6 +398,7 @@ function toReflectionRow(reflection: MemoryFile["reflectionLogs"][number]): Memo
     sourceMemoryIds: structuredClone(reflection.sourceMemoryIds),
     acceptedCount: reflection.acceptedCount,
     skippedCount: reflection.skippedCount,
+    ...(reflection.field === undefined ? {} : { field: reflection.field }),
   };
 }
 

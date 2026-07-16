@@ -55,6 +55,8 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `Memory maintenance finished: ${event.activeToAging} aging, ${event.agingToArchived} archived, ${event.weightUpdated} weights, ${event.l1Expired} L1 expired`;
     case "memory_maintenance_failed":
       return `Memory maintenance failed: ${event.failedStepCount} step${event.failedStepCount === 1 ? "" : "s"}`;
+    case "memory_intelligence_finished":
+      return `Memory insight: promoted ${event.acceptedCount}/${event.proposedCount}, skipped ${event.skippedCount}, compressed ${event.compressedCount}, graph ${event.nodeCount}/${event.relationCount}`;
   }
 }
 

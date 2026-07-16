@@ -67,6 +67,19 @@ function createDeferred<T>() {
 }
 
 describe("registerMemoryIpc", () => {
+  it("merges the rebuildable entity graph into snapshot reads", async () => {
+    const ipcMain = createFakeIpcMain();
+    registerMemoryIpc({
+      ipcMain,
+      governance: createGovernance(),
+      entityGraph: { load: vi.fn(async () => ({ schemaVersion: 1 as const, generatedAt: "2026-07-16T00:00:00.000Z", nodes: [{ id: "technology:typescript", type: "technology" as const, name: "TypeScript", sourceMemoryIds: ["m1"] }], relations: [] })) },
+    });
+    await expect(handler(ipcMain, IPC_CHANNELS.memory.getSnapshot)({})).resolves.toMatchObject({
+      kind: "snapshot",
+      entityGraph: { nodes: [{ name: "TypeScript" }], relations: [] },
+    });
+  });
+
   it("registers all fixed channels and replaces stale handlers", () => {
     const ipcMain = createFakeIpcMain();
     for (const channel of memoryChannels()) {

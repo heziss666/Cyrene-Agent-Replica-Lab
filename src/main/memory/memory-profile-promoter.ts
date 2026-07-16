@@ -19,8 +19,8 @@ export class MemoryProfilePromoter {
         applyUpdate(draft, proposal, verification.confidence, now);
         summary.acceptedCount++;
         summary.acceptedFields.push(`${proposal.layer}.${proposal.field}`);
+        draft.reflectionLogs.push({ id: (this.options.idFactory ?? randomUUID)(), createdAt: now, type: proposal.layer === "L0" ? "l0_update" : "l1_update", field: proposal.field, sourceMemoryIds: [...proposal.sourceMemoryIds], acceptedCount: 1, skippedCount: 0 });
       });
-      draft.reflectionLogs.push({ id: (this.options.idFactory ?? randomUUID)(), createdAt: now, type: summary.acceptedFields.some((field) => field.startsWith("L0.")) ? "l0_update" : "l1_update", sourceMemoryIds: [...new Set(proposals.flatMap(({ sourceMemoryIds }) => sourceMemoryIds))], acceptedCount: summary.acceptedCount, skippedCount: summary.skippedCount });
     });
     return summary;
   }

@@ -42,9 +42,8 @@ export class MemoryCompressionService {
       if (sources.some((source) => !source || (source.status !== "active" && source.status !== "aging"))) throw new Error("SUMMARY_SOURCE_STALE");
       const snapshots = sources.map((source) => ({ memoryId: source!.id, updatedAt: source!.updatedAt }));
       if (proposal.sourceSnapshots?.some((snapshot) => snapshots.find(({ memoryId }) => memoryId === snapshot.memoryId)?.updatedAt !== snapshot.updatedAt)) throw new Error("SUMMARY_SOURCE_STALE");
-      const originalEvidenceIds = [...new Set(sources.flatMap((source) => source!.evidenceIds))];
       draft.evidence.push({ id: evidenceId, memoryId: summaryId, quote: "", capturedAt: now, source: "reflection", sourceMemoryIds: [...proposal.sourceMemoryIds] });
-      draft.l2.push({ id: summaryId, content: proposal.summary, confidence: proposal.confidence, importance: proposal.importance, evidenceIds: [...originalEvidenceIds, evidenceId], createdAt: now, updatedAt: now, lastAccessedAt: now, accessCount: 0, weight: initialMemoryWeight(proposal.importance, proposal.confidence, true), isPinned: false, isEnabled: false, status: "active", syncStatus: "pending_sync", isSummary: true, sourceMemoryIds: [...proposal.sourceMemoryIds], sourceSnapshots: snapshots, conflictWith: [] });
+      draft.l2.push({ id: summaryId, content: proposal.summary, confidence: proposal.confidence, importance: proposal.importance, evidenceIds: [evidenceId], createdAt: now, updatedAt: now, lastAccessedAt: now, accessCount: 0, weight: initialMemoryWeight(proposal.importance, proposal.confidence, true), isPinned: false, isEnabled: false, status: "active", syncStatus: "pending_sync", isSummary: true, sourceMemoryIds: [...proposal.sourceMemoryIds], sourceSnapshots: snapshots, conflictWith: [] });
     });
     return summaryId;
   }

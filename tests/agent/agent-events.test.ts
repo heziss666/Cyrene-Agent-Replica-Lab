@@ -8,6 +8,7 @@ import {
   createAgentTraceCollector,
   createMemoryConflictDetectedEvent,
   createMemoryGovernanceChangedEvent,
+  createMemoryIntelligenceFinishedEvent,
   createMemoryResolverFailedEvent,
   createMemoryResolverFinishedEvent,
   createMemoryResolverStartedEvent,
@@ -301,5 +302,14 @@ describe("createAgentTraceCollector", () => {
         toolResultCount: 0,
       },
     ]);
+  });
+});
+
+describe("memory intelligence events", () => {
+  it("exposes counts only", () => {
+    const event = createMemoryIntelligenceFinishedEvent({ proposedCount: 3, acceptedCount: 1, skippedCount: 2, compressedCount: 1, nodeCount: 4, relationCount: 2 });
+    expect(formatAgentEventForTerminal(event)).toBe("[memory] intelligence proposed=3 accepted=1 skipped=2 compressed=1 nodes=4 relations=2");
+    expect(Object.isFrozen(event)).toBe(true);
+    expect(JSON.stringify(event)).not.toMatch(/content|evidence|reason/i);
   });
 });

@@ -127,6 +127,7 @@ export interface ReflectionLog {
   sourceMemoryIds: string[];
   acceptedCount: number;
   skippedCount: number;
+  field?: string;
 }
 
 export interface MemoryAuditEntry {

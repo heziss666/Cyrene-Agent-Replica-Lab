@@ -331,7 +331,7 @@ function validateConflictLog(value: unknown, index: number): ConflictLog {
 function validateReflectionLog(value: unknown, index: number): ReflectionLog {
   const label = `reflectionLogs[${index}]`;
   const reflection = assertPlainObject(value, label);
-  return {
+  const result: ReflectionLog = {
     id: assertString(reflection.id, `${label}.id`),
     createdAt: assertString(reflection.createdAt, `${label}.createdAt`),
     type: assertEnum(reflection.type, `${label}.type`, [
@@ -341,6 +341,9 @@ function validateReflectionLog(value: unknown, index: number): ReflectionLog {
     acceptedCount: assertInteger(reflection.acceptedCount, `${label}.acceptedCount`),
     skippedCount: assertInteger(reflection.skippedCount, `${label}.skippedCount`),
   };
+  const field = assertOptionalString(reflection.field, `${label}.field`);
+  if (field !== undefined) result.field = field;
+  return result;
 }
 
 function validateAuditLog(value: unknown, index: number): MemoryAuditEntry {

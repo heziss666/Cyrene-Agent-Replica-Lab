@@ -55,7 +55,8 @@ describe("MemoryProfilePromoter", () => {
       proposal("L1", "currentProject", ["m1", "m2"], 0.9, "Agent Lab"),
     ], [verification(0.95), verification(0.9)]);
     expect(fixture.updates).toBe(1);
-    expect(fixture.read().reflectionLogs.at(-1)).toMatchObject({ acceptedCount: 2, skippedCount: 0 });
+    expect(fixture.read().reflectionLogs).toHaveLength(2);
+    expect(fixture.read().reflectionLogs.map(({ field }) => field)).toEqual(["occupation", "currentProject"]);
     expect(JSON.stringify(fixture.read().reflectionLogs)).not.toContain("developer");
   });
 });

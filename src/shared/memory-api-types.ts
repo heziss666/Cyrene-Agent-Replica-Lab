@@ -80,6 +80,13 @@ export interface MemoryReflectionRow {
   sourceMemoryIds: string[];
   acceptedCount: number;
   skippedCount: number;
+  field?: string;
+}
+
+export interface MemoryEntityGraphSnapshot {
+  generatedAt: string;
+  nodes: Array<{ id: string; type: string; name: string; sourceMemoryIds: string[] }>;
+  relations: Array<{ id: string; fromId: string; toId: string; type: string; sourceMemoryIds: string[] }>;
 }
 
 export type MemoryAuditMetadata = Pick<
@@ -97,6 +104,7 @@ export interface MemorySnapshot {
   reflections: MemoryReflectionRow[];
   audit: MemoryAuditMetadata[];
   maintenance: MemoryMaintenanceSnapshot;
+  entityGraph?: MemoryEntityGraphSnapshot;
 }
 
 export type UpdateProfileFieldInput =

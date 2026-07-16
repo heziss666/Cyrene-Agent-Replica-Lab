@@ -78,6 +78,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     runId: string;
     status: "requested" | "running" | "finished" | "failed";
   } | undefined;
+  let relationQuery = "";
 
   const controller: MemoryViewController = {
     async show() {
@@ -139,7 +140,8 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
       || payload.event.type === "memory_resolver_finished"
       || payload.event.type === "memory_maintenance_started"
       || payload.event.type === "memory_maintenance_finished"
-      || payload.event.type === "memory_maintenance_failed") {
+      || payload.event.type === "memory_maintenance_failed"
+      || payload.event.type === "memory_intelligence_finished") {
       void controller.refresh();
     }
   });
@@ -201,7 +203,7 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
         renderAudit(content, snapshot);
         return;
       case "relations":
-        renderRelations(content);
+        renderRelations(content, snapshot);
         return;
     }
   }
@@ -454,8 +456,9 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     for (const reflection of snapshot.reflections) {
       const row = createElement("div", "memory-table-row");
       row.append(createText("span", undefined, reflection.id));
-      row.append(createText("span", undefined, `${reflection.type} | accepted ${reflection.acceptedCount} | skipped ${reflection.skippedCount}`));
+      row.append(createText("span", undefined, `${reflection.type}${reflection.field ? ` | ${reflection.field}` : ""} | accepted ${reflection.acceptedCount} | skipped ${reflection.skippedCount}`));
       row.append(createText("span", undefined, reflection.createdAt));
+      row.append(createText("span", undefined, `Sources: ${reflection.sourceMemoryIds.join(", ") || "none"}`));
       list.append(row);
     }
     content.append(list);
@@ -501,9 +504,42 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     }
   }
 
-  function renderRelations(content: HTMLElement): void {
+  function renderRelations(content: HTMLElement, snapshot: MemorySnapshot): void {
     content.append(createHeading("Relations"));
-    content.append(createState("Relations are not available in this phase.", true));
+    const graph = snapshot.entityGraph;
+    if (!graph || (graph.nodes.length === 0 && graph.relations.length === 0)) {
+      content.append(createState("No derived relations yet.", false));
+      return;
+    }
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = "Filter entities and relations";
+    search.setAttribute("aria-label", "Filter entities and relations");
+    search.value = relationQuery;
+    search.addEventListener("input", () => { relationQuery = search.value; render(); });
+    content.append(search);
+    const query = relationQuery.trim().toLocaleLowerCase();
+    const nodes = graph.nodes.filter((node) => !query || `${node.type} ${node.name} ${node.sourceMemoryIds.join(" ")}`.toLocaleLowerCase().includes(query));
+    const nodeNames = new Map(graph.nodes.map((node) => [node.id, node.name]));
+    const relations = graph.relations.filter((relation) => !query || `${nodeNames.get(relation.fromId)} ${relation.type} ${nodeNames.get(relation.toId)} ${relation.sourceMemoryIds.join(" ")}`.toLocaleLowerCase().includes(query));
+    const nodeTable = createElement("div", "memory-table");
+    for (const node of nodes) {
+      const row = createElement("div", "memory-table-row");
+      row.append(createText("span", undefined, node.name));
+      row.append(createText("span", undefined, node.type));
+      row.append(createText("span", undefined, `Sources: ${node.sourceMemoryIds.join(", ")}`));
+      nodeTable.append(row);
+    }
+    content.append(nodeTable);
+    const relationTable = createElement("div", "memory-table");
+    for (const relation of relations) {
+      const row = createElement("div", "memory-table-row");
+      row.append(createText("span", undefined, `${nodeNames.get(relation.fromId) ?? relation.fromId} -> ${nodeNames.get(relation.toId) ?? relation.toId}`));
+      row.append(createText("span", undefined, relation.type));
+      row.append(createText("span", undefined, `Sources: ${relation.sourceMemoryIds.join(", ")}`));
+      relationTable.append(row);
+    }
+    content.append(relationTable);
   }
 
   async function saveProfile(field: ProfileField, rawValue: string): Promise<void> {

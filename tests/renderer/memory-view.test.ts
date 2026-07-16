@@ -243,7 +243,7 @@ describe("memory view", () => {
 
     root.querySelector('[data-memory-tab="relations"]')?.click();
     expect(root.querySelector(".memory-content")).not.toBeNull();
-    expect(root.querySelector(".memory-state")?.getAttribute("aria-disabled")).toBe("true");
+    expect(root.querySelector(".memory-state")?.getAttribute("aria-disabled")).toBe("false");
     expect(root.children).toHaveLength(4);
   });
 
@@ -431,6 +431,30 @@ describe("memory view", () => {
     expect(root.textContent).toContain("success | conflict | conflict-1");
     expect(root.textContent).toContain("Code resolved");
     expect(root.textContent).toContain("missing_evidence | warning | memory-2");
+  });
+
+  it("renders reflection provenance and derived relation tables", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const snapshot = createSnapshot();
+    snapshot.reflections.push({ id: "reflection-1", createdAt: "2026-07-16T00:00:00.000Z", type: "l0_update", field: "occupation", sourceMemoryIds: ["memory-1"], acceptedCount: 1, skippedCount: 0 });
+    snapshot.entityGraph = {
+      generatedAt: "2026-07-16T00:00:00.000Z",
+      nodes: [
+        { id: "technology:typescript", type: "technology", name: "TypeScript", sourceMemoryIds: ["memory-1"] },
+        { id: "project:agent-lab", type: "project", name: "Agent Lab", sourceMemoryIds: ["memory-1"] },
+      ],
+      relations: [{ id: "r1", fromId: "technology:typescript", toId: "project:agent-lab", type: "used_in", sourceMemoryIds: ["memory-1"] }],
+    };
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api: createApi(snapshot), document });
+    await view.show();
+    root.querySelector('[data-memory-tab="reflections"]')?.click();
+    expect(root.textContent).toContain("occupation");
+    expect(root.textContent).toContain("Sources: memory-1");
+    root.querySelector('[data-memory-tab="relations"]')?.click();
+    expect(root.textContent).toContain("TypeScript -> Agent Lab");
+    expect(root.textContent).toContain("used_in");
+    expect(root.querySelector('[aria-label="Filter entities and relations"]')).not.toBeNull();
   });
 
   it("rolls back failed mutations and displays a safe error", async () => {

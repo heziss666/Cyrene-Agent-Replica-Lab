@@ -128,6 +128,16 @@ type MemoryMaintenanceFailedEvent = {
   readonly failedStepCount: number;
 } & MemoryGovernanceEventBrand;
 
+type MemoryIntelligenceFinishedEvent = {
+  readonly type: "memory_intelligence_finished";
+  readonly proposedCount: number;
+  readonly acceptedCount: number;
+  readonly skippedCount: number;
+  readonly compressedCount: number;
+  readonly nodeCount: number;
+  readonly relationCount: number;
+} & MemoryGovernanceEventBrand;
+
 export type AgentEvent =
   | {
       type: "run_started";
@@ -204,7 +214,8 @@ export type AgentEvent =
   | MemoryGovernanceChangedEvent
   | MemoryMaintenanceStartedEvent
   | MemoryMaintenanceFinishedEvent
-  | MemoryMaintenanceFailedEvent;
+  | MemoryMaintenanceFailedEvent
+  | MemoryIntelligenceFinishedEvent;
 
 export interface CreateMemoryWriteFinishedEventInput {
   writtenCount: number;
@@ -321,6 +332,25 @@ export function createMemoryMaintenanceFailedEvent(input: {
   }) as MemoryMaintenanceFailedEvent;
 }
 
+export function createMemoryIntelligenceFinishedEvent(input: {
+  proposedCount: number;
+  acceptedCount: number;
+  skippedCount: number;
+  compressedCount: number;
+  nodeCount: number;
+  relationCount: number;
+}): MemoryIntelligenceFinishedEvent {
+  return Object.freeze({
+    type: "memory_intelligence_finished" as const,
+    proposedCount: safeCount(input.proposedCount),
+    acceptedCount: safeCount(input.acceptedCount),
+    skippedCount: safeCount(input.skippedCount),
+    compressedCount: safeCount(input.compressedCount),
+    nodeCount: safeCount(input.nodeCount),
+    relationCount: safeCount(input.relationCount),
+  }) as MemoryIntelligenceFinishedEvent;
+}
+
 export function countMemoryGovernanceChanges(input: {
   activeToAging: number;
   agingToArchived: number;
@@ -396,6 +426,8 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[memory] maintenance finished aging=${event.activeToAging} archived=${event.agingToArchived} weights=${event.weightUpdated} l1Expired=${event.l1Expired}`;
     case "memory_maintenance_failed":
       return `[memory] maintenance failed steps=${event.failedStepCount}`;
+    case "memory_intelligence_finished":
+      return `[memory] intelligence proposed=${event.proposedCount} accepted=${event.acceptedCount} skipped=${event.skippedCount} compressed=${event.compressedCount} nodes=${event.nodeCount} relations=${event.relationCount}`;
   }
 }
 
