@@ -457,6 +457,35 @@ describe("memory view", () => {
     expect(root.querySelector('[aria-label="Filter entities and relations"]')).not.toBeNull();
   });
 
+  it("preserves the derived relation graph when a mutation snapshot omits it", async () => {
+    const document = createFakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const snapshot = createSnapshot();
+    snapshot.entityGraph = {
+      generatedAt: "2026-07-16T00:00:00.000Z",
+      nodes: [
+        { id: "technology:typescript", type: "technology", name: "TypeScript", sourceMemoryIds: ["memory-1"] },
+        { id: "project:agent-lab", type: "project", name: "Agent Lab", sourceMemoryIds: ["memory-1"] },
+      ],
+      relations: [{ id: "r1", fromId: "technology:typescript", toId: "project:agent-lab", type: "used_in", sourceMemoryIds: ["memory-1"] }],
+    };
+    const mutationSnapshot = createSnapshot();
+    mutationSnapshot.l2[0].isPinned = true;
+    const api = createApi(snapshot);
+    api.setL2Pinned = vi.fn(async () => ({ ok: true as const, snapshot: mutationSnapshot }));
+    const view = mountMemoryView({ root: root as unknown as HTMLElement, api, document });
+    await view.show();
+
+    root.querySelector('[data-memory-tab="events"]')?.click();
+    root.querySelector('[data-action="pin-l2-memory-1"]')?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    root.querySelector('[data-memory-tab="relations"]')?.click();
+
+    expect(root.textContent).toContain("TypeScript -> Agent Lab");
+    expect(api.getSnapshot).toHaveBeenCalledOnce();
+  });
+
   it("rolls back failed mutations and displays a safe error", async () => {
     const document = createFakeDocument();
     const root = document.createElement("section") as unknown as FakeElement;

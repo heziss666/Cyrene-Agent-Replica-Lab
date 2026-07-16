@@ -605,7 +605,15 @@ export function mountMemoryView(options: MemoryViewOptions): MemoryViewControlle
     let succeeded = false;
     try {
       const result = await operation();
-      const applied = model.applyMutation(result);
+      const resultWithRelations = result.ok
+        && result.snapshot.entityGraph === undefined
+        && previous.entityGraph !== undefined
+        ? {
+            ...result,
+            snapshot: { ...result.snapshot, entityGraph: previous.entityGraph },
+          }
+        : result;
+      const applied = model.applyMutation(resultWithRelations);
       if (!applied.ok) errorMessage = applied.error;
       else succeeded = true;
     } catch {
