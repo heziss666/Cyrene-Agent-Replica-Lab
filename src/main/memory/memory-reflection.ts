@@ -38,7 +38,17 @@ export function createMemoryReflection(options: {
         adapter: options.adapter,
         fetchImpl: options.fetchImpl,
       });
-      return parseReflectionProposal(result.text, input);
+      const proposal = parseReflectionProposal(result.text, input);
+      return {
+        ...proposal,
+        profileUpdates: proposal.profileUpdates.map((update) => ({
+          ...update,
+          sourceSnapshots: update.sourceMemoryIds.map((memoryId) => ({
+            memoryId,
+            updatedAt: input.sources.find(({ id }) => id === memoryId)!.updatedAt,
+          })),
+        })),
+      };
     },
   };
 }
