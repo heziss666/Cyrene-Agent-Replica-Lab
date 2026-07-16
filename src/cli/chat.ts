@@ -3,39 +3,15 @@ import * as readline from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { formatAgentEventForTerminal } from "../main/agent/agent-events.js";
 import { runToolAgent } from "../main/agent/tool-agent.js";
-import { loadLocalEnvFile } from "../main/config/env-file.js";
-import { loadModelConfig } from "../main/config/model-config.js";
-import type { ModelConfig } from "../main/config/model-config.js";
 import { loadPersonaConfig } from "../main/config/persona-config.js";
 import {
-  createPromptComposer,
-  type PromptComposer,
-} from "../main/prompts/prompt-composer.js";
-import { createDefaultToolRegistry } from "../main/tools/built-in-tools.js";
-import type { ToolRegistry } from "../main/tools/tool-registry.js";
+  buildModelMessages,
+  createRuntimePromptComposer,
+  createRuntimeToolRegistry,
+  loadRuntimeModelConfig,
+} from "../main/runtime/agent-runtime.js";
 import { openAICompatibleAdapter } from "../main/vendors/openai-compatible.js";
 import type { ChatMessage } from "../shared/chat-types.js";
-
-export function createRuntimePromptComposer(): PromptComposer {
-  return createPromptComposer();
-}
-
-export function buildModelMessages(
-  systemPrompt: string,
-  history: ChatMessage[],
-): ChatMessage[] {
-  return [{ role: "system", content: systemPrompt }, ...history];
-}
-
-export function loadRuntimeModelConfig(): ModelConfig {
-  loadLocalEnvFile();
-  return loadModelConfig();
-}
-
-export function createRuntimeToolRegistry(): ToolRegistry {
-  loadLocalEnvFile();
-  return createDefaultToolRegistry();
-}
 
 export async function runTerminalChat(): Promise<void> {
   const config = loadRuntimeModelConfig();

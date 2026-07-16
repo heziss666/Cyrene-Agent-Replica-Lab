@@ -1,5 +1,10 @@
 # Phase 1：最小可运行 Agent
 
+> 当前状态（2026-07-16）：本章记录的是 Phase 1 的历史学习实现。项目现已使用
+> `src/main/agent/tool-agent.ts` 作为唯一 Agent Loop；早期的
+> `src/main/agent/minimal-agent.ts` 及其专属测试已删除。下文中的旧文件路径和
+> `runMinimalAgent()` 代码用于理解演进过程，不代表当前运行结构。
+
 这一阶段只做一件事：让一个 TypeScript 终端程序能够把用户输入发给 DeepSeek / OpenAI-compatible 聊天接口，并打印模型回复。
 
 它是后面所有复杂能力的地基。

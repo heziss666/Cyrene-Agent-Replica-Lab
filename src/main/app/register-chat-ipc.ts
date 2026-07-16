@@ -10,7 +10,7 @@ import { isStyleId } from "../../shared/persona-types.js";
 import {
   createRuntimeToolRegistry,
   loadRuntimeModelConfig,
-} from "../../cli/chat.js";
+} from "../runtime/agent-runtime.js";
 import {
   createMemoryConflictDetectedEvent,
   createMemoryGovernanceChangedEvent,

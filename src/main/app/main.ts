@@ -34,7 +34,7 @@ import { loadRagStorageConfig } from "../config/rag-storage-config.js";
 import { createJsonVectorIndex } from "../rag/json-vector-index.js";
 import { VECTOR_INDEX_SCHEMA_VERSION } from "../rag/vector-index-types.js";
 import { DEFAULT_CHUNK_SIZE_CHARS, DEFAULT_OVERLAP_CHARS } from "../rag/chunk-text.js";
-import { loadRuntimeModelConfig } from "../../cli/chat.js";
+import { loadRuntimeModelConfig } from "../runtime/agent-runtime.js";
 import { openAICompatibleAdapter } from "../vendors/openai-compatible.js";
 import {
   countMemoryGovernanceChanges,
