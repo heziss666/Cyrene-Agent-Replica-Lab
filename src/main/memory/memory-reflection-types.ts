@@ -1,6 +1,6 @@
 import type { L0Field, L0Profile, L1Field, L1Profile, MemoryEvidence, MemorySourceSnapshot } from "./memory-types.js";
 
-export type EntityType = "person" | "organization" | "project" | "technology" | "place" | "concept";
+export type EntityType = "user" | "person" | "organization" | "project" | "technology" | "place" | "event" | "topic";
 
 export interface ReflectionClaim {
   text: string;

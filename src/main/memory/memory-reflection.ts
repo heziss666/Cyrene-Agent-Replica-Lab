@@ -5,7 +5,7 @@ import type { EntityType, ReflectionClaim, ReflectionInput, ReflectionProfileUpd
 
 const L0_FIELDS = new Set(["preferredName", "occupation", "longTermInterests", "language", "permanentNotes"]);
 const L1_FIELDS = new Set(["currentProject", "recentGoals", "recentPreferences"]);
-const ENTITY_TYPES = new Set<EntityType>(["person", "organization", "project", "technology", "place", "concept"]);
+const ENTITY_TYPES = new Set<EntityType>(["user", "person", "organization", "project", "technology", "place", "event", "topic"]);
 const TOP_KEYS = ["compressionGroups", "entities", "profileUpdates", "relations"];
 
 export const MEMORY_REFLECTION_SYSTEM_PROMPT = `You propose durable patterns from memory snapshots.
