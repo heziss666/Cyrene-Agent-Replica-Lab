@@ -7,6 +7,8 @@ Current milestone:
 - Phase 0: project scaffold
 - Phase 1: minimal terminal chat agent
 - Phase 2: terminal tool-calling agent loop
+- Phase 6: persistent Ollama-backed RAG
+- Phase 7: governed long-term memory, lifecycle maintenance, verified reflection, two-stage compression, and a rebuildable entity graph
 
 Run tests:
 
@@ -27,3 +29,18 @@ npm run dev:chat
 ```
 
 Never commit API keys.
+
+## Memory system
+
+The Electron Memory view includes Overview, Profile, Events, Conflicts, Reflections, Relations, and Audit tabs. Maintenance can run automatically or from the Overview action.
+
+Chinese learning guide: [`docs/learning/phase-07-complete-memory-system.zh-CN.md`](docs/learning/phase-07-complete-memory-system.zh-CN.md)
+
+Full verification:
+
+```bash
+npm test
+npm run typecheck
+npm run build
+npm run test:embedding
+```
