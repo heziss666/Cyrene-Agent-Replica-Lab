@@ -1,4 +1,4 @@
-import type { JsonSchema } from "../tools/tool-types.js";
+import type { ToolParameters } from "../tools/tool-types.js";
 
 export type McpRisk = "read" | "sensitive";
 export type McpTrust = "ask-sensitive" | "trusted";
@@ -48,7 +48,7 @@ export interface McpToolAnnotations {
 export interface McpDiscoveredTool {
   name: string;
   description: string;
-  inputSchema: JsonSchema & { type: "object" };
+  inputSchema: ToolParameters;
   annotations?: McpToolAnnotations;
 }
 
