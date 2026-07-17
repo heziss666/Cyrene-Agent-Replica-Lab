@@ -29,6 +29,20 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `Skill reference loaded: ${event.skillId}/${event.reference}`;
     case "skill_load_failed":
       return `Skill load failed: ${event.skillId} (${event.code})`;
+    case "mcp_server_connecting":
+      return `MCP connecting: ${event.serverId}`;
+    case "mcp_server_connected":
+      return `MCP connected: ${event.serverId} (${event.toolCount} tools)`;
+    case "mcp_server_disconnected":
+      return `MCP disconnected: ${event.serverId}`;
+    case "mcp_server_failed":
+      return `MCP failed: ${event.serverId} (${event.errorCode})`;
+    case "mcp_tools_changed":
+      return `MCP tools changed: ${event.serverId} (${event.toolCount} tools)`;
+    case "mcp_tool_approval_requested":
+      return `MCP approval requested: ${event.serverId}/${event.toolId}`;
+    case "mcp_tool_approval_resolved":
+      return `MCP approval resolved: ${event.serverId}/${event.toolId} (${event.allowed ? "allowed" : "denied"})`;
     case "memory_recall_started":
       return "Memory recall started";
     case "memory_recall_finished":

@@ -36,4 +36,18 @@ describe("IPC_CHANNELS", () => {
       reload: "cyrene:skills:reload",
     });
   });
+
+  it("defines stable MCP management and approval channels", () => {
+    expect(IPC_CHANNELS.mcp).toEqual({
+      list: "cyrene:mcp:list",
+      add: "cyrene:mcp:add",
+      update: "cyrene:mcp:update",
+      remove: "cyrene:mcp:remove",
+      reconnect: "cyrene:mcp:reconnect",
+      setEnabled: "cyrene:mcp:set-enabled",
+      setToolOptions: "cyrene:mcp:set-tool-options",
+      approvalRequest: "cyrene:mcp:approval-request",
+      resolveApproval: "cyrene:mcp:resolve-approval",
+    });
+  });
 });

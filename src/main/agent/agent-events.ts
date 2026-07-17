@@ -198,6 +198,13 @@ export type AgentEvent =
       skillId: string;
       code: string;
     }
+  | { type: "mcp_server_connecting"; serverId: string }
+  | { type: "mcp_server_connected"; serverId: string; toolCount: number }
+  | { type: "mcp_server_disconnected"; serverId: string }
+  | { type: "mcp_server_failed"; serverId: string; errorCode: string }
+  | { type: "mcp_tools_changed"; serverId: string; toolCount: number }
+  | { type: "mcp_tool_approval_requested"; serverId: string; toolId: string }
+  | { type: "mcp_tool_approval_resolved"; serverId: string; toolId: string; allowed: boolean }
   | {
       type: "memory_recall_started";
     }
@@ -414,6 +421,20 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[skill] reference loaded id=${event.skillId} reference=${event.reference}`;
     case "skill_load_failed":
       return `[skill] load failed id=${event.skillId} code=${event.code}`;
+    case "mcp_server_connecting":
+      return `[mcp] connecting server=${event.serverId}`;
+    case "mcp_server_connected":
+      return `[mcp] connected server=${event.serverId} tools=${event.toolCount}`;
+    case "mcp_server_disconnected":
+      return `[mcp] disconnected server=${event.serverId}`;
+    case "mcp_server_failed":
+      return `[mcp] failed server=${event.serverId} code=${event.errorCode}`;
+    case "mcp_tools_changed":
+      return `[mcp] tools changed server=${event.serverId} tools=${event.toolCount}`;
+    case "mcp_tool_approval_requested":
+      return `[mcp] approval requested server=${event.serverId} tool=${event.toolId}`;
+    case "mcp_tool_approval_resolved":
+      return `[mcp] approval resolved server=${event.serverId} tool=${event.toolId} allowed=${event.allowed}`;
     case "memory_recall_started":
       return "[memory] recall started";
     case "memory_recall_finished":

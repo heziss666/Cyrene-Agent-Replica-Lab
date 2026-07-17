@@ -75,3 +75,23 @@ describe("CyreneApi skills contract", () => {
     await expect(skills.reload()).resolves.toBe(snapshot);
   });
 });
+
+describe("CyreneApi MCP contract", () => {
+  it("exposes management and single-use approval methods", async () => {
+    const snapshot = { servers: [] };
+    const mcp = {
+      list: async () => snapshot,
+      add: async (_config) => snapshot,
+      update: async (_id, _patch) => snapshot,
+      remove: async (_id) => snapshot,
+      reconnect: async (_id) => snapshot,
+      setEnabled: async (_id, _enabled) => snapshot,
+      setToolOptions: async (_serverId, _toolName, _options) => snapshot,
+      onApprovalRequested: (_listener) => () => undefined,
+      resolveApproval: async (_id, _allowed) => ({ resolved: true }),
+    } satisfies CyreneApi["mcp"];
+
+    await expect(mcp.list()).resolves.toBe(snapshot);
+    await expect(mcp.resolveApproval("approval-1", false)).resolves.toEqual({ resolved: true });
+  });
+});

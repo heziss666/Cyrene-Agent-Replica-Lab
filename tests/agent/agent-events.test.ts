@@ -93,6 +93,29 @@ describe("formatAgentEventForTerminal", () => {
     ).toBe(`[run] error first line ${"x".repeat(144)}...`);
   });
 
+  it("formats MCP lifecycle events without exposing config secrets", () => {
+    const events: AgentEvent[] = [
+      { type: "mcp_server_connecting", serverId: "demo" },
+      { type: "mcp_server_connected", serverId: "demo", toolCount: 2 },
+      { type: "mcp_tools_changed", serverId: "demo", toolCount: 3 },
+      { type: "mcp_tool_approval_requested", serverId: "demo", toolId: "demo__write" },
+      { type: "mcp_tool_approval_resolved", serverId: "demo", toolId: "demo__write", allowed: false },
+      { type: "mcp_server_disconnected", serverId: "demo" },
+      { type: "mcp_server_failed", serverId: "demo", errorCode: "MCP_CONNECT_FAILED" },
+    ];
+
+    expect(events.map(formatAgentEventForTerminal)).toEqual([
+      "[mcp] connecting server=demo",
+      "[mcp] connected server=demo tools=2",
+      "[mcp] tools changed server=demo tools=3",
+      "[mcp] approval requested server=demo tool=demo__write",
+      "[mcp] approval resolved server=demo tool=demo__write allowed=false",
+      "[mcp] disconnected server=demo",
+      "[mcp] failed server=demo code=MCP_CONNECT_FAILED",
+    ]);
+    expect(JSON.stringify(events)).not.toMatch(/token|header|env|args/i);
+  });
+
   it("filters and deduplicates memory write keys and maps failure stages safely", () => {
     expect(
       filterSafeMemoryWriteKeys([

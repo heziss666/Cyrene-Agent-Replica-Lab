@@ -31,4 +31,15 @@ export const IPC_CHANNELS = {
     setEnabled: "cyrene:skills:set-enabled",
     reload: "cyrene:skills:reload",
   },
+  mcp: {
+    list: "cyrene:mcp:list",
+    add: "cyrene:mcp:add",
+    update: "cyrene:mcp:update",
+    remove: "cyrene:mcp:remove",
+    reconnect: "cyrene:mcp:reconnect",
+    setEnabled: "cyrene:mcp:set-enabled",
+    setToolOptions: "cyrene:mcp:set-tool-options",
+    approvalRequest: "cyrene:mcp:approval-request",
+    resolveApproval: "cyrene:mcp:resolve-approval",
+  },
 } as const;

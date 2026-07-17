@@ -69,6 +69,7 @@ export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
           transport: config.transport,
           enabled: config.enabled,
           trust: config.trust,
+          config,
           status: statuses.get(config.id)
             ?? state?.status
             ?? (config.enabled ? "disconnected" : "disabled"),

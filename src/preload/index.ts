@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { ChatAgentEventPayload, CyreneApi } from "../shared/electron-api.js";
+import type { McpApprovalRequestView } from "../shared/mcp-api-types.js";
 import { IPC_CHANNELS } from "../shared/ipc-channels.js";
 
 const api: CyreneApi = {
@@ -74,6 +75,32 @@ const api: CyreneApi = {
     reload: async () => {
       return ipcRenderer.invoke(IPC_CHANNELS.skills.reload);
     },
+  },
+  mcp: {
+    list: async () => ipcRenderer.invoke(IPC_CHANNELS.mcp.list),
+    add: async (config) => ipcRenderer.invoke(IPC_CHANNELS.mcp.add, config),
+    update: async (id, patch) => ipcRenderer.invoke(IPC_CHANNELS.mcp.update, { id, patch }),
+    remove: async (id) => ipcRenderer.invoke(IPC_CHANNELS.mcp.remove, { id }),
+    reconnect: async (id) => ipcRenderer.invoke(IPC_CHANNELS.mcp.reconnect, { id }),
+    setEnabled: async (id, enabled) => ipcRenderer.invoke(
+      IPC_CHANNELS.mcp.setEnabled,
+      { id, enabled },
+    ),
+    setToolOptions: async (serverId, toolName, options) => ipcRenderer.invoke(
+      IPC_CHANNELS.mcp.setToolOptions,
+      { serverId, toolName, options },
+    ),
+    onApprovalRequested: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, request: McpApprovalRequestView) => {
+        listener(request);
+      };
+      ipcRenderer.on(IPC_CHANNELS.mcp.approvalRequest, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.mcp.approvalRequest, handler);
+    },
+    resolveApproval: async (id, allowed) => ipcRenderer.invoke(
+      IPC_CHANNELS.mcp.resolveApproval,
+      { id, allowed },
+    ),
   },
 };
 

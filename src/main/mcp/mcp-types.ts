@@ -64,6 +64,7 @@ export interface McpConnectionSnapshot {
 export interface McpServerSnapshot extends McpConnectionSnapshot {
   enabled: boolean;
   trust: McpTrust;
+  config: McpServerConfig;
 }
 
 export interface McpSnapshot {
