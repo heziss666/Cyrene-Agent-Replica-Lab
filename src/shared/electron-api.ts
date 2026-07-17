@@ -1,6 +1,7 @@
 import type { AgentEvent } from "../main/agent/agent-events.js";
 import type { MemoryApi } from "./memory-api-types.js";
 import type { StyleId } from "./persona-types.js";
+import type { SkillsApi } from "./skill-api-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -42,4 +43,5 @@ export interface CyreneApi {
   memory: MemoryApi & {
     runMaintenance: () => Promise<MemoryMaintenanceRunResult>;
   };
+  skills: SkillsApi;
 }

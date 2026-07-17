@@ -1,7 +1,11 @@
 import type { ChatMessage } from "../../shared/chat-types.js";
 import type { AgentEvent } from "./agent-events.js";
 import type { ModelConfig } from "../config/model-config.js";
-import type { ToolCall, ToolExecutionResult } from "../tools/tool-types.js";
+import type {
+  ToolCall,
+  ToolExecutionContext,
+  ToolExecutionResult,
+} from "../tools/tool-types.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
 import { requestChatCompletion } from "../vendors/chat-completion-client.js";
 import type { VendorAdapter } from "../vendors/types.js";
@@ -43,6 +47,7 @@ async function executeToolCall(
   toolCall: ToolCall,
   toolRegistry: ToolRegistry,
   parsedArgs?: Record<string, unknown>,
+  context?: ToolExecutionContext,
 ): Promise<ToolExecutionResult> {
   const args = parsedArgs ?? parseToolArguments(toolCall);
   if (typeof args.__toolArgumentError === "string") {
@@ -63,7 +68,7 @@ async function executeToolCall(
   try {
     return {
       toolCall,
-      output: await tool.execute(args),
+      output: await tool.execute(args, context),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -79,6 +84,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
   let conversation = input.messages.map((message) => ({ ...message }));
   const allToolResults: ToolExecutionResult[] = [];
   let runErrorEmitted = false;
+  const runState = new Map<string, unknown>();
 
   const emit = (event: AgentEvent): void => {
     input.onEvent?.(event);
@@ -155,7 +161,10 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
               : args,
         });
 
-        const result = await executeToolCall(toolCall, input.toolRegistry, args);
+        const result = await executeToolCall(toolCall, input.toolRegistry, args, {
+          runState,
+          emitEvent: emit,
+        });
         emit({
           type: "tool_call_finished",
           round: roundNumber,

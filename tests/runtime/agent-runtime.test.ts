@@ -75,4 +75,21 @@ describe("agent runtime", () => {
       rmSync(directory, { recursive: true, force: true });
     }
   });
+
+  it("adds progressive skill tools when a skill registry is supplied", () => {
+    const registry = createRuntimeToolRegistry({
+      get: () => undefined,
+      readBody: async () => "body",
+      readReference: async () => "reference",
+    });
+
+    expect(registry.getEnabledTools().map((tool) => tool.id)).toEqual([
+      "get_current_time",
+      "calculator",
+      "echo",
+      "search_knowledge",
+      "invoke_skill",
+      "read_skill_reference",
+    ]);
+  });
 });

@@ -95,6 +95,7 @@ export interface SkillEntry {
   rootPath: string;
   bodyPath: string;
   references: SkillReference[];
+  defaultEnabled: boolean;
   enabled: boolean;
   available: boolean;
   unavailableReasons: string[];
@@ -118,7 +119,7 @@ export interface SkillDiagnostic {
 
 ## 6. 解析和扫描
 
-使用结构化 YAML Frontmatter 解析库，不使用手写字符串拆分。必填字段为非空 `name` 和 `description`；`version` 必须是字符串；`tools` 必须是无重复字符串数组。
+使用结构化 YAML Frontmatter 解析库，不使用手写字符串拆分。必填字段为非空 `name` 和 `description`；`version` 必须是字符串；`tools` 必须是无重复字符串数组；可选的 `defaultEnabled` 必须是布尔值，省略时默认为 `true`。
 
 扫描器依次扫描内置目录和用户目录。合并时先加入内置 Skill，再由同 ID 用户 Skill 整体覆盖。覆盖不是字段合并，避免正文、Reference 和工具声明来自不同来源。
 

@@ -1174,4 +1174,76 @@ describe("registerChatIpc", () => {
     expect(runAgent.mock.calls[0]?.[0].toolRegistry).toBe(registry);
     expect(runAgent.mock.calls[1]?.[0].toolRegistry).toBe(registry);
   });
+
+  it("injects the skill catalog and a manual skill only for its requested turn", async () => {
+    const runAgent = successfulAgent();
+    const skillRegistry = {
+      list: () => [{
+        id: "tutor",
+        name: "Tutor",
+        description: "Teach this project.",
+        requiredTools: [],
+        source: "builtin" as const,
+        rootPath: "hidden",
+        bodyPath: "hidden",
+        references: [],
+        defaultEnabled: true,
+        enabled: true,
+        available: true,
+        unavailableReasons: [],
+      }],
+      get: () => undefined,
+      readBody: vi.fn(async () => "MANUAL TUTOR INSTRUCTIONS"),
+      readReference: vi.fn(async () => "reference"),
+    };
+    const deps = createFakeDeps(runAgent, { skillRegistry });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "/tutor explain ToolRegistry");
+    await send({ sender }, "continue");
+
+    expect(runAgent.mock.calls[0]?.[0].messages[0].content).toContain("## Available Skills");
+    expect(runAgent.mock.calls[0]?.[0].messages[0].content).toContain("MANUAL TUTOR INSTRUCTIONS");
+    expect(runAgent.mock.calls[0]?.[0].messages).toContainEqual({
+      role: "user",
+      content: "explain ToolRegistry",
+    });
+    expect(runAgent.mock.calls[1]?.[0].messages[0].content).not.toContain("MANUAL TUTOR INSTRUCTIONS");
+    expect(runAgent.mock.calls[1]?.[0].messages).not.toContainEqual({
+      role: "user",
+      content: "/tutor explain ToolRegistry",
+    });
+  });
+
+  it("rejects a manual skill command without a task before calling the model", async () => {
+    const runAgent = successfulAgent();
+    const skillRegistry = {
+      list: () => [{
+        id: "tutor",
+        name: "Tutor",
+        description: "Teach this project.",
+        requiredTools: [],
+        source: "builtin" as const,
+        rootPath: "hidden",
+        bodyPath: "hidden",
+        references: [],
+        defaultEnabled: true,
+        enabled: true,
+        available: true,
+        unavailableReasons: [],
+      }],
+      get: () => undefined,
+      readBody: vi.fn(async () => "body"),
+      readReference: vi.fn(async () => "reference"),
+    };
+    const deps = createFakeDeps(runAgent, { skillRegistry });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await expect(send({ sender }, "/tutor")).rejects.toThrow("SKILL_TASK_REQUIRED");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
 });

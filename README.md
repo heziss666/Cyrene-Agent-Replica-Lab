@@ -9,6 +9,7 @@ Current milestone:
 - Phase 2: terminal tool-calling agent loop
 - Phase 6: persistent Ollama-backed RAG
 - Phase 7: governed long-term memory, lifecycle maintenance, verified reflection, two-stage compression, and a rebuildable entity graph
+- Phase 8: safe local Skills, progressive loading, manual activation, persistence, and Electron management UI
 
 Run tests:
 
@@ -35,6 +36,18 @@ Never commit API keys.
 The Electron Memory view includes Overview, Profile, Events, Conflicts, Reflections, Relations, and Audit tabs. Maintenance can run automatically or from the Overview action.
 
 Chinese learning guide: [`docs/learning/phase-07-complete-memory-system.zh-CN.md`](docs/learning/phase-07-complete-memory-system.zh-CN.md)
+
+## Skills system
+
+The Electron Skills view lists builtin and user Skills, persists enable state, and rescans fixed local roots. Skill bodies and references are loaded progressively through `invoke_skill` and `read_skill_reference`; Skills do not grant new permissions.
+
+Manual activation uses `/skill-id task`, for example:
+
+```text
+/agent-learning-tutor explain ToolRegistry
+```
+
+Chinese learning guide: [`docs/learning/phase-08-skills-system.zh-CN.md`](docs/learning/phase-08-skills-system.zh-CN.md)
 
 Full verification:
 

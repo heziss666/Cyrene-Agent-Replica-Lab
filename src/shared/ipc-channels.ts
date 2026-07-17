@@ -26,4 +26,9 @@ export const IPC_CHANNELS = {
     setStyle: "cyrene:persona:set-style",
   },
   memory: MEMORY_IPC_CHANNELS,
+  skills: {
+    list: "cyrene:skills:list",
+    setEnabled: "cyrene:skills:set-enabled",
+    reload: "cyrene:skills:reload",
+  },
 } as const;

@@ -28,4 +28,12 @@ describe("IPC_CHANNELS", () => {
     });
     expect(Object.keys(IPC_CHANNELS.memory)).not.toContain("runMaintenance");
   });
+
+  it("defines stable skills management channels", () => {
+    expect(IPC_CHANNELS.skills).toEqual({
+      list: "cyrene:skills:list",
+      setEnabled: "cyrene:skills:set-enabled",
+      reload: "cyrene:skills:reload",
+    });
+  });
 });

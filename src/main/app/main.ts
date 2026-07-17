@@ -34,7 +34,10 @@ import { loadRagStorageConfig } from "../config/rag-storage-config.js";
 import { createJsonVectorIndex } from "../rag/json-vector-index.js";
 import { VECTOR_INDEX_SCHEMA_VERSION } from "../rag/vector-index-types.js";
 import { DEFAULT_CHUNK_SIZE_CHARS, DEFAULT_OVERLAP_CHARS } from "../rag/chunk-text.js";
-import { loadRuntimeModelConfig } from "../runtime/agent-runtime.js";
+import {
+  createRuntimeToolRegistry,
+  loadRuntimeModelConfig,
+} from "../runtime/agent-runtime.js";
 import { openAICompatibleAdapter } from "../vendors/openai-compatible.js";
 import {
   countMemoryGovernanceChanges,
@@ -47,9 +50,26 @@ import {
 } from "../agent/agent-events.js";
 import type { ChatAgentEventPayload } from "../../shared/electron-api.js";
 import { IPC_CHANNELS } from "../../shared/ipc-channels.js";
+import { registerSkillsIpc } from "./register-skills-ipc.js";
+import {
+  createSkillRuntime,
+  defaultBuiltinSkillsRoot,
+} from "../skills/create-skill-runtime.js";
+import { registerSkillTools } from "../skills/skill-tools.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
+  const baseToolRegistry = createRuntimeToolRegistry();
+  const userData = app.getPath("userData");
+  const skillRuntime = await createSkillRuntime({
+    builtinRoot: app.isPackaged
+      ? join(process.resourcesPath, "skills")
+      : defaultBuiltinSkillsRoot(),
+    userRoot: join(userData, "skills"),
+    settingsPath: join(userData, "skills-settings.json"),
+    toolIds: baseToolRegistry.getAllTools().map((tool) => tool.id),
+  });
+  registerSkillTools(baseToolRegistry, skillRuntime.registry);
   const memoryStore = createMemoryStore();
   const governance = createMemoryGovernanceService({ store: memoryStore });
   const resolverQueue = createMemoryResolverQueue();
@@ -91,6 +111,8 @@ async function boot(): Promise<void> {
   });
   const chatRuntime = await registerChatIpc({
     ipcMain,
+    skillRegistry: skillRuntime.registry,
+    createToolRegistry: () => baseToolRegistry,
     memoryStore,
     memoryRecall: createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex }),
     memoryResolverQueue: resolverQueue,
@@ -105,6 +127,11 @@ async function boot(): Promise<void> {
       await chatRuntime.inspectRestoredMemory?.(id, context.sender, context.runId);
     },
   });
+  const skillsIpcRuntime = registerSkillsIpc({
+    ipcMain,
+    registry: skillRuntime.registry,
+  });
+  app.once("will-quit", () => skillsIpcRuntime.dispose());
   const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime);
   registerBackgroundMemoryShutdown({ app, runtime });
   await createMainWindow();

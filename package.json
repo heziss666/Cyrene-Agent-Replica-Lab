@@ -12,6 +12,7 @@
     "dev:chat": "tsx src/cli/chat.ts",
     "dev:electron": "npm run build && electron .",
     "test": "vitest run",
+    "test:electron-smoke": "npm run build && node scripts/electron-smoke.mjs",
     "test:embedding": "tsx src/cli/test-embedding.ts",
     "rag:benchmark": "tsx src/cli/rag-benchmark.ts",
     "test:watch": "vitest",
@@ -24,5 +25,8 @@
     "typescript": "^5.7.2",
     "vite": "^5.4.21",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3"
   }
 }

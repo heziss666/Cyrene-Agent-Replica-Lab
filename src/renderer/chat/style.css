@@ -228,9 +228,111 @@ select {
 }
 
 .workspace > .chat-pane,
-.workspace > .memory-view {
+.workspace > .memory-view,
+.workspace > .skills-view {
   min-height: 0;
   min-width: 0;
+}
+
+.skills-view {
+  display: grid;
+  grid-template-rows: auto 42px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.skills-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #d9e0e7;
+}
+
+.skills-header h2,
+.skill-row h3,
+.skill-diagnostics h3 {
+  margin: 0;
+}
+
+.skills-status {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 24px;
+  color: #62717f;
+  font-size: 13px;
+  border-bottom: 1px solid #edf1f4;
+}
+
+.skills-content {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  padding: 18px 24px 28px;
+  overflow: auto;
+}
+
+.skill-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, auto);
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #d9e0e7;
+}
+
+.skill-main {
+  min-width: 0;
+}
+
+.skill-main h3 {
+  display: inline;
+  margin-right: 8px;
+  font-size: 15px;
+}
+
+.skill-main code {
+  color: #52616d;
+  font-size: 12px;
+}
+
+.skill-main p {
+  margin: 7px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.skill-metadata,
+.skill-diagnostics,
+.skills-empty {
+  color: #62717f;
+  font-size: 12px;
+}
+
+.skill-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #40505d;
+  font-size: 13px;
+}
+
+.skill-toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.skill-diagnostics {
+  padding-top: 12px;
+}
+
+.skill-diagnostics p {
+  overflow-wrap: anywhere;
 }
 
 .workspace > .chat-pane {

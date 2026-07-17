@@ -64,6 +64,17 @@ const api: CyreneApi = {
       return ipcRenderer.invoke(IPC_CHANNELS.memory.runMaintenance);
     },
   },
+  skills: {
+    list: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.skills.list);
+    },
+    setEnabled: async (id, enabled) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.skills.setEnabled, { id, enabled });
+    },
+    reload: async () => {
+      return ipcRenderer.invoke(IPC_CHANNELS.skills.reload);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("cyrene", api);

@@ -4,6 +4,10 @@ import { loadModelConfig, type ModelConfig } from "../config/model-config.js";
 import { createPromptComposer, type PromptComposer } from "../prompts/prompt-composer.js";
 import { createDefaultToolRegistry } from "../tools/built-in-tools.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
+import {
+  registerSkillTools,
+  type SkillToolRegistry,
+} from "../skills/skill-tools.js";
 
 export function createRuntimePromptComposer(): PromptComposer {
   return createPromptComposer();
@@ -21,7 +25,11 @@ export function loadRuntimeModelConfig(): ModelConfig {
   return loadModelConfig();
 }
 
-export function createRuntimeToolRegistry(): ToolRegistry {
+export function createRuntimeToolRegistry(
+  skillRegistry?: SkillToolRegistry,
+): ToolRegistry {
   loadLocalEnvFile();
-  return createDefaultToolRegistry();
+  const registry = createDefaultToolRegistry();
+  if (skillRegistry) registerSkillTools(registry, skillRegistry);
+  return registry;
 }

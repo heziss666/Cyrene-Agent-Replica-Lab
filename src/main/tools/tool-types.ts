@@ -1,3 +1,5 @@
+import type { AgentEvent } from "../agent/agent-events.js";
+
 export type JsonSchemaProperty =
   | { type: "string"; description?: string; enum?: string[] }
   | { type: "number"; description?: string }
@@ -25,7 +27,12 @@ export interface ToolDefinition {
   description: string;
   parameters: ToolParameters;
   enabled: boolean;
-  execute(args: Record<string, unknown>): Promise<string>;
+  execute(args: Record<string, unknown>, context?: ToolExecutionContext): Promise<string>;
+}
+
+export interface ToolExecutionContext {
+  runState: Map<string, unknown>;
+  emitEvent: (event: AgentEvent) => void;
 }
 
 export interface ToolSpec {

@@ -60,3 +60,18 @@ describe("CyreneApi memory contract", () => {
     await expect(apiMemory.runMaintenance()).resolves.toEqual({ runId: "maintenance-run-1" });
   });
 });
+
+describe("CyreneApi skills contract", () => {
+  it("exposes list, setEnabled, and reload without paths", async () => {
+    const snapshot = { skills: [], diagnostics: [] };
+    const skills = {
+      list: async () => snapshot,
+      setEnabled: async (_id: string, _enabled: boolean) => snapshot,
+      reload: async () => snapshot,
+    } satisfies CyreneApi["skills"];
+
+    await expect(skills.list()).resolves.toBe(snapshot);
+    await expect(skills.setEnabled("tutor", false)).resolves.toBe(snapshot);
+    await expect(skills.reload()).resolves.toBe(snapshot);
+  });
+});

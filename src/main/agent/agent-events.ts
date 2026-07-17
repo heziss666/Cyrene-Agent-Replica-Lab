@@ -185,6 +185,20 @@ export type AgentEvent =
       message: string;
     }
   | {
+      type: "skill_activated";
+      skillId: string;
+    }
+  | {
+      type: "skill_reference_loaded";
+      skillId: string;
+      reference: string;
+    }
+  | {
+      type: "skill_load_failed";
+      skillId: string;
+      code: string;
+    }
+  | {
       type: "memory_recall_started";
     }
   | {
@@ -394,6 +408,12 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[run] finished rounds=${event.roundsUsed} toolResults=${event.toolResultCount}`;
     case "run_error":
       return `[run] error ${preview(event.message)}`;
+    case "skill_activated":
+      return `[skill] activated id=${event.skillId}`;
+    case "skill_reference_loaded":
+      return `[skill] reference loaded id=${event.skillId} reference=${event.reference}`;
+    case "skill_load_failed":
+      return `[skill] load failed id=${event.skillId} code=${event.code}`;
     case "memory_recall_started":
       return "[memory] recall started";
     case "memory_recall_finished":

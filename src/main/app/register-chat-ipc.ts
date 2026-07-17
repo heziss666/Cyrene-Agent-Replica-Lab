@@ -82,6 +82,9 @@ import { openAICompatibleAdapter } from "../vendors/openai-compatible.js";
 import type { ModelConfig } from "../config/model-config.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
 import type { VendorAdapter } from "../vendors/types.js";
+import { buildSkillCatalog } from "../skills/skill-catalog.js";
+import { parseSkillCommand } from "../skills/skill-command.js";
+import type { SkillRegistry } from "../skills/skill-registry.js";
 
 export interface IpcSenderLike {
   send: (channel: string, payload: ChatAgentEventPayload) => void;
@@ -118,6 +121,10 @@ export interface RegisterChatIpcDeps {
   memoryResolverQueue?: MemoryResolverQueue;
   memoryScheduler?: Pick<MemoryScheduler, "recordSuccessfulWrite">;
   buildMemoryContext?: typeof buildDefaultMemoryContext;
+  skillRegistry?: Pick<
+    SkillRegistry,
+    "list" | "get" | "readBody" | "readReference"
+  >;
 }
 
 export interface ChatIpcRuntime {
@@ -187,7 +194,8 @@ export async function registerChatIpc(
 ): Promise<ChatIpcRuntime> {
   const runAgent = deps.runAgent ?? runToolAgent;
   const getConfig = deps.createConfig ?? loadRuntimeModelConfig;
-  const getToolRegistry = deps.createToolRegistry ?? createRuntimeToolRegistry;
+  const getToolRegistry = deps.createToolRegistry
+    ?? (() => createRuntimeToolRegistry(deps.skillRegistry));
   const promptComposer = (deps.createPromptComposer ?? createPromptComposer)();
   const personaConfigPath = defaultPersonaConfigPath();
   const loadConfig = deps.loadPersonaConfig
@@ -409,10 +417,38 @@ export async function registerChatIpc(
   deps.ipcMain.handle(
     IPC_CHANNELS.chat.sendMessage,
     async (event, payload): Promise<ChatSendResult> => {
-      const text = typeof payload === "string" ? payload : "";
+      const rawText = typeof payload === "string" ? payload : "";
       const runId = `run_${nextRunNumber}`;
       nextRunNumber += 1;
       return runSessionOperation(async () => {
+        const command = deps.skillRegistry
+          ? parseSkillCommand(rawText, deps.skillRegistry.list())
+          : { kind: "none" as const, text: rawText };
+        if (command.kind === "error") throw new Error(command.code);
+        const text = command.text;
+        let manualSkillPrompt = "";
+        if (command.kind === "activated") {
+          try {
+            manualSkillPrompt = [
+              `## Activated Skill: ${command.skillId}`,
+              await deps.skillRegistry!.readBody(command.skillId),
+            ].join("\n\n");
+            sendAgentEvent(event.sender, runId, {
+              type: "skill_activated",
+              skillId: command.skillId,
+            });
+          } catch (error) {
+            const code = error instanceof Error && /^SKILL_[A-Z_]+$/.test(error.message)
+              ? error.message
+              : "SKILL_LOAD_FAILED";
+            sendAgentEvent(event.sender, runId, {
+              type: "skill_load_failed",
+              skillId: command.skillId,
+              code,
+            });
+            throw new Error(code);
+          }
+        }
         const history = session.appendUserMessage(text);
         const styleId = session.getStyle();
         const transition = session.getPendingStyleTransition();
@@ -443,11 +479,18 @@ export async function registerChatIpc(
           styleId,
           transition,
         });
+        const skillCatalog = deps.skillRegistry
+          ? buildSkillCatalog(deps.skillRegistry.list())
+          : "";
+        const promptParts = [
+          personaPrompt,
+          skillCatalog,
+          manualSkillPrompt,
+          memoryContext,
+        ].filter((part) => part.trim().length > 0);
         const systemMessage: ChatMessage = {
           role: "system",
-          content: memoryContext.trim().length > 0
-            ? `${personaPrompt}\n\n---\n\n${memoryContext}`
-            : personaPrompt,
+          content: promptParts.join("\n\n---\n\n"),
         };
         const result: ToolAgentResult = await runAgent({
           messages: [systemMessage, ...history],

@@ -23,6 +23,12 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `Run finished: ${event.roundsUsed} rounds, ${event.toolResultCount} tool results`;
     case "run_error":
       return `Run failed: ${event.message}`;
+    case "skill_activated":
+      return `Skill activated: ${event.skillId}`;
+    case "skill_reference_loaded":
+      return `Skill reference loaded: ${event.skillId}/${event.reference}`;
+    case "skill_load_failed":
+      return `Skill load failed: ${event.skillId} (${event.code})`;
     case "memory_recall_started":
       return "Memory recall started";
     case "memory_recall_finished":

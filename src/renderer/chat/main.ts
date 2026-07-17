@@ -13,6 +13,7 @@ import {
   loadSelectedStyle,
 } from "./style-selector.js";
 import { mountMemoryView } from "./memory-view.js";
+import { mountSkillsView } from "./skills-view.js";
 import "./style.css";
 
 declare global {
@@ -32,6 +33,8 @@ const chatViewElement = document.querySelector<HTMLElement>("#chat-view");
 const memoryViewElement = document.querySelector<HTMLElement>("#memory-view");
 const chatViewButtonElement = document.querySelector<HTMLButtonElement>("#chat-view-button");
 const memoryViewButtonElement = document.querySelector<HTMLButtonElement>("#memory-view-button");
+const skillsViewElement = document.querySelector<HTMLElement>("#skills-view");
+const skillsViewButtonElement = document.querySelector<HTMLButtonElement>("#skills-view-button");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -51,6 +54,8 @@ const chatView = requireElement(chatViewElement, "chat-view");
 const memoryView = requireElement(memoryViewElement, "memory-view");
 const chatViewButton = requireElement(chatViewButtonElement, "chat-view-button");
 const memoryViewButton = requireElement(memoryViewButtonElement, "memory-view-button");
+const skillsView = requireElement(skillsViewElement, "skills-view");
+const skillsViewButton = requireElement(skillsViewButtonElement, "skills-view-button");
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
 
@@ -58,15 +63,23 @@ const memoryPanel = mountMemoryView({
   root: memoryView,
   api: window.cyrene.memory,
 });
+const skillsPanel = mountSkillsView({
+  root: skillsView,
+  api: window.cyrene.skills,
+});
 
-function setActiveView(view: "chat" | "memory"): void {
+function setActiveView(view: "chat" | "memory" | "skills"): void {
   const isMemory = view === "memory";
-  chatView.hidden = isMemory;
+  const isSkills = view === "skills";
+  chatView.hidden = isMemory || isSkills;
   memoryView.hidden = !isMemory;
-  chatViewButton.classList.toggle("is-active", !isMemory);
+  skillsView.hidden = !isSkills;
+  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills);
   memoryViewButton.classList.toggle("is-active", isMemory);
-  chatViewButton.setAttribute("aria-pressed", String(!isMemory));
+  skillsViewButton.classList.toggle("is-active", isSkills);
+  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills));
   memoryViewButton.setAttribute("aria-pressed", String(isMemory));
+  skillsViewButton.setAttribute("aria-pressed", String(isSkills));
 }
 
 function appendMessage(role: "user" | "agent", text: string): void {
@@ -126,6 +139,11 @@ chatViewButton.addEventListener("click", () => {
 memoryViewButton.addEventListener("click", async () => {
   setActiveView("memory");
   await memoryPanel.show();
+});
+
+skillsViewButton.addEventListener("click", async () => {
+  setActiveView("skills");
+  await skillsPanel.show();
 });
 
 styleSelect.addEventListener("change", async () => {
