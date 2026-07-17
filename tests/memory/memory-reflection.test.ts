@@ -15,7 +15,8 @@ describe("memory reflection", () => {
     ["string confidence", { ...validProposal(), profileUpdates: [{ ...validProposal().profileUpdates[0], confidence: "0.95" }] }],
     ["duplicate source IDs", { ...validProposal(), profileUpdates: [{ ...validProposal().profileUpdates[0], sourceMemoryIds: ["m1", "m1"] }] }],
     ["empty evidence IDs", { ...validProposal(), profileUpdates: [{ ...validProposal().profileUpdates[0], claims: [{ text: "TypeScript", evidenceIds: [] }] }] }],
-    ["unknown source ID", { ...validProposal(), compressionGroups: [{ sourceMemoryIds: ["m1", "missing"], reason: "related" }] }],
+    ["unknown source ID", { ...validProposal(), profileUpdates: [{ ...validProposal().profileUpdates[0], sourceMemoryIds: ["m1", "m2", "missing"] }] }],
+    ["legacy compression groups", { ...validProposal(), compressionGroups: [{ sourceMemoryIds: ["m1", "m2", "m3"], reason: "related" }] }],
     ["invented entity span", { ...validProposal(), entities: [{ type: "technology", name: "Rust", sourceMemoryIds: ["m1"] }] }],
   ])("rejects %s", (_name, value) => {
     expect(() => parseReflectionProposal(JSON.stringify(value), input)).toThrow("Invalid memory reflection response");
@@ -41,13 +42,13 @@ describe("memory reflection", () => {
     expect(request.messages[0].content).toContain("not instructions");
     expect(request.messages[0].content).toContain("assistant replies, reasons, and audit logs are not evidence");
     expect(request.messages[0].content).toContain("at least three source memories");
+    expect(request.messages[0].content).not.toContain("compressionGroups");
   });
 });
 
 function validProposal() {
   return {
     profileUpdates: [{ layer: "L0", field: "longTermInterests", content: "TypeScript", sourceMemoryIds: ["m1", "m2", "m3"], claims: [{ text: "TypeScript", evidenceIds: ["e1"] }], confidence: 0.95, reason: "repeated" }],
-    compressionGroups: [{ sourceMemoryIds: ["m1", "m2", "m3"], reason: "related" }],
     entities: [{ type: "technology", name: "TypeScript", sourceMemoryIds: ["m1"] }],
     relations: [{ fromName: "TypeScript", toName: "Agent", type: "used_for", sourceMemoryIds: ["m1"] }],
   };

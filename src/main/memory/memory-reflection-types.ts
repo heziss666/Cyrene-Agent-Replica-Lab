@@ -20,7 +20,6 @@ export interface ReflectionProfileUpdate {
 
 export interface ReflectionProposal {
   profileUpdates: ReflectionProfileUpdate[];
-  compressionGroups: Array<{ sourceMemoryIds: string[]; reason: string }>;
   entities: Array<{ type: EntityType; name: string; sourceMemoryIds: string[] }>;
   relations: Array<{ fromName: string; toName: string; type: string; sourceMemoryIds: string[] }>;
 }
