@@ -233,7 +233,6 @@ export async function registerChatIpc(
   const memoryResolver = deps.memoryResolver ?? createMemoryResolver({ getConfig, adapter });
   const memoryResolverQueue = deps.memoryResolverQueue ?? createMemoryResolverQueue();
   const buildMemoryContext = deps.buildMemoryContext ?? buildDefaultMemoryContext;
-  const toolRegistry = getToolRegistry() as ToolRegistry;
   const session = createChatSession(await loadConfig());
   const serializeSessionOperation = createSerialExecutor();
   const acceptedSessionOperations = new Set<Promise<unknown>>();
@@ -492,6 +491,7 @@ export async function registerChatIpc(
           role: "system",
           content: promptParts.join("\n\n---\n\n"),
         };
+        const toolRegistry = getToolRegistry() as ToolRegistry;
         const result: ToolAgentResult = await runAgent({
           messages: [systemMessage, ...history],
           config: getConfig(),

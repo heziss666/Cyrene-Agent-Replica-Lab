@@ -62,6 +62,10 @@ const activeRegistrations = new WeakMap<MemoryIpcMainLike, ActiveRegistration>()
 export function combineIpcShutdownRuntimes(
   chatRuntime: ChatIpcRuntime,
   memoryRuntime: MemoryIpcRuntime,
+  mcpRuntime?: {
+    shutdown(): Promise<void>;
+    pendingBackgroundTaskCount(): number;
+  },
 ): ChatIpcRuntime {
   let shutdownPromise: Promise<void> | undefined;
 
@@ -79,12 +83,16 @@ export function combineIpcShutdownRuntimes(
       const chatShutdown = chatAcceptance === undefined
         ? captureShutdown(() => chatRuntime.beginShutdown())
         : undefined;
+      const mcpShutdown = mcpRuntime === undefined
+        ? undefined
+        : captureShutdown(() => mcpRuntime.shutdown());
       shutdownPromise = (async () => {
         const gateResults = await Promise.allSettled([
           ...(memoryAcceptance === undefined ? [] : [memoryAcceptance]),
           ...(memoryShutdown === undefined ? [] : [memoryShutdown]),
           ...(chatAcceptance === undefined ? [] : [chatAcceptance]),
           ...(chatShutdown === undefined ? [] : [chatShutdown]),
+          ...(mcpShutdown === undefined ? [] : [mcpShutdown]),
         ]);
         const finalChatResults = chatAcceptance === undefined
           ? []
@@ -107,6 +115,7 @@ export function combineIpcShutdownRuntimes(
     flushBackgroundTasks: beginShutdown,
     pendingBackgroundTaskCount: () => (
       chatRuntime.pendingBackgroundTaskCount() + memoryRuntime.pendingOperationCount()
+        + (mcpRuntime?.pendingBackgroundTaskCount() ?? 0)
     ),
     inspectRestoredMemory: (id, sender, runId) => (
       chatRuntime.inspectRestoredMemory?.(id, sender, runId) ?? Promise.resolve()

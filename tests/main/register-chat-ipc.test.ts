@@ -1158,9 +1158,14 @@ describe("registerChatIpc", () => {
     await expect(getStyle({ sender })).resolves.toEqual({ styleId: "lively" });
   });
 
-  it("creates the tool registry only once", async () => {
-    const registry = { getEnabledToolSpecs: () => [] };
-    const createToolRegistry = vi.fn(() => registry);
+  it("creates a stable tool registry snapshot for every Agent run", async () => {
+    const registries = [
+      { getEnabledToolSpecs: () => [] },
+      { getEnabledToolSpecs: () => [] },
+    ];
+    const createToolRegistry = vi.fn()
+      .mockReturnValueOnce(registries[0])
+      .mockReturnValueOnce(registries[1]);
     const runAgent = successfulAgent();
     const deps = createFakeDeps(runAgent, { createToolRegistry });
     await registerChatIpc(deps);
@@ -1170,9 +1175,9 @@ describe("registerChatIpc", () => {
     await send({ sender }, "first");
     await send({ sender }, "second");
 
-    expect(createToolRegistry).toHaveBeenCalledOnce();
-    expect(runAgent.mock.calls[0]?.[0].toolRegistry).toBe(registry);
-    expect(runAgent.mock.calls[1]?.[0].toolRegistry).toBe(registry);
+    expect(createToolRegistry).toHaveBeenCalledTimes(2);
+    expect(runAgent.mock.calls[0]?.[0].toolRegistry).toBe(registries[0]);
+    expect(runAgent.mock.calls[1]?.[0].toolRegistry).toBe(registries[1]);
   });
 
   it("injects the skill catalog and a manual skill only for its requested turn", async () => {

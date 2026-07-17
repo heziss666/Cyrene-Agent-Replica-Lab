@@ -414,6 +414,29 @@ describe("registerMemoryIpc", () => {
 });
 
 describe("combineIpcShutdownRuntimes", () => {
+  it("includes MCP pending work and shutdown in the combined runtime", async () => {
+    const chatRuntime: ChatIpcRuntime = {
+      beginShutdown: vi.fn(async () => undefined),
+      flushBackgroundTasks: vi.fn(async () => undefined),
+      pendingBackgroundTaskCount: () => 1,
+    };
+    const memoryRuntime: MemoryIpcRuntime = {
+      beginShutdown: vi.fn(async () => undefined),
+      pendingOperationCount: () => 1,
+      dispose: vi.fn(),
+    };
+    const mcpRuntime = {
+      shutdown: vi.fn(async () => undefined),
+      pendingBackgroundTaskCount: vi.fn(() => 2),
+    };
+    const combined = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime);
+
+    expect(combined.pendingBackgroundTaskCount()).toBe(
+      chatRuntime.pendingBackgroundTaskCount() + memoryRuntime.pendingOperationCount() + 2,
+    );
+    await combined.beginShutdown();
+    expect(mcpRuntime.shutdown).toHaveBeenCalledOnce();
+  });
   it("drains accepted chat and resolver work before shutting down maintenance", async () => {
     const calls: string[] = [];
     const chatRuntime: ChatIpcRuntime = {

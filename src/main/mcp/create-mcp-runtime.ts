@@ -8,6 +8,7 @@ import {
   type McpApprovalRequest,
 } from "./mcp-permission.js";
 import { createMcpTransportFactory } from "./mcp-transport-factory.js";
+import type { AgentEvent } from "../agent/agent-events.js";
 
 export interface McpRuntime {
   manager: McpManager;
@@ -22,13 +23,28 @@ export function createMcpRuntime(options: {
   emitApproval: (request: McpApprovalRequest) => boolean;
   env?: NodeJS.ProcessEnv;
   clientFactory?: () => McpClientLike;
+  onEvent?: (event: AgentEvent) => void;
 }): McpRuntime {
-  const approvalBroker = createMcpApprovalBroker({ emit: options.emitApproval });
+  const approvalBroker = createMcpApprovalBroker({
+    emit: options.emitApproval,
+    onRequested: (request) => options.onEvent?.({
+      type: "mcp_tool_approval_requested",
+      serverId: request.serverId,
+      toolId: request.toolId,
+    }),
+    onResolved: (request, decision) => options.onEvent?.({
+      type: "mcp_tool_approval_resolved",
+      serverId: request.serverId,
+      toolId: request.toolId,
+      allowed: decision.allowed,
+    }),
+  });
   const transportFactory = createMcpTransportFactory({ env: options.env });
   const manager = createMcpManager({
     store: createMcpConfigStore(options.configPath),
     registry: options.registry,
     requestApproval: (input) => approvalBroker.request(input),
+    onEvent: options.onEvent,
     connectionFactory: (config, hooks) => createMcpConnection({
       config,
       transportFactory,

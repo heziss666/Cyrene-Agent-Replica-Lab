@@ -41,11 +41,14 @@ export function createMcpApprovalBroker(options: {
   emit: (request: McpApprovalRequest) => boolean;
   timeoutMs?: number;
   createId?: () => string;
+  onRequested?: (request: McpApprovalRequest) => void;
+  onResolved?: (request: McpApprovalRequest, decision: McpApprovalDecision) => void;
 }): McpApprovalBroker {
   const timeoutMs = options.timeoutMs ?? 60_000;
   const createId = options.createId ?? randomUUID;
   const pending = new Map<string, {
     timer: NodeJS.Timeout;
+    request: McpApprovalRequest;
     resolve: (decision: McpApprovalDecision) => void;
   }>();
   let shuttingDown = false;
@@ -56,6 +59,7 @@ export function createMcpApprovalBroker(options: {
     pending.delete(id);
     clearTimeout(item.timer);
     item.resolve(decision);
+    options.onResolved?.(item.request, decision);
     return true;
   }
 
@@ -63,14 +67,16 @@ export function createMcpApprovalBroker(options: {
     request(input) {
       if (shuttingDown) return Promise.resolve({ allowed: false, reason: "SHUTDOWN" });
       const id = createId();
+      const request: McpApprovalRequest = { id, ...input, risk: "sensitive" };
       return new Promise<McpApprovalDecision>((resolve) => {
         const timer = setTimeout(() => {
           settle(id, { allowed: false, reason: "APPROVAL_TIMEOUT" });
         }, timeoutMs);
-        pending.set(id, { timer, resolve });
+        pending.set(id, { timer, request, resolve });
+        options.onRequested?.(request);
         let delivered = false;
         try {
-          delivered = options.emit({ id, ...input, risk: "sensitive" });
+          delivered = options.emit(request);
         } catch {
           delivered = false;
         }

@@ -56,6 +56,9 @@ import {
   defaultBuiltinSkillsRoot,
 } from "../skills/create-skill-runtime.js";
 import { registerSkillTools } from "../skills/skill-tools.js";
+import { createMcpRuntime } from "../mcp/create-mcp-runtime.js";
+import type { McpApprovalRequest } from "../mcp/mcp-permission.js";
+import { registerMcpIpc } from "./register-mcp-ipc.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
@@ -70,6 +73,13 @@ async function boot(): Promise<void> {
     toolIds: baseToolRegistry.getAllTools().map((tool) => tool.id),
   });
   registerSkillTools(baseToolRegistry, skillRuntime.registry);
+  const mcpRuntime = createMcpRuntime({
+    configPath: join(userData, "mcp-servers.json"),
+    registry: baseToolRegistry,
+    emitApproval: broadcastMcpApproval,
+    onEvent: (event) => broadcastAgentEvent("mcp", event),
+  });
+  await mcpRuntime.manager.initialize();
   const memoryStore = createMemoryStore();
   const governance = createMemoryGovernanceService({ store: memoryStore });
   const resolverQueue = createMemoryResolverQueue();
@@ -112,7 +122,7 @@ async function boot(): Promise<void> {
   const chatRuntime = await registerChatIpc({
     ipcMain,
     skillRegistry: skillRuntime.registry,
-    createToolRegistry: () => baseToolRegistry,
+    createToolRegistry: () => mcpRuntime.manager.createToolRegistrySnapshot(),
     memoryStore,
     memoryRecall: createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex }),
     memoryResolverQueue: resolverQueue,
@@ -131,8 +141,14 @@ async function boot(): Promise<void> {
     ipcMain,
     registry: skillRuntime.registry,
   });
+  const mcpIpcRuntime = registerMcpIpc({
+    ipcMain,
+    manager: mcpRuntime.manager,
+    approvalBroker: mcpRuntime.approvalBroker,
+  });
   app.once("will-quit", () => skillsIpcRuntime.dispose());
-  const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime);
+  app.once("will-quit", () => mcpIpcRuntime.dispose());
+  const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime);
   registerBackgroundMemoryShutdown({ app, runtime });
   await createMainWindow();
 
@@ -212,6 +228,19 @@ function broadcastAgentEvent(runId: string, event: AgentEvent): void {
       // A renderer can close while maintenance is still draining.
     }
   }
+}
+
+function broadcastMcpApproval(request: McpApprovalRequest): boolean {
+  let delivered = false;
+  for (const window of BrowserWindow.getAllWindows()) {
+    try {
+      window.webContents.send(IPC_CHANNELS.mcp.approvalRequest, request);
+      delivered = true;
+    } catch {
+      // A window can close while an approval request is being broadcast.
+    }
+  }
+  return delivered;
 }
 
 app.on("window-all-closed", () => {

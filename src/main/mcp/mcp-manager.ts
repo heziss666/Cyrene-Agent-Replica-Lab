@@ -11,6 +11,7 @@ import type {
   McpToolOptions,
 } from "./mcp-types.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
+import type { AgentEvent } from "../agent/agent-events.js";
 
 export interface McpConnectionHooks {
   onClosed: () => void;
@@ -37,6 +38,7 @@ interface CreateMcpManagerOptions {
   connectionFactory: (config: McpServerConfig, hooks: McpConnectionHooks) => McpConnection;
   requestApproval: (input: McpApprovalRequestInput) => Promise<McpApprovalDecision>;
   delay?: (milliseconds: number) => Promise<void>;
+  onEvent?: (event: AgentEvent) => void;
 }
 
 export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
@@ -103,6 +105,7 @@ export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
     });
     options.registry.unregisterByOwner(config.id);
     for (const definition of valid) options.registry.register(definition);
+    options.onEvent?.({ type: "mcp_tools_changed", serverId: config.id, toolCount: valid.length });
   }
 
   function scheduleReconnect(id: string): void {
@@ -130,6 +133,7 @@ export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
 
   async function connectServer(config: McpServerConfig): Promise<McpConnection> {
     statuses.set(config.id, "connecting");
+    options.onEvent?.({ type: "mcp_server_connecting", serverId: config.id });
     errors.delete(config.id);
     const connection = options.connectionFactory(config, {
       onClosed: () => scheduleReconnect(config.id),
@@ -142,10 +146,20 @@ export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
       connections.set(config.id, connection);
       syncTools(config, connection, connection.snapshot().tools);
       statuses.set(config.id, "connected");
+      options.onEvent?.({
+        type: "mcp_server_connected",
+        serverId: config.id,
+        toolCount: connection.snapshot().tools.length,
+      });
       return connection;
     } catch (error) {
       statuses.set(config.id, "error");
       errors.set(config.id, "MCP_CONNECT_FAILED");
+      options.onEvent?.({
+        type: "mcp_server_failed",
+        serverId: config.id,
+        errorCode: "MCP_CONNECT_FAILED",
+      });
       try { await connection.close(); } catch { /* Preserve the connection failure. */ }
       throw error;
     }
@@ -157,6 +171,7 @@ export function createMcpManager(options: CreateMcpManagerOptions): McpManager {
     connections.delete(id);
     if (connection) await connection.close();
     statuses.set(id, configs.get(id)?.enabled ? "disconnected" : "disabled");
+    options.onEvent?.({ type: "mcp_server_disconnected", serverId: id });
   }
 
   async function persist(): Promise<void> {
