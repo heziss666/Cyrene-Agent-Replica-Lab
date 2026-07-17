@@ -14,6 +14,8 @@ import {
 } from "./style-selector.js";
 import { mountMemoryView } from "./memory-view.js";
 import { mountSkillsView } from "./skills-view.js";
+import { mountMcpView } from "./mcp-view.js";
+import { mountMcpApprovalView } from "./mcp-approval-view.js";
 import "./style.css";
 
 declare global {
@@ -35,6 +37,9 @@ const chatViewButtonElement = document.querySelector<HTMLButtonElement>("#chat-v
 const memoryViewButtonElement = document.querySelector<HTMLButtonElement>("#memory-view-button");
 const skillsViewElement = document.querySelector<HTMLElement>("#skills-view");
 const skillsViewButtonElement = document.querySelector<HTMLButtonElement>("#skills-view-button");
+const mcpViewElement = document.querySelector<HTMLElement>("#mcp-view");
+const mcpViewButtonElement = document.querySelector<HTMLButtonElement>("#mcp-view-button");
+const mcpApprovalRootElement = document.querySelector<HTMLElement>("#mcp-approval-root");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -56,6 +61,9 @@ const chatViewButton = requireElement(chatViewButtonElement, "chat-view-button")
 const memoryViewButton = requireElement(memoryViewButtonElement, "memory-view-button");
 const skillsView = requireElement(skillsViewElement, "skills-view");
 const skillsViewButton = requireElement(skillsViewButtonElement, "skills-view-button");
+const mcpView = requireElement(mcpViewElement, "mcp-view");
+const mcpViewButton = requireElement(mcpViewButtonElement, "mcp-view-button");
+const mcpApprovalRoot = requireElement(mcpApprovalRootElement, "mcp-approval-root");
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
 
@@ -67,19 +75,25 @@ const skillsPanel = mountSkillsView({
   root: skillsView,
   api: window.cyrene.skills,
 });
+const mcpPanel = mountMcpView({ root: mcpView, api: window.cyrene.mcp });
+mountMcpApprovalView({ root: mcpApprovalRoot, api: window.cyrene.mcp });
 
-function setActiveView(view: "chat" | "memory" | "skills"): void {
+function setActiveView(view: "chat" | "memory" | "skills" | "mcp"): void {
   const isMemory = view === "memory";
   const isSkills = view === "skills";
-  chatView.hidden = isMemory || isSkills;
+  const isMcp = view === "mcp";
+  chatView.hidden = isMemory || isSkills || isMcp;
   memoryView.hidden = !isMemory;
   skillsView.hidden = !isSkills;
-  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills);
+  mcpView.hidden = !isMcp;
+  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills && !isMcp);
   memoryViewButton.classList.toggle("is-active", isMemory);
   skillsViewButton.classList.toggle("is-active", isSkills);
-  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills));
+  mcpViewButton.classList.toggle("is-active", isMcp);
+  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills && !isMcp));
   memoryViewButton.setAttribute("aria-pressed", String(isMemory));
   skillsViewButton.setAttribute("aria-pressed", String(isSkills));
+  mcpViewButton.setAttribute("aria-pressed", String(isMcp));
 }
 
 function appendMessage(role: "user" | "agent", text: string): void {
@@ -144,6 +158,11 @@ memoryViewButton.addEventListener("click", async () => {
 skillsViewButton.addEventListener("click", async () => {
   setActiveView("skills");
   await skillsPanel.show();
+});
+
+mcpViewButton.addEventListener("click", async () => {
+  setActiveView("mcp");
+  await mcpPanel.show();
 });
 
 styleSelect.addEventListener("change", async () => {

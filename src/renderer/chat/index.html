@@ -19,6 +19,7 @@
               <button id="chat-view-button" class="view-switch-button is-active" type="button" aria-pressed="true">Chat</button>
               <button id="memory-view-button" class="view-switch-button" type="button" aria-pressed="false">Memory</button>
               <button id="skills-view-button" class="view-switch-button" type="button" aria-pressed="false">Skills</button>
+              <button id="mcp-view-button" class="view-switch-button" type="button" aria-pressed="false">MCP</button>
             </nav>
             <label class="style-control" for="style-select">
               <span>Style</span>
@@ -40,6 +41,7 @@
 
         <section id="memory-view" class="memory-view" aria-label="Memory" hidden></section>
         <section id="skills-view" class="skills-view" aria-label="Skills" hidden></section>
+        <section id="mcp-view" class="mcp-view" aria-label="MCP Servers" hidden></section>
       </section>
 
       <aside class="event-pane" aria-label="Agent events">
@@ -47,5 +49,6 @@
         <ol id="events" class="events"></ol>
       </aside>
     </main>
+    <div id="mcp-approval-root" class="mcp-approval-overlay" hidden></div>
   </body>
 </html>
