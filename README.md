@@ -10,6 +10,7 @@ Current milestone:
 - Phase 6: persistent Ollama-backed RAG
 - Phase 7: governed long-term memory, lifecycle maintenance, verified reflection, two-stage compression, and a rebuildable entity graph
 - Phase 8: safe local Skills, progressive loading, manual activation, persistence, and Electron management UI
+- Phase 9: MCP stdio/Streamable HTTP tools, runtime discovery, approvals, reconnect, and Electron management UI
 
 Run tests:
 
@@ -49,6 +50,18 @@ Manual activation uses `/skill-id task`, for example:
 
 Chinese learning guide: [`docs/learning/phase-08-skills-system.zh-CN.md`](docs/learning/phase-08-skills-system.zh-CN.md)
 
+## MCP system
+
+The Electron MCP view manages local stdio and Streamable HTTP servers. External tools are discovered at runtime and adapted into the same ToolRegistry used by builtin and Skill tools. Sensitive calls require approval unless the server is explicitly trusted.
+
+Protocol smoke test:
+
+```bash
+npm run test:mcp
+```
+
+Chinese learning guide: [`docs/learning/phase-09-mcp.zh-CN.md`](docs/learning/phase-09-mcp.zh-CN.md)
+
 Full verification:
 
 ```bash
@@ -56,4 +69,6 @@ npm test
 npm run typecheck
 npm run build
 npm run test:embedding
+npm run test:mcp
+npm run test:electron-smoke
 ```

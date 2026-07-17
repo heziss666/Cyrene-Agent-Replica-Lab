@@ -19,7 +19,7 @@ Skill 不是工具，也不是权限。
 - `Skill` 是告诉模型如何组合已有动作的说明。
 - `Prompt` 是发给模型的上下文，Skill Catalog 和被激活的 Skill 最终都会以 Prompt 或 Tool Result 的形式进入上下文。
 - `IPC` 是 Electron Renderer 与 Main 之间的消息通道，只负责界面管理 Skill。
-- `MCP` 是连接外部工具和资源的协议，本阶段没有实现。
+- `MCP` 是连接外部工具和资源的协议，已在 Phase 9 实现工具发现、调用和权限控制。
 
 例如 `agent-learning-tutor` 声明需要 `search_knowledge`。这表示它可以指导模型先检索项目知识再解释，但它不会因为写了这个名字就自动得到文件读取或网络访问权限。
 

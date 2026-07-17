@@ -1,5 +1,8 @@
 import { spawn, spawnSync } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
 import { createServer } from "node:net";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import electronPath from "electron";
 
 async function freePort() {
@@ -63,8 +66,30 @@ function evaluate(webSocketUrl, expression) {
 }
 
 const port = await freePort();
-const child = spawn(electronPath, [".", `--remote-debugging-port=${port}`], {
+const temporaryRoot = await mkdtemp(join(tmpdir(), "cyrene-electron-smoke-"));
+const electronData = join(temporaryRoot, "user-data");
+const fixtureOutput = join(temporaryRoot, "mcp-output");
+const fixtureConfig = {
+  id: "electron-smoke",
+  name: "Electron Smoke MCP",
+  enabled: true,
+  trust: "ask-sensitive",
+  toolOverrides: {},
+  transport: "stdio",
+  command: process.execPath,
+  args: [
+    resolve("node_modules/tsx/dist/cli.mjs"),
+    resolve("tests/fixtures/mcp-test-server.ts"),
+  ],
+  env: { MCP_TEST_DIR: "${MCP_TEST_DIR}" },
+};
+const child = spawn(electronPath, [
+  ".",
+  `--remote-debugging-port=${port}`,
+  `--user-data-dir=${electronData}`,
+], {
   cwd: process.cwd(),
+  env: { ...process.env, MCP_TEST_DIR: fixtureOutput },
   stdio: ["ignore", "pipe", "pipe"],
   windowsHide: true,
 });
@@ -82,7 +107,7 @@ try {
     if (!skillsButton || !window.cyrene?.skills) throw new Error("Renderer API did not become ready");
     skillsButton.click();
     await new Promise((resolve) => setTimeout(resolve, 700));
-    return {
+    const skillsResult = {
       title: document.title,
       tabs: [...document.querySelectorAll(".view-switch-button")].map((item) => item.textContent),
       skillsVisible: !document.querySelector("#skills-view").hidden,
@@ -90,11 +115,34 @@ try {
       states: [...document.querySelectorAll(".skill-toggle span")].map((item) => item.textContent),
       status: document.querySelector(".skills-status")?.textContent,
     };
+    const mcpConfig = ${JSON.stringify(fixtureConfig)};
+    await window.cyrene.mcp.add(mcpConfig);
+    document.querySelector("#mcp-view-button").click();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (document.querySelectorAll(".mcp-tool-row").length === 3) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const mcpResult = {
+      visible: !document.querySelector("#mcp-view").hidden,
+      serverNames: [...document.querySelectorAll(".mcp-server-row h3")].map((item) => item.textContent),
+      metadata: [...document.querySelectorAll(".mcp-metadata")].map((item) => item.textContent),
+      toolNames: [...document.querySelectorAll(".mcp-tool-row code")].map((item) => item.textContent),
+      noHorizontalOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    };
+    await window.cyrene.mcp.remove(mcpConfig.id);
+    return { ...skillsResult, mcp: mcpResult };
   })()`);
   if (!result.skillsVisible
     || !result.skillNames.includes("Agent Learning Tutor")
     || !result.skillNames.includes("Cyrene Original Voice")) {
     throw new Error(`Unexpected Skills view: ${JSON.stringify(result)}`);
+  }
+  if (!result.mcp.visible
+    || !result.mcp.serverNames.includes("Electron Smoke MCP")
+    || !result.mcp.metadata.some((value) => value.includes("Connected") && value.includes("3 tools"))
+    || !["echo", "read_demo", "write_demo"].every((name) => result.mcp.toolNames.includes(name))
+    || !result.mcp.noHorizontalOverflow) {
+    throw new Error(`Unexpected MCP view: ${JSON.stringify(result.mcp)}`);
   }
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } catch (error) {
@@ -109,4 +157,19 @@ try {
   } else {
     child.kill("SIGTERM");
   }
+  if (child.exitCode === null) {
+    await new Promise((resolve) => {
+      const timer = setTimeout(resolve, 2_000);
+      child.once("exit", () => {
+        clearTimeout(timer);
+        resolve();
+      });
+    });
+  }
+  await rm(temporaryRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 200,
+  });
 }

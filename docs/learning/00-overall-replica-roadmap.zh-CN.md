@@ -28,7 +28,7 @@
 | Phase 6 | 文档 RAG、Ollama embedding、持久向量索引 | 完成 |
 | Phase 7 | Schema v2、治理、冲突、生命周期、Reflection、压缩、实体图 | 完成 |
 | Phase 8 | 本地 Skills、渐进加载、管理 UI 与内置教学 Skill | 完成 |
-| Phase 9 | MCP | 待开始 |
+| Phase 9 | MCP 外部工具、双 Transport、权限审批和管理 UI | 完成 |
 | Phase 10 | Scheduler 定时任务扩展 | 待开始 |
 | Phase 11 | Voice | 暂缓 |
 | Phase 12 | Live2D 和主动交互 | 暂缓 |
@@ -38,12 +38,13 @@
 ## 当前阅读顺序
 
 1. `README.md`：运行方式；
-2. `docs/learning/phase-08-skills-system.zh-CN.md`：Skills 系统；
-3. `docs/learning/phase-07-complete-memory-system.zh-CN.md`：完整记忆系统；
-4. `src/main/app/main.ts`：Electron Main 的运行时组装；
-5. `src/main/app/register-chat-ipc.ts`：一轮聊天的完整调用链；
-6. `src/main/skills`：Skills 子系统；
-7. `tests`：行为契约和失败路径。
+2. `docs/learning/phase-09-mcp.zh-CN.md`：MCP 外部工具系统；
+3. `docs/learning/phase-08-skills-system.zh-CN.md`：Skills 系统；
+4. `docs/learning/phase-07-complete-memory-system.zh-CN.md`：完整记忆系统；
+5. `src/main/app/main.ts`：Electron Main 的运行时组装；
+6. `src/main/app/register-chat-ipc.ts`：一轮聊天的完整调用链；
+7. `src/main/mcp`：MCP 子系统；
+8. `tests`：行为契约和失败路径。
 
 ## Phase 7 的三个子阶段
 

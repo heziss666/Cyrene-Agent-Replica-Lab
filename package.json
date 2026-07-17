@@ -12,6 +12,7 @@
     "dev:chat": "tsx src/cli/chat.ts",
     "dev:electron": "npm run build && electron .",
     "test": "vitest run",
+    "test:mcp": "tsx scripts/mcp-smoke.ts",
     "test:electron-smoke": "npm run build && node scripts/electron-smoke.mjs",
     "test:embedding": "tsx src/cli/test-embedding.ts",
     "rag:benchmark": "tsx src/cli/rag-benchmark.ts",
@@ -19,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^22.10.0",
     "electron": "^43.1.0",
     "tsx": "^4.19.2",
