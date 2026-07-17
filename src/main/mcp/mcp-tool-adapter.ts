@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { ToolDefinition } from "../tools/tool-types.js";
 import type { McpConnection } from "./mcp-connection.js";
+import { policyForMcpTool, type McpApprovalDecision } from "./mcp-permission.js";
 import type {
   McpDiscoveredTool,
   McpRisk,
@@ -30,11 +31,18 @@ export function adaptMcpTool(input: {
   server: McpServerConfig;
   tool: McpDiscoveredTool;
   connection: Pick<McpConnection, "callTool">;
+  requestApproval?: (input: {
+    serverId: string;
+    toolId: string;
+    toolName: string;
+    args: Record<string, unknown>;
+  }) => Promise<McpApprovalDecision>;
 }): ToolDefinition {
   const override = input.server.toolOverrides[input.tool.name];
   const risk = override?.risk ?? deriveMcpRisk(input.tool);
+  const toolId = makeMcpToolId(input.server.id, input.tool.name);
   return {
-    id: makeMcpToolId(input.server.id, input.tool.name),
+    id: toolId,
     description: `[${input.server.name}] ${input.tool.description}`.slice(0, 2_000),
     parameters: input.tool.inputSchema,
     enabled: override?.enabled ?? true,
@@ -44,6 +52,19 @@ export function adaptMcpTool(input: {
       originalName: input.tool.name,
       risk,
     },
-    execute: async (args) => input.connection.callTool(input.tool.name, args),
+    execute: async (args) => {
+      if (policyForMcpTool(risk, input.server.trust) === "ask") {
+        const decision = input.requestApproval
+          ? await input.requestApproval({
+              serverId: input.server.id,
+              toolId,
+              toolName: input.tool.name,
+              args,
+            })
+          : { allowed: false, reason: "NO_APPROVAL_WINDOW" as const };
+        if (!decision.allowed) return `[MCP_PERMISSION_DENIED] ${decision.reason}`;
+      }
+      return input.connection.callTool(input.tool.name, args);
+    },
   };
 }
