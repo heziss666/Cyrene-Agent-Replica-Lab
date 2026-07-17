@@ -3,8 +3,35 @@ import type { ToolDefinition, ToolSpec } from "./tool-types.js";
 export class ToolRegistry {
   private readonly tools = new Map<string, ToolDefinition>();
 
-  register(tool: ToolDefinition): void {
+  register(tool: ToolDefinition): boolean {
+    if (this.tools.has(tool.id)) return false;
     this.tools.set(tool.id, tool);
+    return true;
+  }
+
+  unregister(id: string): boolean {
+    return this.tools.delete(id);
+  }
+
+  unregisterByOwner(ownerId: string): number {
+    let removed = 0;
+    for (const [id, tool] of this.tools) {
+      if (tool.metadata?.ownerId !== ownerId) continue;
+      this.tools.delete(id);
+      removed += 1;
+    }
+    return removed;
+  }
+
+  snapshot(): ToolRegistry {
+    const snapshot = new ToolRegistry();
+    for (const tool of this.tools.values()) {
+      snapshot.register({
+        ...tool,
+        ...(tool.metadata ? { metadata: { ...tool.metadata } } : {}),
+      });
+    }
+    return snapshot;
   }
 
   getById(id: string): ToolDefinition | undefined {

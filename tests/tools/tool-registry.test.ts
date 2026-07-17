@@ -45,4 +45,43 @@ describe("ToolRegistry", () => {
 
     expect(registry.getEnabledTools()).toEqual([]);
   });
+
+  it("rejects duplicate ids instead of replacing an existing tool", () => {
+    const registry = new ToolRegistry();
+    const original = createTool();
+
+    expect(registry.register(original)).toBe(true);
+    expect(registry.register(createTool({ description: "replacement" }))).toBe(false);
+    expect(registry.getById("echo")).toBe(original);
+  });
+
+  it("unregisters tools individually or by owner", () => {
+    const registry = new ToolRegistry();
+    registry.register(createTool({
+      id: "demo__one",
+      metadata: { source: "mcp", ownerId: "demo", originalName: "one" },
+    }));
+    registry.register(createTool({
+      id: "demo__two",
+      metadata: { source: "mcp", ownerId: "demo", originalName: "two" },
+    }));
+    registry.register(createTool({ id: "builtin" }));
+
+    expect(registry.unregister("builtin")).toBe(true);
+    expect(registry.unregister("missing")).toBe(false);
+    expect(registry.unregisterByOwner("demo")).toBe(2);
+    expect(registry.getAllTools()).toEqual([]);
+  });
+
+  it("creates a stable snapshot of the current registry", () => {
+    const registry = new ToolRegistry();
+    registry.register(createTool());
+    const snapshot = registry.snapshot();
+
+    registry.unregister("echo");
+    registry.register(createTool({ id: "later" }));
+
+    expect(snapshot.getById("echo")).toBeDefined();
+    expect(snapshot.getById("later")).toBeUndefined();
+  });
 });

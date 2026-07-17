@@ -1,25 +1,31 @@
 import type { AgentEvent } from "../agent/agent-events.js";
 
-export type JsonSchemaProperty =
-  | { type: "string"; description?: string; enum?: string[] }
-  | { type: "number"; description?: string }
-  | { type: "boolean"; description?: string }
-  | {
-      type: "array";
-      description?: string;
-      items: JsonSchemaProperty;
-    }
-  | {
-      type: "object";
-      description?: string;
-      properties: Record<string, JsonSchemaProperty>;
-      required?: string[];
-    };
+export type ToolSource = "builtin" | "skill" | "mcp";
 
-export interface ToolParameters {
+export interface ToolMetadata {
+  source: ToolSource;
+  ownerId?: string;
+  originalName?: string;
+  risk?: "read" | "sensitive";
+}
+
+export interface JsonSchema {
+  type?: "object" | "array" | "string" | "number" | "integer" | "boolean" | "null";
+  description?: string;
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  required?: string[];
+  enum?: Array<string | number | boolean | null>;
+  additionalProperties?: boolean | JsonSchema;
+  anyOf?: JsonSchema[];
+  oneOf?: JsonSchema[];
+}
+
+export type JsonSchemaProperty = JsonSchema;
+
+export interface ToolParameters extends JsonSchema {
   type: "object";
   properties: Record<string, JsonSchemaProperty>;
-  required?: string[];
 }
 
 export interface ToolDefinition {
@@ -27,6 +33,7 @@ export interface ToolDefinition {
   description: string;
   parameters: ToolParameters;
   enabled: boolean;
+  metadata?: ToolMetadata;
   execute(args: Record<string, unknown>, context?: ToolExecutionContext): Promise<string>;
 }
 
