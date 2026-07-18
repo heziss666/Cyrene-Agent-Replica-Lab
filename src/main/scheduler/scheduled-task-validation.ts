@@ -79,6 +79,7 @@ const runSchema = z.object({
   reply: z.string().max(40_000).optional(),
   toolCalls: z.array(toolCallSchema).max(100),
   errorCode: z.string().max(100).optional(),
+  agentRunId: z.string().min(1).max(100).optional(),
 }).strict();
 
 const tasksFileSchema = z.object({

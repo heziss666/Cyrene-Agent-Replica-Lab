@@ -2,15 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 import { createTaskScheduler } from "../../src/main/scheduler/task-scheduler.js";
 import { createScheduledTaskQueue } from "../../src/main/scheduler/scheduled-task-queue.js";
 import type { ScheduledTask, ScheduledTaskRun } from "../../src/main/scheduler/scheduled-task-types.js";
+import { parseScheduledRun } from "../../src/main/scheduler/scheduled-task-validation.js";
 
-function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } = {}) {
+function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void>; agentRunId?: string } = {}) {
   let tasks = [...(input.tasks ?? [])];
   let runs: ScheduledTaskRun[] = [];
   const timers: Array<{ callback: () => void; delay: number }> = [];
   let now = new Date("2026-07-18T00:00:00.000Z");
   const run = vi.fn(async ({ executionMode }: { executionMode?: string }) => {
     await input.runnerGate;
-    return { status: "succeeded" as const, reply: executionMode ?? "none", toolCalls: [] };
+    return {
+      status: "succeeded" as const,
+      reply: executionMode ?? "none",
+      toolCalls: [],
+      ...(input.agentRunId ? { agentRunId: input.agentRunId } : {}),
+    };
   });
   const recoverInterrupted = vi.fn(async () => 0);
   const scheduler = createTaskScheduler({
@@ -18,7 +24,7 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } 
     runStore: {
       load: async () => [...runs],
       append: async (item) => { runs.push(item); },
-      update: async (id, updater) => { runs = runs.map((item) => item.id === id ? updater(item) : item); },
+      update: async (id, updater) => { runs = runs.map((item) => item.id === id ? parseScheduledRun(updater(item)) : item); },
       clearTaskHistory: async (taskId) => {
         const before = runs.length;
         runs = runs.filter((item) => item.taskId !== taskId || item.status === "queued" || item.status === "running");
@@ -65,6 +71,23 @@ describe("task scheduler", () => {
     await f.scheduler.flush();
     expect(f.run).toHaveBeenCalledWith(expect.objectContaining({ executionMode: "interactive" }));
     expect(f.runs().find((item) => item.id === runId)).toMatchObject({ status: "succeeded", reply: "interactive" });
+  });
+
+  it("stores the managed agent run id and still reaches a terminal status", async () => {
+    const f = fixture({ agentRunId: "run_agent-1" });
+    await f.scheduler.initialize();
+    const task = await f.scheduler.create({
+      name: "Manual", prompt: "Run", schedule: { kind: "interval", every: 1, unit: "hours" },
+      timezone: "Asia/Shanghai", missedRunPolicy: "run-once", enabled: true,
+    });
+
+    const runId = await f.scheduler.runNow(task.id);
+    await f.scheduler.flush();
+
+    expect(f.runs().find((item) => item.id === runId)).toMatchObject({
+      status: "succeeded",
+      agentRunId: "run_agent-1",
+    });
   });
 
   it("performs only one catch-up on initialize and advances nextRunAt", async () => {
