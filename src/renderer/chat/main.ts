@@ -16,6 +16,7 @@ import { mountMemoryView } from "./memory-view.js";
 import { mountSkillsView } from "./skills-view.js";
 import { mountMcpView } from "./mcp-view.js";
 import { mountMcpApprovalView } from "./mcp-approval-view.js";
+import { mountSchedulerView } from "./scheduler-view.js";
 import "./style.css";
 
 declare global {
@@ -39,6 +40,8 @@ const skillsViewElement = document.querySelector<HTMLElement>("#skills-view");
 const skillsViewButtonElement = document.querySelector<HTMLButtonElement>("#skills-view-button");
 const mcpViewElement = document.querySelector<HTMLElement>("#mcp-view");
 const mcpViewButtonElement = document.querySelector<HTMLButtonElement>("#mcp-view-button");
+const schedulerViewElement = document.querySelector<HTMLElement>("#scheduler-view");
+const schedulerViewButtonElement = document.querySelector<HTMLButtonElement>("#scheduler-view-button");
 const mcpApprovalRootElement = document.querySelector<HTMLElement>("#mcp-approval-root");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
@@ -63,6 +66,8 @@ const skillsView = requireElement(skillsViewElement, "skills-view");
 const skillsViewButton = requireElement(skillsViewButtonElement, "skills-view-button");
 const mcpView = requireElement(mcpViewElement, "mcp-view");
 const mcpViewButton = requireElement(mcpViewButtonElement, "mcp-view-button");
+const schedulerView = requireElement(schedulerViewElement, "scheduler-view");
+const schedulerViewButton = requireElement(schedulerViewButtonElement, "scheduler-view-button");
 const mcpApprovalRoot = requireElement(mcpApprovalRootElement, "mcp-approval-root");
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
@@ -76,24 +81,29 @@ const skillsPanel = mountSkillsView({
   api: window.cyrene.skills,
 });
 const mcpPanel = mountMcpView({ root: mcpView, api: window.cyrene.mcp });
+const schedulerPanel = mountSchedulerView({ root: schedulerView, api: window.cyrene.scheduler });
 mountMcpApprovalView({ root: mcpApprovalRoot, api: window.cyrene.mcp });
 
-function setActiveView(view: "chat" | "memory" | "skills" | "mcp"): void {
+function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler"): void {
   const isMemory = view === "memory";
   const isSkills = view === "skills";
   const isMcp = view === "mcp";
-  chatView.hidden = isMemory || isSkills || isMcp;
+  const isScheduler = view === "scheduler";
+  chatView.hidden = isMemory || isSkills || isMcp || isScheduler;
   memoryView.hidden = !isMemory;
   skillsView.hidden = !isSkills;
   mcpView.hidden = !isMcp;
-  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills && !isMcp);
+  schedulerView.hidden = !isScheduler;
+  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills && !isMcp && !isScheduler);
   memoryViewButton.classList.toggle("is-active", isMemory);
   skillsViewButton.classList.toggle("is-active", isSkills);
   mcpViewButton.classList.toggle("is-active", isMcp);
-  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills && !isMcp));
+  schedulerViewButton.classList.toggle("is-active", isScheduler);
+  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills && !isMcp && !isScheduler));
   memoryViewButton.setAttribute("aria-pressed", String(isMemory));
   skillsViewButton.setAttribute("aria-pressed", String(isSkills));
   mcpViewButton.setAttribute("aria-pressed", String(isMcp));
+  schedulerViewButton.setAttribute("aria-pressed", String(isScheduler));
 }
 
 function appendMessage(role: "user" | "agent", text: string): void {
@@ -163,6 +173,11 @@ skillsViewButton.addEventListener("click", async () => {
 mcpViewButton.addEventListener("click", async () => {
   setActiveView("mcp");
   await mcpPanel.show();
+});
+
+schedulerViewButton.addEventListener("click", async () => {
+  setActiveView("scheduler");
+  await schedulerPanel.show();
 });
 
 styleSelect.addEventListener("change", async () => {

@@ -630,6 +630,21 @@ select {
   padding: 20px;
 }
 
+.scheduler-view { min-height: 0; overflow: auto; padding: 20px 24px; }
+.scheduler-header, .scheduler-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.scheduler-header h2 { margin: 0; }
+.scheduler-status, .scheduler-metadata { color: #62717f; font-size: 13px; }
+.scheduler-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 14px 0; border-bottom: 1px solid #d9e0e7; }
+.scheduler-form input, .scheduler-form select, .scheduler-form textarea { min-height: 36px; padding: 7px 9px; border: 1px solid #b9c6d1; border-radius: 6px; }
+.scheduler-form textarea { min-height: 76px; resize: vertical; }
+.scheduler-task-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; padding: 14px 0; border-bottom: 1px solid #d9e0e7; }
+.scheduler-task-row h3 { margin: 0; font-size: 15px; }
+.scheduler-task-row p { margin: 6px 0 0; overflow-wrap: anywhere; }
+.scheduler-history { margin-top: 24px; }
+.scheduler-run-row { padding: 10px 0; border-bottom: 1px solid #d9e0e7; }
+.scheduler-run-row summary { cursor: pointer; }
+.scheduler-run-row pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
 .mcp-header,
 .mcp-server-top,
 .mcp-actions,
