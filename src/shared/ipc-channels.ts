@@ -16,6 +16,16 @@ const MEMORY_IPC_CHANNELS = {
 Object.defineProperty(MEMORY_IPC_CHANNELS, "runMaintenance", { enumerable: false });
 
 export const IPC_CHANNELS = {
+  conversations: {
+    list: "cyrene:conversations:list",
+    create: "cyrene:conversations:create",
+    get: "cyrene:conversations:get",
+    setActive: "cyrene:conversations:set-active",
+    rename: "cyrene:conversations:rename",
+    remove: "cyrene:conversations:delete",
+    setMessagePinned: "cyrene:conversations:set-message-pinned",
+    changed: "cyrene:conversations:changed",
+  },
   chat: {
     sendMessage: "cyrene:chat:send-message",
     agentEvent: "cyrene:chat:agent-event",

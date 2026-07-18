@@ -22,6 +22,24 @@ describe("CyreneApi persona contract", () => {
   });
 });
 
+describe("CyreneApi conversations contract", () => {
+  it("exposes managed operations without filesystem access", async () => {
+    const conversations: CyreneApi["conversations"] = {
+      list: async () => ({ activeConversationId: "conv_1", conversations: [] }),
+      create: async () => ({ conversation: {} as never }),
+      get: async () => ({} as never),
+      setActive: async () => ({} as never),
+      rename: async () => ({} as never),
+      remove: async () => ({ activeConversationId: "conv_1" }),
+      setMessagePinned: async () => ({} as never),
+      onChanged: () => () => undefined,
+    };
+
+    await expect(conversations.list()).resolves.toMatchObject({ activeConversationId: "conv_1" });
+    expect(Object.keys(conversations)).not.toContain("readFile");
+  });
+});
+
 describe("CyreneApi memory contract", () => {
   it("requires the Phase 7C maintenance method with the governance methods", async () => {
     const snapshot = { l2: [] } as unknown as MemorySnapshot;

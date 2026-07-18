@@ -4,6 +4,7 @@ import type { StyleId } from "./persona-types.js";
 import type { SkillsApi } from "./skill-api-types.js";
 import type { McpApi } from "./mcp-api-types.js";
 import type { SchedulerApi } from "./scheduler-api-types.js";
+import type { ConversationsApi } from "./conversation-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -35,6 +36,7 @@ export interface MemoryMaintenanceRunResult {
 }
 
 export interface CyreneApi {
+  conversations: ConversationsApi;
   chat: {
     sendMessage: (text: string) => Promise<ChatSendResult>;
     clearSession: () => Promise<ChatClearResult>;

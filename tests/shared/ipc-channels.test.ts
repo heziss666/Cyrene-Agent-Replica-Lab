@@ -13,6 +13,19 @@ describe("IPC_CHANNELS", () => {
     expect(IPC_CHANNELS.persona.setStyle).toBe("cyrene:persona:set-style");
   });
 
+  it("defines stable conversation management channels", () => {
+    expect(IPC_CHANNELS.conversations).toEqual({
+      list: "cyrene:conversations:list",
+      create: "cyrene:conversations:create",
+      get: "cyrene:conversations:get",
+      setActive: "cyrene:conversations:set-active",
+      rename: "cyrene:conversations:rename",
+      remove: "cyrene:conversations:delete",
+      setMessagePinned: "cyrene:conversations:set-message-pinned",
+      changed: "cyrene:conversations:changed",
+    });
+  });
+
   it("defines exactly the Phase 7B memory governance channels", () => {
     expect(IPC_CHANNELS.memory).toEqual({
       getSnapshot: "cyrene:memory:get-snapshot",

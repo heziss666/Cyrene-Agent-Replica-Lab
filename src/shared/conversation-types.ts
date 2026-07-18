@@ -94,3 +94,18 @@ export interface ConversationChangedPayload {
   activeConversationId: string;
   conversations: ConversationListItem[];
 }
+
+export interface ConversationsApi {
+  list(): Promise<ConversationListResult>;
+  create(): Promise<ConversationCreateResult>;
+  get(conversationId: string): Promise<ConversationDetail>;
+  setActive(conversationId: string): Promise<ConversationDetail>;
+  rename(conversationId: string, title: string): Promise<ConversationDetail>;
+  remove(conversationId: string): Promise<ConversationMutationResult>;
+  setMessagePinned(
+    conversationId: string,
+    messageId: string,
+    pinned: boolean,
+  ): Promise<ConversationDetail>;
+  onChanged(listener: (payload: ConversationChangedPayload) => void): () => void;
+}

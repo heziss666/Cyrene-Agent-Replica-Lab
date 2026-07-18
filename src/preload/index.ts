@@ -4,6 +4,23 @@ import type { McpApprovalRequestView } from "../shared/mcp-api-types.js";
 import { IPC_CHANNELS } from "../shared/ipc-channels.js";
 
 const api: CyreneApi = {
+  conversations: {
+    list: async () => ipcRenderer.invoke(IPC_CHANNELS.conversations.list),
+    create: async () => ipcRenderer.invoke(IPC_CHANNELS.conversations.create),
+    get: async (conversationId) => ipcRenderer.invoke(IPC_CHANNELS.conversations.get, { conversationId }),
+    setActive: async (conversationId) => ipcRenderer.invoke(IPC_CHANNELS.conversations.setActive, { conversationId }),
+    rename: async (conversationId, title) => ipcRenderer.invoke(IPC_CHANNELS.conversations.rename, { conversationId, title }),
+    remove: async (conversationId) => ipcRenderer.invoke(IPC_CHANNELS.conversations.remove, { conversationId }),
+    setMessagePinned: async (conversationId, messageId, pinned) => ipcRenderer.invoke(
+      IPC_CHANNELS.conversations.setMessagePinned,
+      { conversationId, messageId, pinned },
+    ),
+    onChanged: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, payload: Parameters<typeof listener>[0]) => listener(payload);
+      ipcRenderer.on(IPC_CHANNELS.conversations.changed, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.conversations.changed, handler);
+    },
+  },
   chat: {
     sendMessage: async (text) => {
       return ipcRenderer.invoke(IPC_CHANNELS.chat.sendMessage, text);
