@@ -8,27 +8,27 @@
   </head>
   <body>
     <main class="shell">
+      <aside class="app-sidebar">
+        <div class="brand"><span class="brand-mark">C</span><span class="brand-copy">Cyrene Agent<small>Replica Lab</small></span></div>
+        <nav class="view-switch" aria-label="Primary views">
+          <button id="chat-view-button" class="view-switch-button is-active" type="button" aria-pressed="true" aria-current="page"><span class="nav-icon">C</span><span class="nav-label">Chat</span></button>
+          <button id="memory-view-button" class="view-switch-button" type="button" aria-pressed="false"><span class="nav-icon">M</span><span class="nav-label">Memory</span></button>
+          <button id="skills-view-button" class="view-switch-button" type="button" aria-pressed="false"><span class="nav-icon">S</span><span class="nav-label">Skills</span></button>
+          <button id="mcp-view-button" class="view-switch-button" type="button" aria-pressed="false"><span class="nav-icon">P</span><span class="nav-label">MCP</span></button>
+          <button id="scheduler-view-button" class="view-switch-button" type="button" aria-pressed="false"><span class="nav-icon">T</span><span class="nav-label">Tasks</span></button>
+          <button id="runs-view-button" class="view-switch-button" type="button" aria-pressed="false"><span class="nav-icon">R</span><span class="nav-label">Runs</span></button>
+        </nav>
+        <div class="sidebar-footer"><span class="connection-dot"></span><span class="nav-label">Runtime ready</span></div>
+      </aside>
+
       <section class="workspace">
         <header class="topbar">
-          <div>
-            <h1>Cyrene Agent</h1>
-            <p>Replica Lab</p>
-          </div>
+          <div class="page-heading"><h1 id="page-title">Chat</h1><p id="page-description">Conversation workspace</p></div>
           <div class="topbar-actions">
-            <nav class="view-switch" aria-label="Primary views">
-              <button id="chat-view-button" class="view-switch-button is-active" type="button" aria-pressed="true">Chat</button>
-              <button id="memory-view-button" class="view-switch-button" type="button" aria-pressed="false">Memory</button>
-              <button id="skills-view-button" class="view-switch-button" type="button" aria-pressed="false">Skills</button>
-              <button id="mcp-view-button" class="view-switch-button" type="button" aria-pressed="false">MCP</button>
-              <button id="scheduler-view-button" class="view-switch-button" type="button" aria-pressed="false">Tasks</button>
-              <button id="runs-view-button" class="view-switch-button" type="button" aria-pressed="false">Runs</button>
-            </nav>
-            <label class="style-control" for="style-select">
-              <span>Style</span>
-              <select id="style-select" aria-label="Reply style"></select>
-            </label>
+            <label class="style-control" for="style-select"><span>Style</span><select id="style-select" aria-label="Reply style"></select></label>
             <button id="new-chat-button" class="secondary-button" type="button">New Chat</button>
             <span id="status" class="status">Ready</span>
+            <button id="activity-toggle" class="icon-button activity-toggle" type="button" aria-controls="activity-drawer" aria-expanded="false" title="Open activity" aria-label="Open activity">Activity</button>
           </div>
         </header>
 
@@ -36,10 +36,9 @@
           <aside id="conversation-sidebar" class="conversation-sidebar" aria-label="Conversations"></aside>
           <section class="conversation-chat">
             <div id="messages" class="messages"></div>
-
             <form id="chat-form" class="composer">
-              <input id="message-input" type="text" autocomplete="off" placeholder="Type a message..." />
-              <button id="stop-button" class="stop-button" type="button" title="Stop response" aria-label="Stop response" hidden>■</button>
+              <input id="message-input" type="text" autocomplete="off" placeholder="Message Cyrene..." />
+              <button id="stop-button" class="stop-button" type="button" title="Stop response" aria-label="Stop response" hidden>Stop</button>
               <button type="submit">Send</button>
             </form>
           </section>
@@ -52,8 +51,8 @@
         <section id="runs-view" class="runs-view" aria-label="Agent Runs" hidden></section>
       </section>
 
-      <aside class="event-pane" aria-label="Agent events">
-        <h2>Agent Events</h2>
+      <aside id="activity-drawer" class="activity-drawer" aria-hidden="true" hidden>
+        <header class="activity-header"><div><h2>Activity</h2><p>Agent execution events</p></div><button id="activity-close" class="icon-button" type="button" title="Close activity" aria-label="Close activity">Close</button></header>
         <ol id="events" class="events"></ol>
       </aside>
     </main>

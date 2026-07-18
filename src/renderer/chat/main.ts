@@ -20,6 +20,7 @@ import { mountSchedulerView } from "./scheduler-view.js";
 import { mountConversationView } from "./conversation-view.js";
 import { mountRunsView } from "./runs-view.js";
 import { createConversationViewModel } from "./conversation-view-model.js";
+import { createActivityDrawer } from "./activity-drawer.js";
 import type {
   ConversationChangedPayload,
   ConversationDetail,
@@ -54,6 +55,11 @@ const runsViewElement = document.querySelector<HTMLElement>("#runs-view");
 const runsViewButtonElement = document.querySelector<HTMLButtonElement>("#runs-view-button");
 const mcpApprovalRootElement = document.querySelector<HTMLElement>("#mcp-approval-root");
 const conversationSidebarElement = document.querySelector<HTMLElement>("#conversation-sidebar");
+const pageTitleElement = document.querySelector<HTMLElement>("#page-title");
+const pageDescriptionElement = document.querySelector<HTMLElement>("#page-description");
+const activityDrawerElement = document.querySelector<HTMLElement>("#activity-drawer");
+const activityToggleElement = document.querySelector<HTMLButtonElement>("#activity-toggle");
+const activityCloseElement = document.querySelector<HTMLButtonElement>("#activity-close");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -84,6 +90,12 @@ const runsView = requireElement(runsViewElement, "runs-view");
 const runsViewButton = requireElement(runsViewButtonElement, "runs-view-button");
 const mcpApprovalRoot = requireElement(mcpApprovalRootElement, "mcp-approval-root");
 const conversationSidebar = requireElement(conversationSidebarElement, "conversation-sidebar");
+const pageTitle = requireElement(pageTitleElement, "page-title");
+const pageDescription = requireElement(pageDescriptionElement, "page-description");
+const activityDrawer = requireElement(activityDrawerElement, "activity-drawer");
+const activityToggle = requireElement(activityToggleElement, "activity-toggle");
+const activityClose = requireElement(activityCloseElement, "activity-close");
+const activityController = createActivityDrawer({ drawer: activityDrawer, toggle: activityToggle });
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
 let activeConversationId = "";
@@ -135,6 +147,20 @@ function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler" 
   mcpViewButton.setAttribute("aria-pressed", String(isMcp));
   schedulerViewButton.setAttribute("aria-pressed", String(isScheduler));
   runsViewButton.setAttribute("aria-pressed", String(isRuns));
+  const pages = {
+    chat: ["Chat", "Conversation workspace"],
+    memory: ["Memory", "Long-term context and profile"],
+    skills: ["Skills", "Reusable agent capabilities"],
+    mcp: ["MCP", "External tools and connections"],
+    scheduler: ["Tasks", "Scheduled agent work"],
+    runs: ["Runs", "Execution diagnostics and usage"],
+  } as const;
+  pageTitle.textContent = pages[view][0];
+  pageDescription.textContent = pages[view][1];
+  for (const button of [chatViewButton, memoryViewButton, skillsViewButton, mcpViewButton, schedulerViewButton, runsViewButton]) {
+    if (button.classList.contains("is-active")) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  }
 }
 
 function appendMessage(role: "user" | "agent", text: string): HTMLElement {
@@ -151,7 +177,11 @@ function appendEvent(text: string): void {
   item.textContent = text;
   eventList.append(item);
   eventList.scrollTop = eventList.scrollHeight;
+  if (/failed|error|approval/i.test(text)) activityController.setAttention(true);
 }
+
+activityToggle.addEventListener("click", () => activityController.toggle());
+activityClose.addEventListener("click", () => activityController.close());
 
 function renderConversation(detail: ConversationDetail): void {
   messageList.replaceChildren();
