@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -65,6 +65,26 @@ function evaluate(webSocketUrl, expression) {
   });
 }
 
+function captureScreenshot(webSocketUrl, filePath) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(webSocketUrl);
+    socket.addEventListener("error", () => reject(new Error("Screenshot CDP connection failed")));
+    socket.addEventListener("open", () => socket.send(JSON.stringify({
+      id: 2,
+      method: "Page.captureScreenshot",
+      params: { format: "png", captureBeyondViewport: false },
+    })));
+    socket.addEventListener("message", async (event) => {
+      const message = JSON.parse(event.data);
+      if (message.id !== 2) return;
+      socket.close();
+      if (!message.result?.data) return reject(new Error("Screenshot data missing"));
+      await writeFile(filePath, Buffer.from(message.result.data, "base64"));
+      resolve();
+    });
+  });
+}
+
 const port = await freePort();
 const temporaryRoot = await mkdtemp(join(tmpdir(), "cyrene-electron-smoke-"));
 const electronData = join(temporaryRoot, "user-data");
@@ -100,13 +120,18 @@ try {
   const target = await rendererTarget(port);
   const result = await evaluate(target.webSocketDebuggerUrl, `(async () => {
     for (let attempt = 0; attempt < 50; attempt += 1) {
-      if (document.querySelector("#skills-view-button") && window.cyrene?.skills) break;
+      if (document.querySelector("#skills-view-button")
+        && window.cyrene?.skills
+        && document.querySelectorAll("#style-select option").length > 0) break;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     const skillsButton = document.querySelector("#skills-view-button");
     if (!skillsButton || !window.cyrene?.skills) throw new Error("Renderer API did not become ready");
     skillsButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (document.querySelectorAll(".skill-row h3").length >= 2) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
     const skillsResult = {
       title: document.title,
       tabs: [...document.querySelectorAll(".view-switch-button")].map((item) => item.textContent),
@@ -129,7 +154,6 @@ try {
       toolNames: [...document.querySelectorAll(".mcp-tool-row code")].map((item) => item.textContent),
       noHorizontalOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     };
-    await window.cyrene.mcp.remove(mcpConfig.id);
     const schedulerInput = {
       name: "Electron Smoke Task", prompt: "Do not run automatically",
       schedule: { kind: "once", runAt: "2099-01-01T00:00:00.000Z" },
@@ -142,8 +166,54 @@ try {
       visible: !document.querySelector("#scheduler-view").hidden,
       taskNames: [...document.querySelectorAll(".scheduler-task-row h3")].map((item) => item.textContent),
     };
-    await window.cyrene.scheduler.removeTask(scheduledTask.id);
-    return { ...skillsResult, mcp: mcpResult, scheduler: schedulerResult };
+    document.querySelector("#memory-view-button").click();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    document.querySelector("#scheduler-view-button").click();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    window.resizeTo(820, 600);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const toolbar = document.querySelector(".topbar");
+    const workspace = document.querySelector(".workspace");
+    const toolbarRect = toolbar.getBoundingClientRect();
+    const workspaceRect = workspace.getBoundingClientRect();
+    const visibleControls = [...toolbar.querySelectorAll("button, select, .status")]
+      .filter((item) => item.getClientRects().length > 0);
+    const fontSizes = [...document.querySelectorAll(".view-switch-button")]
+      .map((item) => getComputedStyle(item).fontSize);
+    const beforeTop = toolbar.getBoundingClientRect().top;
+    document.querySelector("#scheduler-view").scrollTop = 500;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const layout = {
+      noPageOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      toolbarInsideWorkspace: toolbarRect.left >= workspaceRect.left
+        && toolbarRect.right <= workspaceRect.right + 1,
+      controlsInsideToolbar: visibleControls.every((item) => {
+        const rect = item.getBoundingClientRect();
+        return rect.left >= toolbarRect.left - 1 && rect.right <= toolbarRect.right + 1;
+      }),
+      toolbarFixed: Math.abs(toolbar.getBoundingClientRect().top - beforeTop) < 1,
+      uniformTabFonts: new Set(fontSizes).size === 1,
+      workspaceShare: workspaceRect.width / innerWidth,
+      uniformPanelTitles: (() => {
+        const titles = [
+          ".memory-header h2",
+          ".skills-header h2",
+          ".mcp-header h2",
+          ".scheduler-header h2",
+        ].map((selector) => document.querySelector(selector)).filter(Boolean);
+        return titles.length === 4 && new Set(titles.map((title) => getComputedStyle(title).fontSize)).size === 1;
+      })(),
+      memoryTabsFit: document.querySelector(".memory-tabs").scrollWidth
+        <= document.querySelector(".memory-tabs").clientWidth + 1,
+      viewport: { width: innerWidth, height: innerHeight },
+    };
+    return {
+      ...skillsResult,
+      mcp: mcpResult,
+      scheduler: schedulerResult,
+      layout,
+      cleanup: { mcpId: mcpConfig.id, taskId: scheduledTask.id },
+    };
   })()`);
   if (!result.skillsVisible
     || !result.skillNames.includes("Agent Learning Tutor")
@@ -160,6 +230,33 @@ try {
   if (!result.scheduler.visible || !result.scheduler.taskNames.includes("Electron Smoke Task")) {
     throw new Error(`Unexpected Scheduler view: ${JSON.stringify(result.scheduler)}`);
   }
+  if (!result.layout.noPageOverflow
+    || !result.layout.toolbarInsideWorkspace
+    || !result.layout.controlsInsideToolbar
+    || !result.layout.toolbarFixed
+    || !result.layout.uniformTabFonts
+    || result.layout.workspaceShare < 0.64
+    || !result.layout.uniformPanelTitles
+    || !result.layout.memoryTabsFit) {
+    throw new Error(`Unexpected responsive layout: ${JSON.stringify(result.layout)}`);
+  }
+  if (process.env.CYRENE_SMOKE_SCREENSHOT_DIR) {
+    await mkdir(process.env.CYRENE_SMOKE_SCREENSHOT_DIR, { recursive: true });
+    for (const view of ["chat", "memory", "skills", "mcp", "scheduler"]) {
+      await evaluate(target.webSocketDebuggerUrl, `(async () => {
+        document.querySelector("#${view}-view-button").click();
+        await new Promise((resolve) => setTimeout(resolve, 350));
+      })()`);
+      await captureScreenshot(
+        target.webSocketDebuggerUrl,
+        join(process.env.CYRENE_SMOKE_SCREENSHOT_DIR, `${view}.png`),
+      );
+    }
+  }
+  await evaluate(target.webSocketDebuggerUrl, `(async () => {
+    await window.cyrene.scheduler.removeTask(${JSON.stringify(result.cleanup.taskId)});
+    await window.cyrene.mcp.remove(${JSON.stringify(result.cleanup.mcpId)});
+  })()`);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } catch (error) {
   if (stderr.trim()) process.stderr.write(stderr);
