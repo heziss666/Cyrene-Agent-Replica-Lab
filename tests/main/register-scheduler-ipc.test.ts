@@ -32,7 +32,7 @@ describe("registerSchedulerIpc", () => {
       setEnabled: vi.fn(async () => task),
       runNow: vi.fn(async () => "run-1"),
       listRuns: vi.fn(async () => []),
-      getRun: vi.fn(async () => undefined),
+      getRun: vi.fn(async () => undefined), clearHistory: vi.fn(async () => 2),
     };
 
     registerSchedulerIpc({ ipcMain, scheduler });
@@ -44,18 +44,20 @@ describe("registerSchedulerIpc", () => {
     await expect(ipcMain.handlers.get(IPC_CHANNELS.scheduler.runNow)?.({}, { id: "task-1" })).resolves.toEqual({ runId: "run-1" });
     await ipcMain.handlers.get(IPC_CHANNELS.scheduler.listRuns)?.({}, { taskId: "task-1" });
     await ipcMain.handlers.get(IPC_CHANNELS.scheduler.getRun)?.({}, { id: "run-1" });
+    await expect(ipcMain.handlers.get(IPC_CHANNELS.scheduler.clearHistory)?.({}, { taskId: "task-1" })).resolves.toEqual({ cleared: 2 });
 
     expect(scheduler.create).toHaveBeenCalledWith(input);
     expect(scheduler.update).toHaveBeenCalledWith("task-1", { name: "New" });
     expect(scheduler.setEnabled).toHaveBeenCalledWith("task-1", false);
     expect(scheduler.listRuns).toHaveBeenCalledWith("task-1");
+    expect(scheduler.clearHistory).toHaveBeenCalledWith("task-1");
   });
 
   it("rejects extra or malformed payload fields", async () => {
     const ipcMain = createIpcMain();
     const scheduler = {
       snapshot: () => ({ tasks: [] }), create: vi.fn(), update: vi.fn(), remove: vi.fn(),
-      setEnabled: vi.fn(), runNow: vi.fn(), listRuns: vi.fn(), getRun: vi.fn(),
+      setEnabled: vi.fn(), runNow: vi.fn(), listRuns: vi.fn(), getRun: vi.fn(), clearHistory: vi.fn(),
     };
     registerSchedulerIpc({ ipcMain, scheduler });
 
@@ -71,10 +73,10 @@ describe("registerSchedulerIpc", () => {
     const ipcMain = createIpcMain();
     const scheduler = {
       snapshot: () => ({ tasks: [] }), create: vi.fn(), update: vi.fn(), remove: vi.fn(),
-      setEnabled: vi.fn(), runNow: vi.fn(), listRuns: vi.fn(), getRun: vi.fn(),
+      setEnabled: vi.fn(), runNow: vi.fn(), listRuns: vi.fn(), getRun: vi.fn(), clearHistory: vi.fn(),
     };
     const runtime = registerSchedulerIpc({ ipcMain, scheduler });
-    expect(ipcMain.handlers.size).toBe(8);
+    expect(ipcMain.handlers.size).toBe(9);
     runtime.dispose();
     expect(ipcMain.handlers.size).toBe(0);
   });

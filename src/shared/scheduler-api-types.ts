@@ -55,5 +55,6 @@ export interface SchedulerApi {
   runNow(id: string): Promise<{ runId: string }>;
   listRuns(taskId?: string): Promise<SchedulerRunView[]>;
   getRun(id: string): Promise<SchedulerRunView | undefined>;
+  clearHistory(taskId: string): Promise<{ cleared: number }>;
   onChanged(listener: () => void): () => void;
 }

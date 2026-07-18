@@ -74,6 +74,7 @@ describe("IPC_CHANNELS", () => {
       runNow: "cyrene:scheduler:run-now",
       listRuns: "cyrene:scheduler:list-runs",
       getRun: "cyrene:scheduler:get-run",
+      clearHistory: "cyrene:scheduler:clear-history",
       changed: "cyrene:scheduler:changed",
     });
   });

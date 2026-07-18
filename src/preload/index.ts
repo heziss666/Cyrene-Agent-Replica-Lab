@@ -149,6 +149,7 @@ const api: CyreneApi = {
       taskId === undefined ? undefined : { taskId },
     ),
     getRun: async (id) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.getRun, { id }),
+    clearHistory: async (taskId) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.clearHistory, { taskId }),
     onChanged: (listener) => {
       const handler = () => listener();
       ipcRenderer.on(IPC_CHANNELS.scheduler.changed, handler);

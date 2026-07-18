@@ -5,7 +5,7 @@ export function mountConversationView(options: {
   document?: Document;
   onCreate(): void | Promise<void>;
   onSelect(id: string): void | Promise<void>;
-  onRename(id: string): void | Promise<void>;
+  onRename(id: string, title: string): void | Promise<void>;
   onRemove(id: string): void | Promise<void>;
 }) {
   const document = options.document ?? window.document;
@@ -15,6 +15,7 @@ export function mountConversationView(options: {
     unreadConversationIds: [],
   };
   let filter = "";
+  let editingId = "";
 
   function render(next = current): void {
     current = next;
@@ -28,6 +29,7 @@ export function mountConversationView(options: {
     create.textContent = "+";
     create.title = "New conversation";
     create.setAttribute("aria-label", "New conversation");
+    create.disabled = current.conversations.some(({ messageCount, hasPendingRun }) => messageCount === 0 && !hasPendingRun);
     create.addEventListener("click", () => void options.onCreate());
     header.append(title, create);
 
@@ -63,15 +65,43 @@ export function mountConversationView(options: {
 
       const actions = document.createElement("div");
       actions.className = "conversation-row-actions";
+      if (editingId === conversation.id) {
+        const editor = document.createElement("div");
+        editor.className = "conversation-rename-editor";
+        const input = document.createElement("input");
+        input.className = "conversation-rename-input";
+        input.value = conversation.title;
+        input.setAttribute("aria-label", "Conversation title");
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "conversation-rename-save";
+        save.textContent = "Save";
+        save.addEventListener("click", async () => {
+          const title = input.value.trim();
+          if (!title) return;
+          await options.onRename(conversation.id, title);
+          editingId = "";
+          render();
+        });
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", () => { editingId = ""; render(); });
+        editor.append(input, save, cancel);
+        row.append(editor);
+        list.append(row);
+        continue;
+      }
       const rename = document.createElement("button");
       rename.type = "button";
-      rename.textContent = "✎";
+      rename.className = "conversation-rename-button";
+      rename.textContent = "Edit";
       rename.title = "Rename conversation";
       rename.setAttribute("aria-label", "Rename conversation");
-      rename.addEventListener("click", () => void options.onRename(conversation.id));
+      rename.addEventListener("click", () => { editingId = conversation.id; render(); });
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.textContent = "×";
+      remove.textContent = "Delete";
       remove.title = "Delete conversation";
       remove.setAttribute("aria-label", "Delete conversation");
       remove.addEventListener("click", () => void options.onRemove(conversation.id));

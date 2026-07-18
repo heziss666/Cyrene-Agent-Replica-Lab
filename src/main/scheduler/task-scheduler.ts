@@ -29,6 +29,7 @@ export interface TaskScheduler {
   runNow(id: string): Promise<string>;
   listRuns(taskId?: string): Promise<ScheduledTaskRun[]>;
   getRun(id: string): Promise<ScheduledTaskRun | undefined>;
+  clearHistory(taskId: string): Promise<number>;
   flush(): Promise<void>;
   beginShutdown(): Promise<void>;
   pendingCount(): number;
@@ -296,6 +297,14 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
         Date.parse(b.startedAt ?? b.scheduledFor) - Date.parse(a.startedAt ?? a.scheduledFor));
     },
     getRun,
+    clearHistory(taskId) {
+      return enqueue(async () => {
+        if (!tasks.has(taskId)) throw new Error("SCHEDULE_TASK_NOT_FOUND");
+        const cleared = await options.runStore.clearTaskHistory(taskId);
+        options.onChanged?.();
+        return cleared;
+      });
+    },
     async flush() {
       await operation.catch(() => undefined);
       await options.queue.flush();

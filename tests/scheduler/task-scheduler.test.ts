@@ -18,6 +18,11 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } 
       load: async () => [...runs],
       append: async (item) => { runs.push(item); },
       update: async (id, updater) => { runs = runs.map((item) => item.id === id ? updater(item) : item); },
+      clearTaskHistory: async (taskId) => {
+        const before = runs.length;
+        runs = runs.filter((item) => item.taskId !== taskId || item.status === "queued" || item.status === "running");
+        return before - runs.length;
+      },
     },
     queue: createScheduledTaskQueue(),
     runner: { run },

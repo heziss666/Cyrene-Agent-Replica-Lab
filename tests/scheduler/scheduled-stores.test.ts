@@ -64,4 +64,14 @@ describe("scheduled stores", () => {
     await store.update("run-100", (current) => ({ ...current, reply: "updated" }));
     expect((await store.load()).find((item) => item.id === "run-100")?.reply).toBe("updated");
   });
+
+  it("clears completed history for one task while preserving active and other task runs", async () => {
+    const { file } = await tempFile("runs.json");
+    const store = createScheduledRunStore(file);
+    await store.append(run(1, "daily"));
+    await store.append({ ...run(2, "daily"), status: "running", finishedAt: undefined });
+    await store.append(run(3, "weekly"));
+    expect(await store.clearTaskHistory("daily")).toBe(1);
+    expect((await store.load()).map(({ id }) => id)).toEqual(["run-2", "run-3"]);
+  });
 });

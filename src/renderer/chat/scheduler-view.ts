@@ -42,7 +42,9 @@ export function mountSchedulerView(options: { root: HTMLElement; api: SchedulerA
       run.addEventListener("click", async () => { status.textContent = "Queued..."; await options.api.runNow(task.id); await refresh(); });
       const remove = button(document, "Delete", "secondary-button danger-button");
       remove.addEventListener("click", async () => { await options.api.removeTask(task.id); await refresh(); });
-      actions.append(enabled, run, remove); row.append(main, actions); return row;
+      const clear = button(document, "Clear History", "secondary-button");
+      clear.addEventListener("click", async () => { await options.api.clearHistory(task.id); await refresh(); });
+      actions.append(enabled, run, clear, remove); row.append(main, actions); return row;
     });
     if (!rows.length) { const empty = document.createElement("p"); empty.textContent = "No scheduled tasks."; rows.push(empty); }
     tasks.replaceChildren(...rows);

@@ -22,6 +22,7 @@ export function mountMcpView(options: {
   status.className = "mcp-status";
   const content = document.createElement("div");
   content.className = "mcp-content";
+  const expandedServers = new Set<string>();
 
   async function run(message: string, action: () => Promise<McpSnapshotView>): Promise<void> {
     status.textContent = message;
@@ -60,6 +61,16 @@ export function mountMcpView(options: {
       identity.append(title, id, metadata);
       const actions = document.createElement("div");
       actions.className = "mcp-actions";
+      const expand = document.createElement("button");
+      expand.type = "button";
+      expand.className = "icon-button mcp-expand-button";
+      expand.textContent = expandedServers.has(server.id) ? "Collapse" : `Tools (${server.toolCount})`;
+      expand.setAttribute("aria-expanded", String(expandedServers.has(server.id)));
+      expand.addEventListener("click", () => {
+        if (expandedServers.has(server.id)) expandedServers.delete(server.id);
+        else expandedServers.add(server.id);
+        render(snapshot);
+      });
       const enabled = document.createElement("input");
       enabled.type = "checkbox";
       enabled.checked = server.enabled;
@@ -88,7 +99,7 @@ export function mountMcpView(options: {
       remove.title = "Remove server";
       remove.textContent = "×";
       remove.addEventListener("click", () => run("Removing...", () => options.api.remove(server.id)));
-      actions.append(enabled, trust, reconnect, remove);
+      actions.append(expand, enabled, trust, reconnect, remove);
       top.append(identity, actions);
       row.append(top);
       if (server.errorCode) {
@@ -99,6 +110,7 @@ export function mountMcpView(options: {
       }
       const tools = document.createElement("div");
       tools.className = "mcp-tools";
+      tools.hidden = !expandedServers.has(server.id);
       for (const tool of server.tools) {
         const toolRow = document.createElement("div");
         toolRow.className = "mcp-tool-row";

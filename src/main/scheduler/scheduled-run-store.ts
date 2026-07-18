@@ -7,6 +7,7 @@ export interface ScheduledRunStore {
   load(): Promise<ScheduledTaskRun[]>;
   append(run: ScheduledTaskRun): Promise<void>;
   update(id: string, updater: (run: ScheduledTaskRun) => ScheduledTaskRun): Promise<void>;
+  clearTaskHistory(taskId: string): Promise<number>;
 }
 
 export function createScheduledRunStore(
@@ -16,7 +17,7 @@ export function createScheduledRunStore(
   const now = options.now ?? Date.now;
   let operation: Promise<unknown> = Promise.resolve();
 
-  function enqueue(work: () => Promise<void>): Promise<void> {
+  function enqueue<T>(work: () => Promise<T>): Promise<T> {
     const result = operation.then(work, work);
     operation = result.catch(() => undefined);
     return result;
@@ -51,6 +52,15 @@ export function createScheduledRunStore(
         const next = [...runs];
         next[index] = parseScheduledRun(updater({ ...runs[index], toolCalls: [...runs[index].toolCalls] }));
         await persist(next);
+      });
+    },
+    clearTaskHistory(taskId) {
+      return enqueue(async () => {
+        const runs = await read();
+        const retained = runs.filter((run) => run.taskId !== taskId || run.status === "queued" || run.status === "running");
+        const cleared = runs.length - retained.length;
+        if (cleared > 0) await persist(retained);
+        return cleared;
       });
     },
   };

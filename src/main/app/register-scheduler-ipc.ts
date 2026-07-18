@@ -14,11 +14,12 @@ const HANDLERS = [
   IPC_CHANNELS.scheduler.updateTask, IPC_CHANNELS.scheduler.removeTask,
   IPC_CHANNELS.scheduler.setEnabled, IPC_CHANNELS.scheduler.runNow,
   IPC_CHANNELS.scheduler.listRuns, IPC_CHANNELS.scheduler.getRun,
+  IPC_CHANNELS.scheduler.clearHistory,
 ] as const;
 
 export function registerSchedulerIpc(options: {
   ipcMain: SchedulerIpcMainLike;
-  scheduler: Pick<TaskScheduler, "snapshot" | "create" | "update" | "remove" | "setEnabled" | "runNow" | "listRuns" | "getRun">;
+  scheduler: Pick<TaskScheduler, "snapshot" | "create" | "update" | "remove" | "setEnabled" | "runNow" | "listRuns" | "getRun" | "clearHistory">;
 }): { dispose(): void } {
   for (const channel of HANDLERS) options.ipcMain.removeHandler(channel);
   options.ipcMain.handle(IPC_CHANNELS.scheduler.listTasks, async () => options.scheduler.snapshot());
@@ -46,6 +47,9 @@ export function registerSchedulerIpc(options: {
   });
   options.ipcMain.handle(IPC_CHANNELS.scheduler.getRun, async (_event, payload) =>
     options.scheduler.getRun(runId(exact(payload, ["id"]).id)));
+  options.ipcMain.handle(IPC_CHANNELS.scheduler.clearHistory, async (_event, payload) => ({
+    cleared: await options.scheduler.clearHistory(id(exact(payload, ["taskId"]).taskId)),
+  }));
   return { dispose: () => { for (const channel of HANDLERS) options.ipcMain.removeHandler(channel); } };
 }
 

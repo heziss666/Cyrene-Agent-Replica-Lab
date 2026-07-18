@@ -119,7 +119,7 @@ const conversationPanel = mountConversationView({
   root: conversationSidebar,
   onCreate: () => createConversation(),
   onSelect: (id) => openConversation(id),
-  onRename: (id) => renameConversation(id),
+  onRename: (id, title) => renameConversation(id, title),
   onRemove: (id) => removeConversation(id),
 });
 
@@ -236,16 +236,20 @@ async function openConversation(id: string, persistActive = true): Promise<void>
 }
 
 async function createConversation(): Promise<void> {
+  const snapshot = await window.cyrene.conversations.list();
+  const empty = snapshot.conversations.find(({ messageCount, hasPendingRun }) => messageCount === 0 && !hasPendingRun);
+  if (empty) {
+    await openConversation(empty.id);
+    messageInput.focus();
+    return;
+  }
   const result = await window.cyrene.conversations.create();
   if (!conversationModel) conversationModel = createConversationViewModel(result.conversation.id);
   await openConversation(result.conversation.id, false);
   messageInput.focus();
 }
 
-async function renameConversation(id: string): Promise<void> {
-  const current = (await window.cyrene.conversations.get(id)).title;
-  const title = window.prompt("Conversation title", current)?.trim();
-  if (!title) return;
+async function renameConversation(id: string, title: string): Promise<void> {
   await window.cyrene.conversations.rename(id, title);
   renderConversationList(await window.cyrene.conversations.list());
 }

@@ -8,6 +8,7 @@ type FakeElement = {
   listeners: Record<string, Array<() => void | Promise<void>>>;
   append(...children: FakeElement[]): void; replaceChildren(...children: FakeElement[]): void;
   addEventListener(name: string, listener: () => void | Promise<void>): void;
+  setAttribute(name: string, value: string): void;
   querySelectorAll(selector: string): FakeElement[];
 };
 
@@ -19,6 +20,7 @@ function fakeDocument(): Document {
       append(...children) { element.children.push(...children); },
       replaceChildren(...children) { element.children = children; },
       addEventListener(name, listener) { (element.listeners[name] ??= []).push(listener); },
+      setAttribute() {},
       querySelectorAll(selector) {
         const result: FakeElement[] = [];
         const visit = (node: FakeElement) => {
@@ -75,5 +77,16 @@ describe("MCP view", () => {
     const reconnect = root.querySelectorAll(".mcp-reconnect")[0]!;
     await reconnect.listeners.click![0]!();
     expect(mcp.reconnect).toHaveBeenCalledWith("demo");
+  });
+
+  it("collapses each server tool list until its toggle is used", async () => {
+    const document = fakeDocument();
+    const root = document.createElement("section") as unknown as FakeElement;
+    const view = mountMcpView({ root: root as unknown as HTMLElement, api: api(), document });
+    await view.show();
+    const tools = root.querySelectorAll(".mcp-tools")[0];
+    expect(tools.hidden).toBe(true);
+    await root.querySelectorAll(".mcp-expand-button")[0].listeners.click[0]();
+    expect(root.querySelectorAll(".mcp-tools")[0].hidden).toBe(false);
   });
 });
