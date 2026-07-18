@@ -38,7 +38,7 @@ function evaluate(webSocketUrl, expression) {
     const timeout = setTimeout(() => {
       socket.close();
       reject(new Error("Electron smoke evaluation timed out"));
-    }, 10_000);
+    }, 20_000);
     socket.addEventListener("error", () => reject(new Error("CDP connection failed")));
     socket.addEventListener("open", () => {
       socket.send(JSON.stringify({

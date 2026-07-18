@@ -279,7 +279,7 @@ textarea {
 
 .composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
+  grid-template-columns: minmax(0, 1fr) 42px 96px;
   gap: 10px;
   padding: 16px 24px 20px;
   border-top: 1px solid #d9e0e7;
@@ -310,6 +310,20 @@ textarea {
 
 .composer button:hover {
   background: #185940;
+}
+
+.composer .stop-button {
+  color: #ffffff;
+  background: #a53b3b;
+  font-size: 16px;
+}
+
+.composer .stop-button:hover {
+  background: #873030;
+}
+
+.composer .stop-button[hidden] {
+  display: none;
 }
 
 .event-pane {

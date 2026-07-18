@@ -33,6 +33,7 @@ declare global {
 
 const form = document.querySelector<HTMLFormElement>("#chat-form");
 const input = document.querySelector<HTMLInputElement>("#message-input");
+const stopButtonElement = document.querySelector<HTMLButtonElement>("#stop-button");
 const messages = document.querySelector<HTMLElement>("#messages");
 const events = document.querySelector<HTMLOListElement>("#events");
 const status = document.querySelector<HTMLElement>("#status");
@@ -60,6 +61,7 @@ function requireElement<T extends Element>(element: T | null, name: string): T {
 
 const chatForm = requireElement(form, "chat-form");
 const messageInput = requireElement(input, "message-input");
+const stopButton = requireElement(stopButtonElement, "stop-button");
 const messageList = requireElement(messages, "messages");
 const eventList = requireElement(events, "events");
 const statusBadge = requireElement(status, "status");
@@ -81,6 +83,7 @@ let isChatBusy = false;
 let selectedStyle: StyleId = "default";
 let activeConversationId = "";
 let conversationModel: ReturnType<typeof createConversationViewModel> | undefined;
+const liveMessageElements = new Map<string, HTMLElement>();
 
 const memoryPanel = mountMemoryView({
   root: memoryView,
@@ -124,12 +127,13 @@ function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler")
   schedulerViewButton.setAttribute("aria-pressed", String(isScheduler));
 }
 
-function appendMessage(role: "user" | "agent", text: string): void {
+function appendMessage(role: "user" | "agent", text: string): HTMLElement {
   const item = document.createElement("article");
   item.className = `message message-${role}`;
   item.textContent = text;
   messageList.append(item);
   messageList.scrollTop = messageList.scrollHeight;
+  return item;
 }
 
 function appendEvent(text: string): void {
@@ -141,6 +145,7 @@ function appendEvent(text: string): void {
 
 function renderConversation(detail: ConversationDetail): void {
   messageList.replaceChildren();
+  liveMessageElements.clear();
   for (const message of detail.messages) {
     if (message.status === "failed") continue;
     appendMessage(message.role === "user" ? "user" : "agent", message.content);
@@ -150,8 +155,8 @@ function renderConversation(detail: ConversationDetail): void {
 function setBusy(isBusy: boolean): void {
   isChatBusy = isBusy;
   messageInput.disabled = isBusy;
-  newChat.disabled = isBusy;
   styleSelect.disabled = isBusy;
+  stopButton.hidden = !isBusy;
   if (isBusy) {
     statusBadge.textContent = "Running";
   }
@@ -185,6 +190,7 @@ async function openConversation(id: string, persistActive = true): Promise<void>
   activeConversationId = id;
   conversationModel?.setActive(id);
   renderConversation(detail);
+  setBusy(conversationModel?.snapshot().busy ?? false);
   await loadConversationStyle();
   renderConversationList(await window.cyrene.conversations.list());
 }
@@ -227,6 +233,43 @@ window.cyrene.chat.onAgentEvent((payload) => {
 
 window.cyrene.conversations.onChanged((payload) => {
   renderConversationList(payload);
+});
+
+window.cyrene.runs.onEvent((payload) => {
+  const route = conversationModel?.applyRunEvent(payload);
+  if (!route?.accepted) return;
+  if (route.renderInActiveConversation && payload.event.type === "text_delta") {
+    let element = liveMessageElements.get(payload.runId);
+    if (!element) {
+      element = appendMessage("agent", "");
+      liveMessageElements.set(payload.runId, element);
+    }
+    element.textContent = route.text;
+  }
+  if (route.terminal) {
+    liveMessageElements.delete(payload.runId);
+    if (payload.event.type === "run_failed" && route.renderInActiveConversation && !route.text) {
+      appendMessage("agent", "The run failed. Open Runs for details.");
+    }
+    void window.cyrene.conversations.list().then(renderConversationList);
+  }
+  const snapshot = conversationModel?.snapshot();
+  setBusy(snapshot?.busy ?? false);
+  statusBadge.textContent = snapshot?.busy ? "Running" : "Ready";
+});
+
+stopButton.addEventListener("click", async () => {
+  const run = conversationModel?.snapshot().liveRuns.find(({ conversationId }) =>
+    conversationId === activeConversationId
+  );
+  if (!run) return;
+  stopButton.disabled = true;
+  statusBadge.textContent = "Stopping";
+  try {
+    await window.cyrene.runs.cancel(run.runId);
+  } finally {
+    stopButton.disabled = false;
+  }
 });
 
 chatViewButton.addEventListener("click", () => {
@@ -317,6 +360,7 @@ chatForm.addEventListener("submit", async (event) => {
       const route = conversationModel?.finishRun(result);
       if (route?.renderInActiveConversation) appendMessage("agent", result.reply);
     } else {
+      conversationModel?.acceptRun(result.runId, conversationId, requestId, result.status);
       statusBadge.textContent = result.status === "queued" ? "Queued" : "Running";
     }
     renderConversationList(await window.cyrene.conversations.list());
@@ -328,7 +372,7 @@ chatForm.addEventListener("submit", async (event) => {
     appendEvent(message);
     statusBadge.textContent = "Error";
   } finally {
-    setBusy(false);
+    setBusy(conversationModel?.snapshot().busy ?? false);
     messageInput.focus();
   }
 });
