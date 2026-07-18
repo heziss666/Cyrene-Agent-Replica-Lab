@@ -19,6 +19,7 @@ export interface RunToolAgentInput {
   toolRegistry: ToolRegistry;
   fetchImpl?: typeof fetch;
   maxRounds?: number;
+  executionMode?: "interactive" | "scheduled";
   onEvent?: (event: ToolAgentEvent) => void;
 }
 
@@ -164,6 +165,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         const result = await executeToolCall(toolCall, input.toolRegistry, args, {
           runState,
           emitEvent: emit,
+          executionMode: input.executionMode ?? "interactive",
         });
         emit({
           type: "tool_call_finished",

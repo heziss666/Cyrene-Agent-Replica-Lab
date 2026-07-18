@@ -23,6 +23,22 @@ function jsonResponse(data: unknown): Response {
 }
 
 describe("runToolAgent", () => {
+  it("passes the scheduled execution mode to tools", async () => {
+    const registry = new ToolRegistry();
+    let seenMode: string | undefined;
+    registry.register({
+      id: "inspect_mode", description: "inspect", enabled: true,
+      parameters: { type: "object", properties: {} },
+      execute: async (_args, context) => { seenMode = context?.executionMode; return "ok"; },
+    });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ choices: [{ message: { role: "assistant", content: null, tool_calls: [{ id: "call", type: "function", function: { name: "inspect_mode", arguments: "{}" } }] }, finish_reason: "tool_calls" }] }))
+      .mockResolvedValueOnce(jsonResponse({ choices: [{ message: { role: "assistant", content: "done" }, finish_reason: "stop" }] }));
+    await runToolAgent({ messages: [createUserMessage("run")], config, adapter: openAICompatibleAdapter,
+      toolRegistry: registry, fetchImpl: fetchMock as unknown as typeof fetch, executionMode: "scheduled" });
+    expect(seenMode).toBe("scheduled");
+  });
+
   it("returns assistant text when the model does not request tools", async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse({

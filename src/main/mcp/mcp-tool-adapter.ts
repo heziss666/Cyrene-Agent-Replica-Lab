@@ -52,8 +52,11 @@ export function adaptMcpTool(input: {
       originalName: input.tool.name,
       risk,
     },
-    execute: async (args) => {
-      if (policyForMcpTool(risk, input.server.trust) === "ask") {
+    execute: async (args, context) => {
+      const policy = context?.executionMode === "scheduled" && risk === "sensitive"
+        ? "ask"
+        : policyForMcpTool(risk, input.server.trust);
+      if (policy === "ask") {
         const decision = input.requestApproval
           ? await input.requestApproval({
               serverId: input.server.id,

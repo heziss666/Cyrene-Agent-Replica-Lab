@@ -61,4 +61,21 @@ describe("MCP tool adapter", () => {
     expect(definition.enabled).toBe(false);
     expect(definition.metadata?.risk).toBe("sensitive");
   });
+
+  it("forces approval for sensitive scheduled calls even when the server is trusted", async () => {
+    const callTool = vi.fn(async () => "changed");
+    const requestApproval = vi.fn(async () => ({ allowed: true, reason: "APPROVED" as const }));
+    const definition = adaptMcpTool({
+      server: { ...server, trust: "trusted" },
+      tool: { ...tool, annotations: { destructiveHint: true } },
+      connection: { callTool },
+      requestApproval,
+    });
+    await expect(definition.execute({ path: "a" }, {
+      executionMode: "scheduled",
+      runState: new Map(),
+      emitEvent: () => undefined,
+    })).resolves.toBe("changed");
+    expect(requestApproval).toHaveBeenCalledOnce();
+  });
 });
