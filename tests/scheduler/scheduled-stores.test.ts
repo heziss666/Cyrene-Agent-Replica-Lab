@@ -74,4 +74,17 @@ describe("scheduled stores", () => {
     expect(await store.clearTaskHistory("daily")).toBe(1);
     expect((await store.load()).map(({ id }) => id)).toEqual(["run-2", "run-3"]);
   });
+
+  it("marks queued and running records from a previous process as interrupted", async () => {
+    const { file } = await tempFile("runs.json");
+    const store = createScheduledRunStore(file);
+    await store.append({ ...run(1), status: "queued", finishedAt: undefined });
+    await store.append({ ...run(2), status: "running", finishedAt: undefined });
+    await store.append(run(3));
+    expect(await store.recoverInterrupted("2026-07-18T02:00:00.000Z")).toBe(2);
+    const recovered = await store.load();
+    expect(recovered.slice(0, 2).map(({ status }) => status)).toEqual(["cancelled_shutdown", "cancelled_shutdown"]);
+    expect(recovered.slice(0, 2).map(({ errorCode }) => errorCode)).toEqual(["SCHEDULE_PROCESS_INTERRUPTED", "SCHEDULE_PROCESS_INTERRUPTED"]);
+    expect(recovered[2].status).toBe("succeeded");
+  });
 });

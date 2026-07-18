@@ -8,6 +8,7 @@ export interface ScheduledRunStore {
   append(run: ScheduledTaskRun): Promise<void>;
   update(id: string, updater: (run: ScheduledTaskRun) => ScheduledTaskRun): Promise<void>;
   clearTaskHistory(taskId: string): Promise<number>;
+  recoverInterrupted(finishedAt: string): Promise<number>;
 }
 
 export function createScheduledRunStore(
@@ -61,6 +62,24 @@ export function createScheduledRunStore(
         const cleared = runs.length - retained.length;
         if (cleared > 0) await persist(retained);
         return cleared;
+      });
+    },
+    recoverInterrupted(finishedAt) {
+      return enqueue(async () => {
+        const runs = await read();
+        let recovered = 0;
+        const next = runs.map((run) => {
+          if (run.status !== "queued" && run.status !== "running") return run;
+          recovered += 1;
+          return {
+            ...run,
+            status: "cancelled_shutdown" as const,
+            finishedAt,
+            errorCode: "SCHEDULE_PROCESS_INTERRUPTED",
+          };
+        });
+        if (recovered > 0) await persist(next);
+        return recovered;
       });
     },
   };

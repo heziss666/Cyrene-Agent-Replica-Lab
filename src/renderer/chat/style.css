@@ -1162,6 +1162,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .secondary-button:hover, .icon-button:hover { background: var(--surface-subtle); }
 .status { min-width: 62px; padding: 5px 8px; border-color: #cfe0d6; border-radius: 6px; color: var(--accent-strong); background: #edf5f0; font-size: 11px; }
 .icon-button { padding: 0 9px; cursor: pointer; font-size: 11px; }
+.topbar .icon-button, .activity-header .icon-button { width: auto; min-width: 0; }
 .activity-toggle { position: relative; }
 .activity-toggle.has-attention::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: #cf4d4d; box-shadow: 0 0 0 2px white; }
 

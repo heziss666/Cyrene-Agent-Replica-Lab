@@ -12,6 +12,7 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } 
     await input.runnerGate;
     return { status: "succeeded" as const, reply: executionMode ?? "none", toolCalls: [] };
   });
+  const recoverInterrupted = vi.fn(async () => 0);
   const scheduler = createTaskScheduler({
     taskStore: { load: async () => [...tasks], save: async (next) => { tasks = [...next]; } },
     runStore: {
@@ -23,6 +24,7 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } 
         runs = runs.filter((item) => item.taskId !== taskId || item.status === "queued" || item.status === "running");
         return before - runs.length;
       },
+      recoverInterrupted,
     },
     queue: createScheduledTaskQueue(),
     runner: { run },
@@ -31,10 +33,15 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void> } 
     setTimer: (callback, delay) => { const handle = { callback, delay }; timers.push(handle); return handle; },
     clearTimer: () => undefined,
   });
-  return { scheduler, run, timers, tasks: () => tasks, runs: () => runs, setNow: (value: string) => { now = new Date(value); } };
+  return { scheduler, run, recoverInterrupted, timers, tasks: () => tasks, runs: () => runs, setNow: (value: string) => { now = new Date(value); } };
 }
 
 describe("task scheduler", () => {
+  it("recovers interrupted persisted runs during initialization", async () => {
+    const f = fixture();
+    await f.scheduler.initialize();
+    expect(f.recoverInterrupted).toHaveBeenCalledWith("2026-07-18T00:00:00.000Z");
+  });
   it("creates tasks, calculates nextRunAt, and arms one nearest timer", async () => {
     const f = fixture();
     await f.scheduler.initialize();

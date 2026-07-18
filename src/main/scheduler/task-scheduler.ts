@@ -207,9 +207,11 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
       if (initialized) return Promise.resolve();
       return enqueue(async () => {
         if (initialized) return;
+        const startupTime = validNow(now());
+        await options.runStore.recoverInterrupted(startupTime.toISOString());
         const loaded = await options.taskStore.load();
         tasks = new Map(loaded.map((task) => [task.id, cloneTask(task)]));
-        const current = validNow(now());
+        const current = startupTime;
         for (const task of [...tasks.values()].sort(compareTasks)) {
           if (!task.enabled) continue;
           const resolution = resolveMissedTask(task, current);
