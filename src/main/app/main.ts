@@ -66,6 +66,15 @@ import { createPromptComposer } from "../prompts/prompt-composer.js";
 import { loadPersonaConfig } from "../config/persona-config.js";
 import { buildSkillCatalog } from "../skills/skill-catalog.js";
 import { buildMemoryContext } from "../memory/memory-context.js";
+import { loadConversationConfig } from "../config/conversation-config.js";
+import { createConversationStore } from "../conversations/conversation-store.js";
+import { createConversationService } from "../conversations/conversation-service.js";
+import { createConversationVectorIndex } from "../context/conversation-vector-index.js";
+import { createConversationHistoryRetriever } from "../context/conversation-history-retriever.js";
+import { createConversationSummarizer } from "../context/conversation-summarizer.js";
+import { createConservativeTokenEstimator } from "../context/token-estimator.js";
+import { createContextManager } from "../context/context-manager.js";
+import { registerConversationIpc } from "./register-conversation-ipc.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
@@ -127,6 +136,43 @@ async function boot(): Promise<void> {
     },
   });
   const memoryRecall = createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex });
+  const conversationConfig = loadConversationConfig(process.env, userData);
+  const conversationStore = createConversationStore({ rootDir: conversationConfig.rootDir });
+  const conversationService = createConversationService({ store: conversationStore });
+  const defaultPersona = await loadPersonaConfig();
+  await conversationService.initialize(defaultPersona.styleId);
+  const conversationVectorIndex = createConversationVectorIndex({
+    filePath: join(conversationConfig.rootDir, "conversation-vector-index.json"),
+    providerId: embeddingProvider.id,
+    model: embeddingProvider.model,
+  });
+  await conversationVectorIndex.initialize();
+  const conversationHistoryRetriever = createConversationHistoryRetriever({
+    provider: embeddingProvider,
+    index: conversationVectorIndex,
+  });
+  const tokenEstimator = createConservativeTokenEstimator();
+  const conversationSummarizer = createConversationSummarizer({
+    estimator: tokenEstimator,
+    triggerTokens: conversationConfig.summaryTriggerTokens,
+    recentTurnTokens: conversationConfig.recentTurnTokens,
+    getConfig: loadRuntimeModelConfig,
+    adapter: openAICompatibleAdapter,
+  });
+  const contextManager = createContextManager({
+    estimator: tokenEstimator,
+    historyRetriever: conversationHistoryRetriever,
+    contextWindowTokens: conversationConfig.contextWindowTokens,
+    outputReserveTokens: conversationConfig.outputReserveTokens,
+    toolGrowthReserveTokens: conversationConfig.toolGrowthReserveTokens,
+    recentTurnTokens: conversationConfig.recentTurnTokens,
+    summaryTriggerTokens: conversationConfig.summaryTriggerTokens,
+  });
+  const conversationIpcRuntime = registerConversationIpc({
+    ipcMain,
+    service: conversationService,
+    getDefaultStyle: () => defaultPersona.styleId,
+  });
   const chatRuntime = await registerChatIpc({
     ipcMain,
     skillRegistry: skillRuntime.registry,
@@ -135,6 +181,10 @@ async function boot(): Promise<void> {
     memoryRecall,
     memoryResolverQueue: resolverQueue,
     memoryScheduler,
+    conversationService,
+    contextManager,
+    conversationSummarizer,
+    conversationHistoryRetriever,
   });
   const memoryRuntime = registerMemoryIpc({
     ipcMain,
@@ -190,6 +240,7 @@ async function boot(): Promise<void> {
   app.once("will-quit", () => skillsIpcRuntime.dispose());
   app.once("will-quit", () => mcpIpcRuntime.dispose());
   app.once("will-quit", () => schedulerIpcRuntime.dispose());
+  app.once("will-quit", () => conversationIpcRuntime.dispose());
   const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime, schedulerRuntime);
   registerBackgroundMemoryShutdown({ app, runtime });
   await createMainWindow();

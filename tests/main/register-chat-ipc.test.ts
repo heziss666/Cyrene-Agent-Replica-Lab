@@ -257,6 +257,21 @@ describe("registerChatIpc", () => {
     expect(completeRun).toHaveBeenCalledWith("conv_1", "request_1", [{ role: "assistant", content: "persistent reply" }]);
     expect(result).toMatchObject({ conversationId: "conv_1", requestId: "request_1", reply: "persistent reply" });
   });
+
+  it("flushes persistent conversation storage and history on shutdown", async () => {
+    const flushConversation = vi.fn(async () => undefined);
+    const flushHistory = vi.fn(async () => undefined);
+    const deps = createFakeDeps(successfulAgent(), {
+      conversationService: { flush: flushConversation } as never,
+      conversationHistoryRetriever: { flush: flushHistory } as never,
+    });
+    const runtime = await registerChatIpc(deps);
+
+    await runtime.beginShutdown();
+
+    expect(flushConversation).toHaveBeenCalledOnce();
+    expect(flushHistory).toHaveBeenCalledOnce();
+  });
   it("wires default conflict inspection to recall neighbors and the three latest injected-ID sets", async () => {
     let conflictOptions: Parameters<NonNullable<RegisterDeps["createMemoryConflictService"]>>[0] | undefined;
     const inspectNewMemory = vi.fn(async () => undefined);

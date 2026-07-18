@@ -308,6 +308,8 @@ export async function registerChatIpc(
     await memoryWriteQueue.flush();
     await memoryResolverQueue.flush();
     await Promise.allSettled([...conversationBackgroundTasks]);
+    await deps.conversationService?.flush();
+    await deps.conversationHistoryRetriever?.flush();
   }
 
   function scheduleConversationBackground(task: () => Promise<void>): void {
