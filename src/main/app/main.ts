@@ -237,6 +237,7 @@ async function boot(): Promise<void> {
   });
   const promptComposer = createPromptComposer();
   const scheduledRunner = createScheduledAgentRunner({
+    timeoutMs: runConfig.schedulerRunTimeoutMs,
     composeSystemPrompt: async (taskPrompt) => {
       const persona = await loadPersonaConfig();
       let memoryContext = "";

@@ -47,6 +47,10 @@ export function createScheduledAgentRunner(
     managed?: AgentRunExecutionContext,
   ): Promise<ScheduledAgentRunResult> {
       const { runId, task, executionMode = "scheduled" } = input;
+      const abortController = new AbortController();
+      const abort = () => abortController.abort();
+      if (managed?.signal.aborted) abort();
+      else managed?.signal.addEventListener("abort", abort, { once: true });
 
       const toolCalls: ScheduledToolCallRecord[] = [];
       const byCallId = new Map<string, ScheduledToolCallRecord>();
@@ -97,9 +101,9 @@ export function createScheduledAgentRunner(
           timezone: task.timezone,
           initialToolChoice: taskRequiresTool(task.prompt) ? "required" : "auto",
           modelRequestMaxAttempts: 3,
-          signal: managed?.signal,
+          signal: abortController.signal,
           onEvent,
-        }), timeoutMs);
+        }), timeoutMs, abort);
         managed?.recordUsage({
           inputTokens: Math.ceil(JSON.stringify(messages).length / 4),
           outputTokens: Math.ceil(result.reply.length / 4),
@@ -114,6 +118,8 @@ export function createScheduledAgentRunner(
       } catch (error) {
         const code = scheduledErrorCode(error);
         return { status: "failed", toolCalls, errorCode: code };
+      } finally {
+        managed?.signal.removeEventListener("abort", abort);
       }
   }
 
@@ -157,13 +163,16 @@ function scheduledErrorCode(error: unknown): string {
   return "SCHEDULE_AGENT_FAILED";
 }
 
-async function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, milliseconds: number, abort: () => void): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
   try {
     return await Promise.race([
       promise,
       new Promise<T>((_resolve, reject) => {
-        timer = setTimeout(() => reject(new Error("SCHEDULE_AGENT_TIMEOUT")), milliseconds);
+        timer = setTimeout(() => {
+          reject(new Error("SCHEDULE_AGENT_TIMEOUT"));
+          abort();
+        }, milliseconds);
       }),
     ]);
   } finally {

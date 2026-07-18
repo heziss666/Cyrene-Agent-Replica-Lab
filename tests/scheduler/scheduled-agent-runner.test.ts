@@ -89,4 +89,22 @@ describe("scheduled agent runner", () => {
       errorCode: "SCHEDULE_MODEL_HTTP_503",
     });
   });
+
+  it("aborts the underlying agent when the scheduled timeout expires", async () => {
+    let aborted = false;
+    const runner = createScheduledAgentRunner({
+      composeSystemPrompt: async () => "SYSTEM",
+      createToolRegistry: () => new ToolRegistry(),
+      getModelConfig: () => ({ provider: "deepseek", baseUrl: "https://example.com", model: "x", apiKey: "secret" }),
+      adapter: {} as never,
+      timeoutMs: 5,
+      runAgent: ((input: { signal?: AbortSignal }) => new Promise((_resolve, reject) => {
+        input.signal?.addEventListener("abort", () => { aborted = true; reject(new DOMException("aborted", "AbortError")); });
+      })) as never,
+    });
+    await expect(runner.run({ runId: "run-timeout", task })).resolves.toMatchObject({
+      status: "failed", errorCode: "SCHEDULE_AGENT_TIMEOUT",
+    });
+    expect(aborted).toBe(true);
+  });
 });
