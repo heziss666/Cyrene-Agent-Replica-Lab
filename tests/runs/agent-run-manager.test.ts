@@ -22,4 +22,15 @@ describe("agent run manager", () => {
     await new Promise((resolve) => setTimeout(resolve, 0)); expect(await manager.cancel(accepted.runId)).toBe(true);
     await manager.flush(); expect((await manager.get(accepted.runId))?.status).toBe("cancelled");
   });
+
+  it("waits for a submitted run and returns its terminal record", async () => {
+    const store = createAgentRunStore({ rootDir: await mkdtemp(join(tmpdir(), "run-manager-")) }); await store.initialize();
+    const manager = createAgentRunManager({ store, maxConcurrent: 1, idFactory: () => "run_wait" });
+    const accepted = await manager.submit({ source: "scheduler", taskId: "task_1", execute: async () => undefined });
+
+    await expect(manager.wait(accepted.runId)).resolves.toMatchObject({
+      runId: "run_wait",
+      status: "succeeded",
+    });
+  });
 });

@@ -54,6 +54,7 @@ export interface ScheduledTaskRun {
   reply?: string;
   toolCalls: ScheduledToolCallRecord[];
   errorCode?: string;
+  agentRunId?: string;
 }
 
 export interface ScheduledTasksFile {

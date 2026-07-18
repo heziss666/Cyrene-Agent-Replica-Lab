@@ -5,12 +5,14 @@ import type { ModelConfig } from "../config/model-config.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
 import type { VendorAdapter } from "../vendors/types.js";
 import type { ScheduledTask, ScheduledToolCallRecord } from "./scheduled-task-types.js";
+import type { AgentRunExecutionContext, AgentRunManager } from "../runs/agent-run-manager.js";
 
 export interface ScheduledAgentRunResult {
   status: "succeeded" | "failed" | "needs_attention";
   reply?: string;
   toolCalls: ScheduledToolCallRecord[];
   errorCode?: string;
+  agentRunId?: string;
 }
 
 export interface ScheduledAgentRunner {
@@ -30,6 +32,7 @@ export interface ScheduledAgentRunnerOptions {
   timeoutMs?: number;
   now?: () => Date;
   onEvent?: (runId: string, event: AgentEvent) => void;
+  agentRunManager?: AgentRunManager;
 }
 
 export function createScheduledAgentRunner(
@@ -39,13 +42,18 @@ export function createScheduledAgentRunner(
   const timeoutMs = options.timeoutMs ?? 10 * 60_000;
   const now = options.now ?? (() => new Date());
 
-  return {
-    async run({ runId, task, executionMode = "scheduled" }) {
+  async function runDirect(
+    input: Parameters<ScheduledAgentRunner["run"]>[0],
+    managed?: AgentRunExecutionContext,
+  ): Promise<ScheduledAgentRunResult> {
+      const { runId, task, executionMode = "scheduled" } = input;
+
       const toolCalls: ScheduledToolCallRecord[] = [];
       const byCallId = new Map<string, ScheduledToolCallRecord>();
       let needsAttention = false;
       const onEvent = (event: AgentEvent): void => {
         options.onEvent?.(runId, event);
+        managed?.emit("agent_event", { agentEvent: event });
         if (event.type === "tool_call_started") {
           const record: ScheduledToolCallRecord = {
             toolId: event.toolName,
@@ -89,6 +97,7 @@ export function createScheduledAgentRunner(
           timezone: task.timezone,
           initialToolChoice: taskRequiresTool(task.prompt) ? "required" : "auto",
           modelRequestMaxAttempts: 3,
+          signal: managed?.signal,
           onEvent,
         }), timeoutMs);
         return {
@@ -101,6 +110,29 @@ export function createScheduledAgentRunner(
         const code = scheduledErrorCode(error);
         return { status: "failed", toolCalls, errorCode: code };
       }
+  }
+
+  return {
+    async run(input) {
+      if (!options.agentRunManager) return runDirect(input);
+      let result: ScheduledAgentRunResult | undefined;
+      const accepted = await options.agentRunManager.submit({
+        source: "scheduler",
+        taskId: input.task.id,
+        execute: async (context) => {
+          result = await runDirect(input, context);
+          if (result.status === "failed") throw new Error(result.errorCode ?? "SCHEDULE_AGENT_FAILED");
+        },
+      });
+      const terminal = await options.agentRunManager.wait(accepted.runId);
+      return result
+        ? { ...result, agentRunId: accepted.runId }
+        : {
+          status: "failed",
+          toolCalls: [],
+          errorCode: terminal?.error?.code ?? "SCHEDULE_AGENT_FAILED",
+          agentRunId: accepted.runId,
+        };
     },
   };
 }

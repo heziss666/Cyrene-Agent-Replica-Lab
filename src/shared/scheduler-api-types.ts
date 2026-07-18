@@ -43,6 +43,7 @@ export interface SchedulerRunView {
   reply?: string;
   toolCalls: SchedulerToolCallView[];
   errorCode?: string;
+  agentRunId?: string;
 }
 
 export interface SchedulerApi {

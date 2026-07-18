@@ -159,6 +159,7 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
           toolCalls: result.toolCalls,
           ...(result.reply !== undefined ? { reply: result.reply } : {}),
           ...(result.errorCode ? { errorCode: result.errorCode } : {}),
+          ...(result.agentRunId ? { agentRunId: result.agentRunId } : {}),
         }));
         const terminal = await getRun(runId);
         if (terminal) {
