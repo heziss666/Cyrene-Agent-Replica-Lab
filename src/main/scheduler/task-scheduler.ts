@@ -211,6 +211,7 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
         await options.runStore.recoverInterrupted(startupTime.toISOString());
         const loaded = await options.taskStore.load();
         tasks = new Map(loaded.map((task) => [task.id, cloneTask(task)]));
+        await options.runStore.deleteOrphanedHistory([...tasks.keys()]);
         const current = startupTime;
         for (const task of [...tasks.values()].sort(compareTasks)) {
           if (!task.enabled) continue;
@@ -276,6 +277,7 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
         if (!current) throw new Error("SCHEDULE_TASK_NOT_FOUND");
         tasks.delete(id);
         try { await persist(); } catch (error) { tasks.set(id, current); throw error; }
+        await options.runStore.deleteTaskHistory(id);
         armWakeup(); options.onChanged?.();
       });
     },

@@ -75,6 +75,27 @@ describe("scheduled stores", () => {
     expect((await store.load()).map(({ id }) => id)).toEqual(["run-2", "run-3"]);
   });
 
+  it("deletes every history record for a removed task", async () => {
+    const { file } = await tempFile("runs.json");
+    const store = createScheduledRunStore(file);
+    await store.append(run(1, "daily"));
+    await store.append({ ...run(2, "daily"), status: "running", finishedAt: undefined });
+    await store.append(run(3, "weekly"));
+
+    expect(await store.deleteTaskHistory("daily")).toBe(2);
+    expect((await store.load()).map(({ id }) => id)).toEqual(["run-3"]);
+  });
+
+  it("deletes history whose task no longer exists", async () => {
+    const { file } = await tempFile("runs.json");
+    const store = createScheduledRunStore(file);
+    await store.append(run(1, "daily"));
+    await store.append(run(2, "removed"));
+
+    expect(await store.deleteOrphanedHistory(["daily"])).toBe(1);
+    expect((await store.load()).map(({ id }) => id)).toEqual(["run-1"]);
+  });
+
   it("marks queued and running records from a previous process as interrupted", async () => {
     const { file } = await tempFile("runs.json");
     const store = createScheduledRunStore(file);

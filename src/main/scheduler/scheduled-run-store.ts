@@ -8,6 +8,8 @@ export interface ScheduledRunStore {
   append(run: ScheduledTaskRun): Promise<void>;
   update(id: string, updater: (run: ScheduledTaskRun) => ScheduledTaskRun): Promise<void>;
   clearTaskHistory(taskId: string): Promise<number>;
+  deleteTaskHistory(taskId: string): Promise<number>;
+  deleteOrphanedHistory(taskIds: readonly string[]): Promise<number>;
   recoverInterrupted(finishedAt: string): Promise<number>;
 }
 
@@ -62,6 +64,25 @@ export function createScheduledRunStore(
         const cleared = runs.length - retained.length;
         if (cleared > 0) await persist(retained);
         return cleared;
+      });
+    },
+    deleteTaskHistory(taskId) {
+      return enqueue(async () => {
+        const runs = await read();
+        const retained = runs.filter((run) => run.taskId !== taskId);
+        const deleted = runs.length - retained.length;
+        if (deleted > 0) await persist(retained);
+        return deleted;
+      });
+    },
+    deleteOrphanedHistory(taskIds) {
+      return enqueue(async () => {
+        const validTaskIds = new Set(taskIds);
+        const runs = await read();
+        const retained = runs.filter((run) => validTaskIds.has(run.taskId));
+        const deleted = runs.length - retained.length;
+        if (deleted > 0) await persist(retained);
+        return deleted;
       });
     },
     recoverInterrupted(finishedAt) {

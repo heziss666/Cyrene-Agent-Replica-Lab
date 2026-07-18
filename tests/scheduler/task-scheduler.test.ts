@@ -19,6 +19,17 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void>; a
     };
   });
   const recoverInterrupted = vi.fn(async () => 0);
+  const deleteTaskHistory = vi.fn(async (taskId: string) => {
+    const before = runs.length;
+    runs = runs.filter((item) => item.taskId !== taskId);
+    return before - runs.length;
+  });
+  const deleteOrphanedHistory = vi.fn(async (taskIds: readonly string[]) => {
+    const valid = new Set(taskIds);
+    const before = runs.length;
+    runs = runs.filter((item) => valid.has(item.taskId));
+    return before - runs.length;
+  });
   const scheduler = createTaskScheduler({
     taskStore: { load: async () => [...tasks], save: async (next) => { tasks = [...next]; } },
     runStore: {
@@ -30,6 +41,8 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void>; a
         runs = runs.filter((item) => item.taskId !== taskId || item.status === "queued" || item.status === "running");
         return before - runs.length;
       },
+      deleteTaskHistory,
+      deleteOrphanedHistory,
       recoverInterrupted,
     },
     queue: createScheduledTaskQueue(),
@@ -39,7 +52,7 @@ function fixture(input: { tasks?: ScheduledTask[]; runnerGate?: Promise<void>; a
     setTimer: (callback, delay) => { const handle = { callback, delay }; timers.push(handle); return handle; },
     clearTimer: () => undefined,
   });
-  return { scheduler, run, recoverInterrupted, timers, tasks: () => tasks, runs: () => runs, setNow: (value: string) => { now = new Date(value); } };
+  return { scheduler, run, recoverInterrupted, deleteTaskHistory, deleteOrphanedHistory, timers, tasks: () => tasks, runs: () => runs, setNow: (value: string) => { now = new Date(value); } };
 }
 
 describe("task scheduler", () => {
@@ -58,6 +71,30 @@ describe("task scheduler", () => {
     expect(created.nextRunAt).toBe("2026-07-18T01:00:00.000Z");
     expect(f.timers.at(-1)?.delay).toBe(3_600_000);
     expect(f.tasks()).toHaveLength(1);
+  });
+
+  it("deletes all run history when its task is removed", async () => {
+    const f = fixture();
+    await f.scheduler.initialize();
+    const task = await f.scheduler.create({
+      name: "Temporary", prompt: "Run", schedule: { kind: "interval", every: 1, unit: "hours" },
+      timezone: "UTC", missedRunPolicy: "run-once", enabled: true,
+    });
+    await f.scheduler.runNow(task.id);
+    await f.scheduler.flush();
+
+    await f.scheduler.remove(task.id);
+
+    expect(f.deleteTaskHistory).toHaveBeenCalledWith(task.id);
+    expect(f.runs()).toEqual([]);
+  });
+
+  it("removes orphaned run history during initialization", async () => {
+    const f = fixture();
+
+    await f.scheduler.initialize();
+
+    expect(f.deleteOrphanedHistory).toHaveBeenCalledWith([]);
   });
 
   it("Run Now uses interactive mode and stores the final result", async () => {
