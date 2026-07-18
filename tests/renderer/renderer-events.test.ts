@@ -45,6 +45,13 @@ describe("formatRendererEvent", () => {
     ).toBe("Run failed: Model request failed");
   });
 
+  it("formats scheduled task lifecycle events", () => {
+    expect(formatRendererEvent({
+      type: "scheduled_task_finished", taskId: "task-1", runId: "run-1",
+      status: "needs_attention", toolCallCount: 1, durationMs: 900,
+    })).toBe("Scheduled task task-1 finished: needs_attention, 1 tool call, 900ms");
+  });
+
   it("formats memory lifecycle events without exposing memory contents", () => {
     const untrustedWrites = [
       "L1.currentProject",

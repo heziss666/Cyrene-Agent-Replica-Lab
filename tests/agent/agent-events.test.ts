@@ -116,6 +116,21 @@ describe("formatAgentEventForTerminal", () => {
     expect(JSON.stringify(events)).not.toMatch(/token|header|env|args/i);
   });
 
+  it("formats scheduler lifecycle events with identifiers and counts only", () => {
+    const events: AgentEvent[] = [
+      { type: "scheduled_task_queued", taskId: "task-1", runId: "run-1" },
+      { type: "scheduled_task_started", taskId: "task-1", runId: "run-1" },
+      { type: "scheduled_task_finished", taskId: "task-1", runId: "run-1", status: "succeeded", toolCallCount: 2, durationMs: 1200 },
+      { type: "scheduled_task_skipped", taskId: "task-1", runId: "run-2", reason: "overlap" },
+    ];
+    expect(events.map(formatAgentEventForTerminal)).toEqual([
+      "[scheduler] queued task=task-1 run=run-1",
+      "[scheduler] started task=task-1 run=run-1",
+      "[scheduler] finished task=task-1 run=run-1 status=succeeded tools=2 durationMs=1200",
+      "[scheduler] skipped task=task-1 run=run-2 reason=overlap",
+    ]);
+  });
+
   it("filters and deduplicates memory write keys and maps failure stages safely", () => {
     expect(
       filterSafeMemoryWriteKeys([

@@ -95,6 +95,20 @@ export function parseScheduledTaskInput(value: unknown): ScheduledTaskInput {
   return validateParsedTask(parse(taskInputSchema, value));
 }
 
+export function parseScheduledTaskPatch(value: unknown): Partial<ScheduledTaskInput> {
+  const record = value as Record<string, unknown>;
+  const parsed = parse(taskInputSchema.partial(), value);
+  const patch = Object.fromEntries(
+    Object.keys(record).map((key) => [key, parsed[key as keyof ScheduledTaskInput]]),
+  ) as Partial<ScheduledTaskInput>;
+  if (Object.keys(patch).length === 0) throw new Error(INVALID);
+  if (patch.schedule) {
+    try { validateSchedule(patch.schedule, patch.timezone ?? "Asia/Shanghai"); }
+    catch { throw new Error(INVALID); }
+  }
+  return patch;
+}
+
 export function parseScheduledTask(value: unknown): ScheduledTask {
   return validateParsedTask(parse(taskSchema, value));
 }

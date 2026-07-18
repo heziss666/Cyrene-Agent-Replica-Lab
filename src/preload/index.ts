@@ -102,6 +102,24 @@ const api: CyreneApi = {
       { id, allowed },
     ),
   },
+  scheduler: {
+    listTasks: async () => ipcRenderer.invoke(IPC_CHANNELS.scheduler.listTasks),
+    createTask: async (input) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.createTask, input),
+    updateTask: async (id, patch) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.updateTask, { id, patch }),
+    removeTask: async (id) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.removeTask, { id }),
+    setEnabled: async (id, enabled) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.setEnabled, { id, enabled }),
+    runNow: async (id) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.runNow, { id }),
+    listRuns: async (taskId) => ipcRenderer.invoke(
+      IPC_CHANNELS.scheduler.listRuns,
+      taskId === undefined ? undefined : { taskId },
+    ),
+    getRun: async (id) => ipcRenderer.invoke(IPC_CHANNELS.scheduler.getRun, { id }),
+    onChanged: (listener) => {
+      const handler = () => listener();
+      ipcRenderer.on(IPC_CHANNELS.scheduler.changed, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.scheduler.changed, handler);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("cyrene", api);

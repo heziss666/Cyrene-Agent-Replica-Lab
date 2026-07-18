@@ -42,4 +42,15 @@ export const IPC_CHANNELS = {
     approvalRequest: "cyrene:mcp:approval-request",
     resolveApproval: "cyrene:mcp:resolve-approval",
   },
+  scheduler: {
+    listTasks: "cyrene:scheduler:list-tasks",
+    createTask: "cyrene:scheduler:create-task",
+    updateTask: "cyrene:scheduler:update-task",
+    removeTask: "cyrene:scheduler:remove-task",
+    setEnabled: "cyrene:scheduler:set-enabled",
+    runNow: "cyrene:scheduler:run-now",
+    listRuns: "cyrene:scheduler:list-runs",
+    getRun: "cyrene:scheduler:get-run",
+    changed: "cyrene:scheduler:changed",
+  },
 } as const;

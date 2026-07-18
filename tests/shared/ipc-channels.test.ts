@@ -50,4 +50,18 @@ describe("IPC_CHANNELS", () => {
       resolveApproval: "cyrene:mcp:resolve-approval",
     });
   });
+
+  it("defines stable scheduler management channels", () => {
+    expect(IPC_CHANNELS.scheduler).toEqual({
+      listTasks: "cyrene:scheduler:list-tasks",
+      createTask: "cyrene:scheduler:create-task",
+      updateTask: "cyrene:scheduler:update-task",
+      removeTask: "cyrene:scheduler:remove-task",
+      setEnabled: "cyrene:scheduler:set-enabled",
+      runNow: "cyrene:scheduler:run-now",
+      listRuns: "cyrene:scheduler:list-runs",
+      getRun: "cyrene:scheduler:get-run",
+      changed: "cyrene:scheduler:changed",
+    });
+  });
 });

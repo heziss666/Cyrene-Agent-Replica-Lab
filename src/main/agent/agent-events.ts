@@ -205,6 +205,12 @@ export type AgentEvent =
   | { type: "mcp_tools_changed"; serverId: string; toolCount: number }
   | { type: "mcp_tool_approval_requested"; serverId: string; toolId: string }
   | { type: "mcp_tool_approval_resolved"; serverId: string; toolId: string; allowed: boolean }
+  | { type: "scheduled_task_queued"; taskId: string; runId: string }
+  | { type: "scheduled_task_started"; taskId: string; runId: string }
+  | { type: "scheduled_tool_blocked"; taskId: string; runId: string; toolId: string }
+  | { type: "scheduled_task_finished"; taskId: string; runId: string; status: "succeeded" | "needs_attention"; toolCallCount: number; durationMs: number }
+  | { type: "scheduled_task_failed"; taskId: string; runId: string; errorCode: string }
+  | { type: "scheduled_task_skipped"; taskId: string; runId: string; reason: "overlap" | "shutdown" | "missed" }
   | {
       type: "memory_recall_started";
     }
@@ -435,6 +441,18 @@ export function formatAgentEventForTerminal(event: AgentEvent): string {
       return `[mcp] approval requested server=${event.serverId} tool=${event.toolId}`;
     case "mcp_tool_approval_resolved":
       return `[mcp] approval resolved server=${event.serverId} tool=${event.toolId} allowed=${event.allowed}`;
+    case "scheduled_task_queued":
+      return `[scheduler] queued task=${event.taskId} run=${event.runId}`;
+    case "scheduled_task_started":
+      return `[scheduler] started task=${event.taskId} run=${event.runId}`;
+    case "scheduled_tool_blocked":
+      return `[scheduler] tool blocked task=${event.taskId} run=${event.runId} tool=${event.toolId}`;
+    case "scheduled_task_finished":
+      return `[scheduler] finished task=${event.taskId} run=${event.runId} status=${event.status} tools=${event.toolCallCount} durationMs=${event.durationMs}`;
+    case "scheduled_task_failed":
+      return `[scheduler] failed task=${event.taskId} run=${event.runId} code=${event.errorCode}`;
+    case "scheduled_task_skipped":
+      return `[scheduler] skipped task=${event.taskId} run=${event.runId} reason=${event.reason}`;
     case "memory_recall_started":
       return "[memory] recall started";
     case "memory_recall_finished":

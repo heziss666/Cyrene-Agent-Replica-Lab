@@ -43,6 +43,18 @@ export function formatRendererEvent(event: AgentEvent): string {
       return `MCP approval requested: ${event.serverId}/${event.toolId}`;
     case "mcp_tool_approval_resolved":
       return `MCP approval resolved: ${event.serverId}/${event.toolId} (${event.allowed ? "allowed" : "denied"})`;
+    case "scheduled_task_queued":
+      return `Scheduled task ${event.taskId} queued`;
+    case "scheduled_task_started":
+      return `Scheduled task ${event.taskId} started`;
+    case "scheduled_tool_blocked":
+      return `Scheduled task ${event.taskId} needs approval for ${event.toolId}`;
+    case "scheduled_task_finished":
+      return `Scheduled task ${event.taskId} finished: ${event.status}, ${event.toolCallCount} tool call${event.toolCallCount === 1 ? "" : "s"}, ${event.durationMs}ms`;
+    case "scheduled_task_failed":
+      return `Scheduled task ${event.taskId} failed: ${event.errorCode}`;
+    case "scheduled_task_skipped":
+      return `Scheduled task ${event.taskId} skipped: ${event.reason}`;
     case "memory_recall_started":
       return "Memory recall started";
     case "memory_recall_finished":

@@ -3,6 +3,7 @@ import type { MemoryApi } from "./memory-api-types.js";
 import type { StyleId } from "./persona-types.js";
 import type { SkillsApi } from "./skill-api-types.js";
 import type { McpApi } from "./mcp-api-types.js";
+import type { SchedulerApi } from "./scheduler-api-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -46,4 +47,5 @@ export interface CyreneApi {
   };
   skills: SkillsApi;
   mcp: McpApi;
+  scheduler: SchedulerApi;
 }
