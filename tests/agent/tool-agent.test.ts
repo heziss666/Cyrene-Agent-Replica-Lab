@@ -23,6 +23,23 @@ function jsonResponse(data: unknown): Response {
 }
 
 describe("runToolAgent", () => {
+  it("streams text deltas through the agent", async () => {
+    const body = "data: {\"choices\":[{\"delta\":{\"content\":\"hello \"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"world\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n";
+    const deltas: string[] = [];
+    const result = await runToolAgent({ messages: [createUserMessage("hi")], config, adapter: openAICompatibleAdapter,
+      toolRegistry: createDefaultToolRegistry(), fetchImpl: (async () => new Response(body)) as typeof fetch,
+      stream: true, onTextDelta: (delta) => deltas.push(delta) });
+    expect(deltas).toEqual(["hello ", "world"]); expect(result.reply).toBe("hello world");
+  });
+
+  it("does not start a tool after cancellation", async () => {
+    const controller = new AbortController(); let executed = false; const registry = new ToolRegistry();
+    registry.register({ id: "danger", description: "danger", enabled: true, parameters: { type: "object", properties: {} }, execute: async () => { executed = true; return "done"; } });
+    const fetchMock = vi.fn(async () => { controller.abort(); return jsonResponse({ choices: [{ message: { role: "assistant", content: null, tool_calls: [{ id: "c", type: "function", function: { name: "danger", arguments: "{}" } }] }, finish_reason: "tool_calls" }] }); });
+    await expect(runToolAgent({ messages: [createUserMessage("go")], config, adapter: openAICompatibleAdapter, toolRegistry: registry, fetchImpl: fetchMock as typeof fetch, signal: controller.signal })).rejects.toMatchObject({ name: "AbortError" });
+    expect(executed).toBe(false);
+  });
+
   it("requires a tool only on the first round when requested", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ choices: [{ message: { role: "assistant", content: null, tool_calls: [{ id: "call", type: "function", function: { name: "get_current_time", arguments: "{}" } }] }, finish_reason: "tool_calls" }] }))

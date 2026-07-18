@@ -8,6 +8,7 @@ import type {
 } from "../tools/tool-types.js";
 import type { ToolRegistry } from "../tools/tool-registry.js";
 import { requestChatCompletion } from "../vendors/chat-completion-client.js";
+import { requestChatCompletionStream } from "../vendors/openai-compatible-stream.js";
 import type { VendorAdapter } from "../vendors/types.js";
 
 const DEFAULT_MAX_ROUNDS = 5;
@@ -23,6 +24,9 @@ export interface RunToolAgentInput {
   timezone?: string;
   initialToolChoice?: "auto" | "required";
   modelRequestMaxAttempts?: number;
+  stream?: boolean;
+  signal?: AbortSignal;
+  onTextDelta?: (delta: string) => void;
   onEvent?: (event: ToolAgentEvent) => void;
 }
 
@@ -99,6 +103,9 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
     runErrorEmitted = true;
     emit({ type: "run_error", message });
   };
+  const throwIfAborted = (): void => {
+    if (input.signal?.aborted) throw new DOMException("aborted", "AbortError");
+  };
 
   try {
     emit({
@@ -108,6 +115,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
     });
 
     for (let round = 0; round < maxRounds; round += 1) {
+      throwIfAborted();
       const roundNumber = round + 1;
       const tools = input.toolRegistry.getEnabledToolSpecs();
 
@@ -118,7 +126,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         toolCount: tools.length,
       });
 
-      const completion = await requestChatCompletion({
+      const request = {
         messages: conversation,
         tools,
         config: input.config,
@@ -126,7 +134,11 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         fetchImpl: input.fetchImpl,
         toolChoice: round === 0 ? input.initialToolChoice : "auto",
         maxAttempts: input.modelRequestMaxAttempts,
-      });
+        signal: input.signal,
+      };
+      const completion = input.stream
+        ? await requestChatCompletionStream({ ...request, onTextDelta: input.onTextDelta })
+        : await requestChatCompletion(request);
       emit({
         type: "model_call_finished",
         round: roundNumber,
@@ -155,6 +167,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
 
       const roundToolResults: ToolExecutionResult[] = [];
       for (const toolCall of completion.toolCalls) {
+        throwIfAborted();
         const args = parseToolArguments(toolCall);
         emit({
           type: "tool_call_started",
@@ -172,6 +185,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
           emitEvent: emit,
           executionMode: input.executionMode ?? "interactive",
           timezone: input.timezone,
+          signal: input.signal,
         });
         emit({
           type: "tool_call_finished",
@@ -182,6 +196,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         });
         roundToolResults.push(result);
         allToolResults.push(result);
+        throwIfAborted();
       }
 
       conversation = input.adapter.appendToolResults(conversation, roundToolResults);

@@ -12,6 +12,7 @@ export interface RequestChatCompletionInput {
   toolChoice?: "auto" | "required";
   maxAttempts?: number;
   retryDelay?: (attempt: number) => Promise<void>;
+  signal?: AbortSignal;
 }
 
 export async function requestChatCompletion(
@@ -29,6 +30,7 @@ export async function requestChatCompletion(
         method: request.method,
         headers: request.headers,
         body: request.body,
+        signal: input.signal,
       });
       if (response.ok) return input.adapter.parseResponse(await response.json());
       const body = await response.text().catch(() => "");

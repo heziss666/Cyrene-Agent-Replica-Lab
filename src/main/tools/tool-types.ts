@@ -42,6 +42,7 @@ export interface ToolExecutionContext {
   emitEvent: (event: AgentEvent) => void;
   executionMode?: "interactive" | "scheduled";
   timezone?: string;
+  signal?: AbortSignal;
 }
 
 export interface ToolSpec {
