@@ -96,7 +96,7 @@ export const openAICompatibleAdapter: VendorAdapter = {
     const body: Record<string, unknown> = {
       model: config.model,
       messages: toWireMessages(input.messages),
-      stream: false,
+      stream: input.stream ?? false,
     };
 
     if (tools) {

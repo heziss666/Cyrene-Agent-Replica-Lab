@@ -6,6 +6,7 @@ export interface ChatCompletionInput {
   messages: ChatMessage[];
   tools?: ToolSpec[];
   toolChoice?: "auto" | "required";
+  stream?: boolean;
 }
 
 export interface VendorHttpRequest {
