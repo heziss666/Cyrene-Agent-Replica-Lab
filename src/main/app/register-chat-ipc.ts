@@ -634,6 +634,11 @@ export async function registerChatIpc(
           checkpoint(true);
           await checkpointTail;
         }
+        managed?.recordUsage({
+          inputTokens: Math.ceil(JSON.stringify(agentMessages).length / 4),
+          outputTokens: Math.ceil(result.reply.length / 4),
+          source: "estimated",
+        });
         const persistedMessages = withoutSystemMessages(result.messages);
         let finalMessageCount: number;
         let finalizedConversation = persistentRecord;

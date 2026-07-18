@@ -100,6 +100,11 @@ export function createScheduledAgentRunner(
           signal: managed?.signal,
           onEvent,
         }), timeoutMs);
+        managed?.recordUsage({
+          inputTokens: Math.ceil(JSON.stringify(messages).length / 4),
+          outputTokens: Math.ceil(result.reply.length / 4),
+          source: "estimated",
+        });
         return {
           status: needsAttention ? "needs_attention" : "succeeded",
           reply: result.reply.slice(0, 40_000),

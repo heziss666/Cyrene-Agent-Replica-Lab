@@ -2,7 +2,7 @@
 
 ## 项目目标
 
-在 `C:\Study\daydayup\projects\Cyrene-Agent-Replica-Lab` 中，从最小 Agent 开始，逐步实现工具调用、Electron、RAG、长期记忆、Skills、MCP、调度、语音和 Live2D。
+在 `C:\Study\daydayup\projects\Cyrene-Agent-Replica-Lab` 中，从最小 Agent 开始，逐步实现工具调用、Electron、RAG、长期记忆、Skills、MCP、调度、可靠运行时，最后再考虑语音、Live2D 和外部渠道。
 
 原则：每个阶段都能运行、能测试、能解释；参考源项目，但允许修复冗余和结构问题。
 
@@ -15,44 +15,30 @@
 - Ollama `qwen3-embedding:4b`；
 - JSON 原子存储和本地向量索引。
 
-## 阶段
+## 当前阶段
 
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
-| Phase 0 | 项目骨架和环境 | 完成 |
-| Phase 1 | 最小终端 Agent | 完成 |
-| Phase 2 | Vendor Adapter | 完成 |
-| Phase 3 | Tool Registry 与 Agent Loop | 完成 |
-| Phase 4 | Electron main/preload/renderer | 完成 |
-| Phase 5 | 聊天 UI、会话和事件流 | 完成 |
-| Phase 6 | 文档 RAG、Ollama embedding、持久向量索引 | 完成 |
-| Phase 7 | Schema v2、治理、冲突、生命周期、Reflection、压缩、实体图 | 完成 |
-| Phase 8 | 本地 Skills、渐进加载、管理 UI 与内置教学 Skill | 完成 |
-| Phase 9 | MCP 外部工具、双 Transport、权限审批和管理 UI | 完成 |
-| Phase 10 | Scheduler 定时任务扩展 | 待开始 |
-| Phase 11 | Voice | 暂缓 |
-| Phase 12 | Live2D 和主动交互 | 暂缓 |
-| Phase 13 | 外部 Channels | 待开始 |
-| Phase 14 | 总体对齐、性能、安全和发布 | 待开始 |
+| Phase 0-5 | 骨架、Vendor、工具 Agent Loop、事件、Electron 和聊天 UI | 完成 |
+| Phase 6 | 文档 RAG、Ollama Embedding、持久向量索引、角色知识 | 完成 |
+| Phase 7 | 长期记忆、治理、冲突、生命周期、反思、压缩和实体图 | 完成 |
+| Phase 8 | 本地 Skills、渐进加载、手动激活和管理 UI | 完成 |
+| Phase 9 | MCP 外部工具、双 Transport、审批和管理 UI | 完成 |
+| Phase 10 | Scheduler 定时任务、隔离执行、历史和通知 | 完成 |
+| Phase 11 | 多会话持久化、上下文预算、摘要和旧消息检索 | 完成 |
+| Phase 12 | 流式响应、受控并发、取消、Trace、Runs 页面和共享运行时 | 完成 |
+| 后续 | 语音、Live2D、外部 Channels、发布和性能优化 | 待规划 |
 
-## 当前阅读顺序
+## 推荐阅读顺序
 
-1. `README.md`：运行方式；
-2. `docs/learning/phase-09-mcp.zh-CN.md`：MCP 外部工具系统；
-3. `docs/learning/phase-08-skills-system.zh-CN.md`：Skills 系统；
-4. `docs/learning/phase-07-complete-memory-system.zh-CN.md`：完整记忆系统；
-5. `src/main/app/main.ts`：Electron Main 的运行时组装；
-6. `src/main/app/register-chat-ipc.ts`：一轮聊天的完整调用链；
-7. `src/main/mcp`：MCP 子系统；
+1. `README.md`：运行方式和系统入口；
+2. `phase-11-context-and-multi-session.zh-CN.md`：会话和上下文；
+3. `phase-12-reliable-streaming-runs.zh-CN.md`：当前可靠运行时；
+4. `src/main/app/main.ts`：Electron Main 的依赖组装；
+5. `src/main/app/register-chat-ipc.ts`：一轮聊天的完整调用链；
+6. `src/main/runs`：排队、取消、Trace 和持久化；
+7. `src/renderer/chat`：界面状态和 IPC 事件消费；
 8. `tests`：行为契约和失败路径。
-
-## Phase 7 的三个子阶段
-
-- 7B：Schema v2、治理 UI、冲突检测和自动 Resolver；
-- 7C：访问强化、衰减、L1 过期、Scheduler 和关机屏障；
-- 7D：Reflection/verifier、Profile 晋升、语义聚类、两阶段压缩和实体图。
-
-完整说明见 [Phase 7 中文指南](phase-07-complete-memory-system.zh-CN.md)。
 
 ## 通用验收
 
@@ -60,11 +46,11 @@
 npm.cmd test
 npm.cmd run typecheck
 npm.cmd run build
+npm.cmd run test:streaming
+npm.cmd run test:electron-smoke
 npm.cmd run test:embedding
-npm.cmd run dev:electron
+npm.cmd run test:mcp
+npm.cmd run test:scheduler
 ```
 
 API Key 只写入本地 `.env`，禁止提交到 Git。
-# Phase 10 补充：Agent Scheduler
-
-Phase 10 已完成持久化定时任务、一次性/间隔/Cron 时间规则、错过任务策略、隔离 Agent 执行、运行历史、Electron Tasks 页面、系统通知和关闭排空。详细说明见 `phase-10-agent-scheduler.zh-CN.md`。

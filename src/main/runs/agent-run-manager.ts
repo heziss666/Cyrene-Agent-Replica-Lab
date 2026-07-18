@@ -15,7 +15,7 @@ export interface AgentRunManager {
   remove(id: string): Promise<void>; clear(): Promise<void>; beginShutdown(): Promise<void>; flush(): Promise<void>;
 }
 
-export function createAgentRunManager(options: { store: AgentRunStore; maxConcurrent: number; idFactory?: () => string; now?: () => string; onEvent?: (event: AgentRunEventEnvelope) => void }): AgentRunManager {
+export function createAgentRunManager(options: { store: AgentRunStore; maxConcurrent: number; runTimeoutMs?: number; idFactory?: () => string; now?: () => string; onEvent?: (event: AgentRunEventEnvelope) => void }): AgentRunManager {
   const now = options.now ?? (() => new Date().toISOString()); const idFactory = options.idFactory ?? (() => `run_${randomUUID()}`);
   const queue = createAgentRunQueue({ maxConcurrent: options.maxConcurrent });
   const controllers = new Map<string, ReturnType<typeof createAgentRunController>>(); const records = new Map<string, AgentRunRecord>();
@@ -37,7 +37,17 @@ export function createAgentRunManager(options: { store: AgentRunStore; maxConcur
         record.status = "running"; record.startedAt = now(); controller.emit("run_started"); await persist(record);
         try {
           if (controller.signal.aborted) throw new DOMException("aborted", "AbortError");
-          await input.execute({ runId, signal: controller.signal, emit: controller.emit, recordUsage: (value) => { usage.add(value); record.usage = usage.snapshot(); } });
+          const execution = input.execute({
+            runId,
+            signal: controller.signal,
+            emit: (type, data) => {
+              updateRunCounters(record, type, data);
+              controller.emit(type, data);
+            },
+            recordUsage: (value) => { usage.add(value); record.usage = usage.snapshot(); },
+          });
+          if (options.runTimeoutMs === undefined) await execution;
+          else await withRunTimeout(execution, options.runTimeoutMs, () => controller.abort());
           if (controller.signal.aborted) throw new DOMException("aborted", "AbortError");
           record.status = "succeeded"; controller.emit("run_succeeded");
         } catch (error) {
@@ -59,4 +69,38 @@ export function createAgentRunManager(options: { store: AgentRunStore; maxConcur
     async beginShutdown() { shuttingDown = true; queue.beginShutdown(); for (const controller of controllers.values()) controller.abort(); await queue.flush(); await options.store.flush(); },
     async flush() { await queue.flush(); await options.store.flush(); },
   };
+}
+
+async function withRunTimeout(
+  execution: Promise<void>,
+  timeoutMs: number,
+  abort: () => void,
+): Promise<void> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    await Promise.race([
+      execution,
+      new Promise<void>((_resolve, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error("AGENT_RUN_TIMEOUT"));
+          abort();
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function updateRunCounters(record: AgentRunRecord, type: string, data: unknown): void {
+  if (type !== "agent_event" || !data || typeof data !== "object" || !("agentEvent" in data)) return;
+  const event = (data as { agentEvent?: unknown }).agentEvent;
+  if (!event || typeof event !== "object" || !("type" in event)) return;
+  const value = event as { type: unknown; round?: unknown; roundsUsed?: unknown };
+  if (value.type === "model_call_started") record.modelCallCount += 1;
+  if (value.type === "tool_call_started") record.toolCallCount += 1;
+  const rounds = value.type === "run_finished" ? value.roundsUsed : value.round;
+  if (typeof rounds === "number" && Number.isSafeInteger(rounds)) {
+    record.roundsUsed = Math.max(record.roundsUsed, rounds);
+  }
 }

@@ -22,7 +22,11 @@ async function rendererTarget(port) {
   while (Date.now() < deadline) {
     try {
       const targets = await fetch(`http://127.0.0.1:${port}/json`).then((response) => response.json());
-      const page = targets.find((target) => target.type === "page");
+      const pages = targets.filter((target) => target.type === "page");
+      const page = pages.find((target) =>
+        target.url?.includes("/dist/renderer/chat/index.html")
+        || target.title === "Cyrene Agent Replica Lab"
+      ) ?? pages.find((target) => !target.url?.startsWith("devtools://"));
       if (page?.webSocketDebuggerUrl) return page;
     } catch {
       // Electron may still be starting.
@@ -38,7 +42,7 @@ function evaluate(webSocketUrl, expression) {
     const timeout = setTimeout(() => {
       socket.close();
       reject(new Error("Electron smoke evaluation timed out"));
-    }, 20_000);
+    }, 60_000);
     socket.addEventListener("error", () => reject(new Error("CDP connection failed")));
     socket.addEventListener("open", () => {
       socket.send(JSON.stringify({
@@ -47,8 +51,9 @@ function evaluate(webSocketUrl, expression) {
         params: { expression, awaitPromise: true, returnByValue: true },
       }));
     });
-    socket.addEventListener("message", (event) => {
-      const message = JSON.parse(event.data);
+    socket.addEventListener("message", async (event) => {
+      const raw = typeof event.data === "string" ? event.data : await event.data.text();
+      const message = JSON.parse(raw);
       if (message.id !== 1) return;
       clearTimeout(timeout);
       socket.close();
@@ -75,7 +80,8 @@ function captureScreenshot(webSocketUrl, filePath) {
       params: { format: "png", captureBeyondViewport: false },
     })));
     socket.addEventListener("message", async (event) => {
-      const message = JSON.parse(event.data);
+      const raw = typeof event.data === "string" ? event.data : await event.data.text();
+      const message = JSON.parse(raw);
       if (message.id !== 2) return;
       socket.close();
       if (!message.result?.data) return reject(new Error("Screenshot data missing"));
@@ -119,6 +125,10 @@ child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
 try {
   const target = await rendererTarget(port);
   const result = await evaluate(target.webSocketDebuggerUrl, `(async () => {
+    const step = (name, promise, timeout = 7000) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(name + " timed out")), timeout)),
+    ]);
     for (let attempt = 0; attempt < 50; attempt += 1) {
       if (document.querySelector("#skills-view-button")
         && window.cyrene?.skills
@@ -141,7 +151,7 @@ try {
       status: document.querySelector(".skills-status")?.textContent,
     };
     const mcpConfig = ${JSON.stringify(fixtureConfig)};
-    await window.cyrene.mcp.add(mcpConfig);
+    await step("MCP add", window.cyrene.mcp.add(mcpConfig));
     document.querySelector("#mcp-view-button").click();
     for (let attempt = 0; attempt < 50; attempt += 1) {
       if (document.querySelectorAll(".mcp-tool-row").length === 3) break;
@@ -159,7 +169,7 @@ try {
       schedule: { kind: "once", runAt: "2099-01-01T00:00:00.000Z" },
       timezone: "UTC", missedRunPolicy: "skip", enabled: true,
     };
-    const scheduledTask = await window.cyrene.scheduler.createTask(schedulerInput);
+    const scheduledTask = await step("Scheduler create", window.cyrene.scheduler.createTask(schedulerInput));
     document.querySelector("#scheduler-view-button").click();
     await new Promise((resolve) => setTimeout(resolve, 300));
     const schedulerResult = {

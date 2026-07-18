@@ -92,6 +92,7 @@ async function boot(): Promise<void> {
   const agentRunManager = createAgentRunManager({
     store: agentRunStore,
     maxConcurrent: runConfig.maxConcurrent,
+    runTimeoutMs: runConfig.runTimeoutMs,
     onEvent: (event) => {
       broadcastRunEvent(event);
       broadcastRunsChanged();

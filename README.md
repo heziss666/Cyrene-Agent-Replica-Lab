@@ -12,6 +12,8 @@ Current milestone:
 - Phase 8: safe local Skills, progressive loading, manual activation, persistence, and Electron management UI
 - Phase 9: MCP stdio/Streamable HTTP tools, runtime discovery, approvals, reconnect, and Electron management UI
 - Phase 10: persistent scheduled Agent tasks, Cron/interval/one-time schedules, isolated execution, run history, notifications, and Electron management UI
+- Phase 11: persistent multi-session conversations, context budgeting, summaries, and old-message retrieval
+- Phase 12: streaming replies, controlled concurrency, cancellation, persistent sanitized traces, shared Chat/Scheduler runs, and Runs diagnostics UI
 
 Run tests:
 
@@ -75,6 +77,16 @@ npm run test:scheduler
 
 Chinese learning guide: [`docs/learning/phase-10-agent-scheduler.zh-CN.md`](docs/learning/phase-10-agent-scheduler.zh-CN.md)
 
+## Reliable streaming runs
+
+Chat replies stream through sequence-numbered IPC events. Chat and Scheduler share a two-slot AgentRunManager, while each conversation keeps one active top-level run. Partial cancelled replies are preserved for display but excluded from future model context.
+
+```bash
+npm run test:streaming
+```
+
+Chinese learning guide: [`docs/learning/phase-12-reliable-streaming-runs.zh-CN.md`](docs/learning/phase-12-reliable-streaming-runs.zh-CN.md)
+
 Full verification:
 
 ```bash
@@ -84,5 +96,6 @@ npm run build
 npm run test:embedding
 npm run test:mcp
 npm run test:scheduler
+npm run test:streaming
 npm run test:electron-smoke
 ```

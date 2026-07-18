@@ -33,4 +33,29 @@ describe("agent run manager", () => {
       status: "succeeded",
     });
   });
+
+  it("counts nested Agent events", async () => {
+    const store = createAgentRunStore({ rootDir: await mkdtemp(join(tmpdir(), "run-manager-")) }); await store.initialize();
+    const manager = createAgentRunManager({ store, maxConcurrent: 1, idFactory: () => "run_counts" });
+    const accepted = await manager.submit({ source: "chat", execute: async ({ emit }) => {
+      emit("agent_event", { agentEvent: { type: "model_call_started", round: 1 } });
+      emit("agent_event", { agentEvent: { type: "tool_call_started", round: 1 } });
+      emit("agent_event", { agentEvent: { type: "run_finished", roundsUsed: 2 } });
+    } });
+    await expect(manager.wait(accepted.runId)).resolves.toMatchObject({
+      roundsUsed: 2, modelCallCount: 1, toolCallCount: 1,
+    });
+  });
+
+  it("aborts and records an overall run timeout", async () => {
+    const store = createAgentRunStore({ rootDir: await mkdtemp(join(tmpdir(), "run-manager-")) }); await store.initialize();
+    const manager = createAgentRunManager({ store, maxConcurrent: 1, runTimeoutMs: 5, idFactory: () => "run_timeout" });
+    const accepted = await manager.submit({ source: "chat", execute: ({ signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
+    }) });
+    await expect(manager.wait(accepted.runId)).resolves.toMatchObject({
+      status: "failed",
+      error: { code: "AGENT_RUN_TIMEOUT", category: "timeout" },
+    });
+  });
 });
