@@ -39,6 +39,24 @@ const api: CyreneApi = {
       };
     },
   },
+  runs: {
+    list: async () => ipcRenderer.invoke(IPC_CHANNELS.runs.list),
+    get: async (runId) => ipcRenderer.invoke(IPC_CHANNELS.runs.get, { runId }),
+    cancel: async (runId) => ipcRenderer.invoke(IPC_CHANNELS.runs.cancel, { runId }),
+    remove: async (runId) => ipcRenderer.invoke(IPC_CHANNELS.runs.remove, { runId }),
+    clear: async () => ipcRenderer.invoke(IPC_CHANNELS.runs.clear),
+    export: async (runId) => ipcRenderer.invoke(IPC_CHANNELS.runs.export, { runId }),
+    onChanged: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, payload: Parameters<typeof listener>[0]) => listener(payload);
+      ipcRenderer.on(IPC_CHANNELS.runs.changed, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.runs.changed, handler);
+    },
+    onEvent: (listener) => {
+      const handler = (_event: Electron.IpcRendererEvent, payload: Parameters<typeof listener>[0]) => listener(payload);
+      ipcRenderer.on(IPC_CHANNELS.runs.event, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.runs.event, handler);
+    },
+  },
   persona: {
     getStyle: async (conversationId) => {
       return ipcRenderer.invoke(IPC_CHANNELS.persona.getStyle, { conversationId });

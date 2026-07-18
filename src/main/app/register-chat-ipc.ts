@@ -2,6 +2,7 @@ import type { ChatMessage } from "../../shared/chat-types.js";
 import type {
   ChatAgentEventPayload,
   ChatClearResult,
+  ChatRunAcceptedResult,
   ChatSendResult,
   PersonaStyleResult,
 } from "../../shared/electron-api.js";
@@ -30,6 +31,10 @@ import { toChatMessages } from "../conversations/conversation-types.js";
 import type { ContextManager } from "../context/context-manager.js";
 import type { ConversationSummarizer } from "../context/conversation-summarizer.js";
 import type { ConversationHistoryRetriever } from "../context/conversation-history-retriever.js";
+import type {
+  AgentRunExecutionContext,
+  AgentRunManager,
+} from "../runs/agent-run-manager.js";
 
 const CHAT_ID = /^[A-Za-z0-9_.-]{1,200}$/u;
 
@@ -155,6 +160,7 @@ export interface RegisterChatIpcDeps {
   contextManager?: ContextManager;
   conversationSummarizer?: ConversationSummarizer;
   conversationHistoryRetriever?: ConversationHistoryRetriever;
+  agentRunManager?: AgentRunManager;
 }
 
 export interface ChatIpcRuntime {
@@ -456,18 +462,30 @@ export async function registerChatIpc(
     await scheduleQueuedResolvers(sender, runId);
   }
 
-  deps.ipcMain.handle(
-    IPC_CHANNELS.chat.sendMessage,
-    async (event, payload): Promise<ChatSendResult> => {
+  async function handleChatMessage(
+    event: { sender: IpcSenderLike },
+    payload: unknown,
+    managed?: AgentRunExecutionContext,
+  ): Promise<ChatSendResult | ChatRunAcceptedResult> {
       const persistentInput = typeof payload === "string"
         ? undefined
         : parseConversationSendInput(payload);
       if (persistentInput && (!deps.conversationService || !deps.contextManager)) {
         throw new Error("CONVERSATION_RUNTIME_NOT_CONFIGURED");
       }
+      if (deps.agentRunManager && persistentInput && !managed) {
+        return deps.agentRunManager.submit({
+          source: "chat",
+          conversationId: persistentInput.conversationId,
+          requestId: persistentInput.requestId,
+          execute: async (context) => {
+            await handleChatMessage(event, payload, context);
+          },
+        });
+      }
       const rawText = persistentInput?.text ?? (typeof payload === "string" ? payload : "");
-      const runId = `run_${nextRunNumber}`;
-      nextRunNumber += 1;
+      const runId = managed?.runId ?? `run_${nextRunNumber}`;
+      if (!managed) nextRunNumber += 1;
       if (persistentInput) {
         runConversationIdentities.set(runId, {
           conversationId: persistentInput.conversationId,
@@ -504,6 +522,7 @@ export async function registerChatIpc(
           }
         }
         let pendingSaved = false;
+        let streamedText = "";
         try {
         let persistentRecord;
         let history: ChatMessage[];
@@ -570,15 +589,51 @@ export async function registerChatIpc(
             currentRequestId: persistentInput.requestId,
           })).messages
           : [systemMessage, ...history];
+        let streamStarted = false;
+        let lastCheckpointAt = 0;
+        let checkpointTail = Promise.resolve();
+        if (managed && persistentInput) {
+          persistentRecord = await deps.conversationService!.startAssistantStream(
+            persistentInput.conversationId,
+            persistentInput.requestId,
+          );
+          streamStarted = true;
+        }
+        const checkpoint = (force = false): void => {
+          if (!streamStarted || !persistentInput) return;
+          const timestamp = Date.now();
+          if (!force && timestamp - lastCheckpointAt < 1000) return;
+          lastCheckpointAt = timestamp;
+          const content = streamedText;
+          checkpointTail = checkpointTail.then(async () => {
+            await deps.conversationService!.checkpointAssistantStream(
+              persistentInput.conversationId,
+              persistentInput.requestId,
+              content,
+            );
+          });
+        };
         const result: ToolAgentResult = await runAgent({
           messages: agentMessages,
           config: getConfig(),
           adapter,
           toolRegistry,
+          stream: Boolean(managed),
+          signal: managed?.signal,
+          onTextDelta: managed ? (delta) => {
+            streamedText += delta;
+            managed.emit("text_delta", { delta });
+            checkpoint();
+          } : undefined,
           onEvent: (agentEvent: AgentEvent) => {
             sendAgentEvent(event.sender, runId, agentEvent);
+            managed?.emit("agent_event", { agentEvent });
           },
         });
+        if (streamStarted) {
+          checkpoint(true);
+          await checkpointTail;
+        }
         const persistedMessages = withoutSystemMessages(result.messages);
         let finalMessageCount: number;
         let finalizedConversation = persistentRecord;
@@ -727,15 +782,38 @@ export async function registerChatIpc(
         };
         } catch (error) {
           if (persistentInput && pendingSaved) {
-            await deps.conversationService!.failRun(
-              persistentInput.conversationId,
-              persistentInput.requestId,
-            ).catch(() => undefined);
+            if (managed?.signal.aborted) {
+              await deps.conversationService!.checkpointAssistantStream(
+                persistentInput.conversationId,
+                persistentInput.requestId,
+                typeof streamedText === "string" ? streamedText : "",
+              ).catch(() => undefined);
+              await deps.conversationService!.finishAssistantStream(
+                persistentInput.conversationId,
+                persistentInput.requestId,
+                "cancelled",
+              ).catch(() => undefined);
+            } else {
+              await deps.conversationService!.failRun(
+                persistentInput.conversationId,
+                persistentInput.requestId,
+              ).catch(async () => {
+                await deps.conversationService!.finishAssistantStream(
+                  persistentInput.conversationId,
+                  persistentInput.requestId,
+                  "failed",
+                ).catch(() => undefined);
+              });
+            }
           }
           throw error;
         }
       });
-    },
+  }
+
+  deps.ipcMain.handle(
+    IPC_CHANNELS.chat.sendMessage,
+    (event, payload) => handleChatMessage(event, payload),
   );
 
   deps.ipcMain.handle(

@@ -31,6 +31,16 @@ export const IPC_CHANNELS = {
     agentEvent: "cyrene:chat:agent-event",
     clearSession: "cyrene:chat:clear-session",
   },
+  runs: {
+    list: "cyrene:runs:list",
+    get: "cyrene:runs:get",
+    cancel: "cyrene:runs:cancel",
+    remove: "cyrene:runs:delete",
+    clear: "cyrene:runs:clear",
+    export: "cyrene:runs:export",
+    changed: "cyrene:runs:changed",
+    event: "cyrene:runs:event",
+  },
   persona: {
     getStyle: "cyrene:persona:get-style",
     setStyle: "cyrene:persona:set-style",

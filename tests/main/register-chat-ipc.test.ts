@@ -221,6 +221,32 @@ describe("registerChatIpc", () => {
     })).toThrow("Invalid chat IPC payload");
   });
 
+  it("returns a managed run id before the Agent starts", async () => {
+    const runAgent = successfulAgent();
+    const submit = vi.fn(async () => ({ runId: "run_managed", status: "queued" as const }));
+    const deps = createFakeDeps(runAgent, {
+      agentRunManager: { submit } as never,
+      conversationService: {} as never,
+      contextManager: {} as never,
+    });
+    await registerChatIpc(deps);
+
+    const result = await deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!(createSender(), {
+      conversationId: "conv_1",
+      requestId: "request_1",
+      text: "hello",
+    });
+
+    expect(result).toEqual({ runId: "run_managed", status: "queued" });
+    expect(submit).toHaveBeenCalledWith(expect.objectContaining({
+      source: "chat",
+      conversationId: "conv_1",
+      requestId: "request_1",
+      execute: expect.any(Function),
+    }));
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("persists a pending conversation message before the Agent run and commits its result", async () => {
     const record = createEmptyConversation({ id: "conv_1", styleId: "default", now: "2026-07-18T00:00:00.000Z" });
     const appendPendingUserMessage = vi.fn(async (input: { requestId: string; text: string }) => {

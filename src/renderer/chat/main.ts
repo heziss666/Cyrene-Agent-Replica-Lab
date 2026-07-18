@@ -313,10 +313,14 @@ chatForm.addEventListener("submit", async (event) => {
       requestId,
       text,
     });
-    const route = conversationModel?.finishRun(result);
-    if (route?.renderInActiveConversation) appendMessage("agent", result.reply);
+    if ("reply" in result) {
+      const route = conversationModel?.finishRun(result);
+      if (route?.renderInActiveConversation) appendMessage("agent", result.reply);
+    } else {
+      statusBadge.textContent = result.status === "queued" ? "Queued" : "Running";
+    }
     renderConversationList(await window.cyrene.conversations.list());
-    statusBadge.textContent = "Ready";
+    if ("reply" in result) statusBadge.textContent = "Ready";
   } catch (error) {
     conversationModel?.finishRun({ conversationId, requestId });
     const message = formatRendererErrorMessage(error);

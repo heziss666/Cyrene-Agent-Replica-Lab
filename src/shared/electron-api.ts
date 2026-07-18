@@ -5,6 +5,7 @@ import type { SkillsApi } from "./skill-api-types.js";
 import type { McpApi } from "./mcp-api-types.js";
 import type { SchedulerApi } from "./scheduler-api-types.js";
 import type { ConversationsApi } from "./conversation-types.js";
+import type { RunsApi } from "./run-api-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -13,6 +14,11 @@ export interface ChatSendResult {
   requestId?: string;
   messageCount: number;
   toolResultCount: number;
+}
+
+export interface ChatRunAcceptedResult {
+  runId: string;
+  status: "queued" | "running";
 }
 
 export interface ChatClearResult {
@@ -40,10 +46,11 @@ export interface MemoryMaintenanceRunResult {
 export interface CyreneApi {
   conversations: ConversationsApi;
   chat: {
-    sendMessage: (input: import("./conversation-types.js").ConversationSendInput) => Promise<ChatSendResult>;
+    sendMessage: (input: import("./conversation-types.js").ConversationSendInput) => Promise<ChatSendResult | ChatRunAcceptedResult>;
     clearSession: () => Promise<ChatClearResult>;
     onAgentEvent: (listener: AgentEventListener) => () => void;
   };
+  runs: RunsApi;
   persona: {
     getStyle: (conversationId: string) => Promise<PersonaStyleResult>;
     setStyle: (conversationId: string, styleId: StyleId) => Promise<PersonaStyleResult>;
