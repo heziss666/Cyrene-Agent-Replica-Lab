@@ -5,6 +5,7 @@ import type { ToolCall, ToolExecutionResult, ToolSpec } from "../tools/tool-type
 export interface ChatCompletionInput {
   messages: ChatMessage[];
   tools?: ToolSpec[];
+  toolChoice?: "auto" | "required";
 }
 
 export interface VendorHttpRequest {

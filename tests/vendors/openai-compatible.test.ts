@@ -66,6 +66,23 @@ describe("openAICompatibleAdapter", () => {
     });
   });
 
+  it("can require a tool call for a guarded model round", () => {
+    const request = openAICompatibleAdapter.buildRequest(
+      {
+        messages: [{ role: "user", content: "Use a tool." }],
+        tools: [{
+          name: "get_current_time",
+          description: "Return the current time.",
+          parameters: { type: "object", properties: {} },
+        }],
+        toolChoice: "required",
+      },
+      config,
+    );
+
+    expect(JSON.parse(request.body).tool_choice).toBe("required");
+  });
+
   it("parses assistant text from an OpenAI-compatible response", () => {
     const result = openAICompatibleAdapter.parseResponse({
       choices: [

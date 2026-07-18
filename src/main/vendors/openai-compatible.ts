@@ -101,7 +101,7 @@ export const openAICompatibleAdapter: VendorAdapter = {
 
     if (tools) {
       body.tools = tools;
-      body.tool_choice = "auto";
+      body.tool_choice = input.toolChoice ?? "auto";
     }
 
     return {

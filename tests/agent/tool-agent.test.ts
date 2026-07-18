@@ -23,6 +23,24 @@ function jsonResponse(data: unknown): Response {
 }
 
 describe("runToolAgent", () => {
+  it("requires a tool only on the first round when requested", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ choices: [{ message: { role: "assistant", content: null, tool_calls: [{ id: "call", type: "function", function: { name: "get_current_time", arguments: "{}" } }] }, finish_reason: "tool_calls" }] }))
+      .mockResolvedValueOnce(jsonResponse({ choices: [{ message: { role: "assistant", content: "done" }, finish_reason: "stop" }] }));
+
+    await runToolAgent({
+      messages: [createUserMessage("Use the time tool")],
+      config,
+      adapter: openAICompatibleAdapter,
+      toolRegistry: createDefaultToolRegistry(),
+      fetchImpl: fetchMock as unknown as typeof fetch,
+      initialToolChoice: "required",
+    });
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)).tool_choice).toBe("required");
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body)).tool_choice).toBe("auto");
+  });
+
   it("passes the scheduled execution mode to tools", async () => {
     const registry = new ToolRegistry();
     let seenMode: string | undefined;

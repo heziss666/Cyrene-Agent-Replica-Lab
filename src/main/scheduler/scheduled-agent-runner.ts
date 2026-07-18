@@ -86,6 +86,9 @@ export function createScheduledAgentRunner(
           adapter: options.adapter,
           toolRegistry: options.createToolRegistry(),
           executionMode,
+          timezone: task.timezone,
+          initialToolChoice: taskRequiresTool(task.prompt) ? "required" : "auto",
+          modelRequestMaxAttempts: 3,
           onEvent,
         }), timeoutMs);
         return {
@@ -95,13 +98,26 @@ export function createScheduledAgentRunner(
           ...(needsAttention ? { errorCode: "SCHEDULE_APPROVAL_REQUIRED" } : {}),
         };
       } catch (error) {
-        const code = error instanceof Error && error.message === "SCHEDULE_AGENT_TIMEOUT"
-          ? "SCHEDULE_AGENT_TIMEOUT"
-          : "SCHEDULE_AGENT_FAILED";
+        const code = scheduledErrorCode(error);
         return { status: "failed", toolCalls, errorCode: code };
       }
     },
   };
+}
+
+function taskRequiresTool(prompt: string): boolean {
+  return /\b(?:use|call|invoke)(?:\s+\w+){0,6}\s+tools?\b|\bwhat\s+tools?.{0,24}\b(?:called|used)\b|\bcurrent\s+time\b|\bwhat\s+time\b/i.test(prompt)
+    || /\u8c03\u7528(?:\u4e86)?.{0,24}\u5de5\u5177|\u4f7f\u7528.{0,24}\u5de5\u5177|\u73b0\u5728\u7684\u65f6\u95f4|\u5f53\u524d\u65f6\u95f4|\u51e0\u70b9/u.test(prompt);
+}
+
+function scheduledErrorCode(error: unknown): string {
+  if (!(error instanceof Error)) return "SCHEDULE_AGENT_FAILED";
+  if (error.message === "SCHEDULE_AGENT_TIMEOUT") return "SCHEDULE_AGENT_TIMEOUT";
+  const httpStatus = /^Model request failed: HTTP (\d{3})\b/.exec(error.message)?.[1];
+  if (httpStatus) return `SCHEDULE_MODEL_HTTP_${httpStatus}`;
+  if (/Tool agent exceeded max rounds/.test(error.message)) return "SCHEDULE_AGENT_MAX_ROUNDS";
+  if (/\bfetch failed\b|\bnetwork\b/i.test(error.message)) return "SCHEDULE_MODEL_NETWORK_FAILED";
+  return "SCHEDULE_AGENT_FAILED";
 }
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {

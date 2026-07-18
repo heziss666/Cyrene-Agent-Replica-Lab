@@ -41,6 +41,7 @@ export interface ToolExecutionContext {
   runState: Map<string, unknown>;
   emitEvent: (event: AgentEvent) => void;
   executionMode?: "interactive" | "scheduled";
+  timezone?: string;
 }
 
 export interface ToolSpec {

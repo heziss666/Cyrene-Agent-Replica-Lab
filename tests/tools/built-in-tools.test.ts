@@ -80,6 +80,21 @@ describe("createDefaultToolRegistry", () => {
     expect(Number.isNaN(Date.parse(output ?? ""))).toBe(false);
   });
 
+  it("returns scheduled time in the task timezone", async () => {
+    const tool = createTestToolRegistry().getById("get_current_time");
+    const output = await tool?.execute({}, {
+      runState: new Map(),
+      emitEvent: () => undefined,
+      executionMode: "scheduled",
+      timezone: "Asia/Shanghai",
+    });
+    const parsed = JSON.parse(output ?? "{}");
+
+    expect(parsed.timezone).toBe("Asia/Shanghai");
+    expect(parsed.utc).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(parsed.localTime).toContain("GMT+8");
+  });
+
   it("search_knowledge returns vector snippets and diagnostics", async () => {
     const tool = createTestToolRegistry().getById("search_knowledge");
 

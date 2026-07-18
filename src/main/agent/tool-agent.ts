@@ -20,6 +20,9 @@ export interface RunToolAgentInput {
   fetchImpl?: typeof fetch;
   maxRounds?: number;
   executionMode?: "interactive" | "scheduled";
+  timezone?: string;
+  initialToolChoice?: "auto" | "required";
+  modelRequestMaxAttempts?: number;
   onEvent?: (event: ToolAgentEvent) => void;
 }
 
@@ -121,6 +124,8 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
         config: input.config,
         adapter: input.adapter,
         fetchImpl: input.fetchImpl,
+        toolChoice: round === 0 ? input.initialToolChoice : "auto",
+        maxAttempts: input.modelRequestMaxAttempts,
       });
       emit({
         type: "model_call_finished",
@@ -166,6 +171,7 @@ export async function runToolAgent(input: RunToolAgentInput): Promise<ToolAgentR
           runState,
           emitEvent: emit,
           executionMode: input.executionMode ?? "interactive",
+          timezone: input.timezone,
         });
         emit({
           type: "tool_call_finished",

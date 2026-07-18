@@ -13,6 +13,26 @@ const task: ScheduledTask = {
 };
 
 describe("scheduled agent runner", () => {
+  it("requires an initial tool call when the task explicitly asks to use a tool", async () => {
+    const runAgent = vi.fn(async (_input: Record<string, unknown>) => ({ reply: "ok", messages: [], toolResults: [] }));
+    const runner = createScheduledAgentRunner({
+      composeSystemPrompt: async () => "SYSTEM",
+      createToolRegistry: () => new ToolRegistry(),
+      getModelConfig: () => ({ provider: "deepseek", baseUrl: "https://example.com", model: "x", apiKey: "secret" }),
+      adapter: {} as never,
+      runAgent: runAgent as never,
+    });
+    const toolTask = { ...task, prompt: "请告诉我现在的时间，并简要说明你调用了什么工具" };
+
+    await runner.run({ runId: "run-tool-required", task: toolTask });
+
+    expect(runAgent.mock.calls[0]?.[0]).toMatchObject({
+      initialToolChoice: "required",
+      timezone: "Asia/Shanghai",
+      modelRequestMaxAttempts: 3,
+    });
+  });
+
   it("runs isolated system/user messages with a fresh registry and captures safe tool traces", async () => {
     const registryFactory = vi.fn(() => new ToolRegistry());
     const runAgent = vi.fn(async (input: { messages: Array<{ role: string; content: string }>; executionMode?: string; onEvent?: (event: AgentEvent) => void }) => {
@@ -52,6 +72,21 @@ describe("scheduled agent runner", () => {
     });
     await expect(runner.run({ runId: "run-2", task })).resolves.toMatchObject({
       status: "needs_attention", errorCode: "SCHEDULE_APPROVAL_REQUIRED",
+    });
+  });
+
+  it("preserves the model HTTP status in a failed scheduled run", async () => {
+    const runner = createScheduledAgentRunner({
+      composeSystemPrompt: async () => "SYSTEM",
+      createToolRegistry: () => new ToolRegistry(),
+      getModelConfig: () => ({ provider: "deepseek", baseUrl: "https://example.com", model: "x", apiKey: "secret" }),
+      adapter: {} as never,
+      runAgent: (async () => { throw new Error("Model request failed: HTTP 503 - busy"); }) as never,
+    });
+
+    await expect(runner.run({ runId: "run-http-error", task })).resolves.toMatchObject({
+      status: "failed",
+      errorCode: "SCHEDULE_MODEL_HTTP_503",
     });
   });
 });

@@ -61,4 +61,27 @@ describe("requestChatCompletion", () => {
       messages: [], config, adapter, fetchImpl: fetchImpl as typeof fetch,
     })).rejects.toThrow("Model request failed: HTTP 503 - upstream failed");
   });
+
+  it("retries transient HTTP failures with a bounded attempt count", async () => {
+    const completion = {
+      assistantMessage: { role: "assistant" as const, content: "ok" },
+      text: "ok", finishReason: "stop", toolCalls: [],
+    };
+    const adapter = {
+      id: "fake",
+      buildRequest: vi.fn(() => ({ url: "https://example.test/chat", method: "POST" as const, headers: {}, body: "{}" })),
+      parseResponse: vi.fn(() => completion),
+      appendToolResults: vi.fn(),
+    };
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    await expect(requestChatCompletion({
+      messages: [], config, adapter, fetchImpl: fetchImpl as typeof fetch,
+      maxAttempts: 3,
+      retryDelay: async () => undefined,
+    })).resolves.toBe(completion);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
 });

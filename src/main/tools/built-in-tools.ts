@@ -41,13 +41,25 @@ function calculateExpression(expression: string): string {
 
 const getCurrentTimeTool: ToolDefinition = {
   id: "get_current_time",
-  description: "Return the current time as an ISO 8601 string.",
+  description: "Return the current UTC time and, for scheduled tasks, the local time in the task timezone.",
   parameters: {
     type: "object",
     properties: {},
   },
   enabled: true,
-  execute: async () => new Date().toISOString(),
+  execute: async (_args, context) => {
+    const now = new Date();
+    if (!context?.timezone) return now.toISOString();
+    return JSON.stringify({
+      utc: now.toISOString(),
+      timezone: context.timezone,
+      localTime: new Intl.DateTimeFormat("en-CA", {
+        timeZone: context.timezone,
+        dateStyle: "full",
+        timeStyle: "long",
+      }).format(now),
+    });
+  },
 };
 
 const calculatorTool: ToolDefinition = {
