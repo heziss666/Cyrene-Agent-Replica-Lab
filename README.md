@@ -11,6 +11,7 @@ Current milestone:
 - Phase 7: governed long-term memory, lifecycle maintenance, verified reflection, two-stage compression, and a rebuildable entity graph
 - Phase 8: safe local Skills, progressive loading, manual activation, persistence, and Electron management UI
 - Phase 9: MCP stdio/Streamable HTTP tools, runtime discovery, approvals, reconnect, and Electron management UI
+- Phase 10: persistent scheduled Agent tasks, Cron/interval/one-time schedules, isolated execution, run history, notifications, and Electron management UI
 
 Run tests:
 
@@ -62,6 +63,18 @@ npm run test:mcp
 
 Chinese learning guide: [`docs/learning/phase-09-mcp.zh-CN.md`](docs/learning/phase-09-mcp.zh-CN.md)
 
+## Scheduler system
+
+The Electron Tasks view creates one-time, interval, and five-field Cron tasks. Scheduled runs use the current persona, memory recall, Skills catalog, builtin tools, and connected MCP tools in an isolated Agent Loop. Sensitive MCP calls remain approval-gated and may produce a `needs_attention` run.
+
+Scheduler smoke test:
+
+```bash
+npm run test:scheduler
+```
+
+Chinese learning guide: [`docs/learning/phase-10-agent-scheduler.zh-CN.md`](docs/learning/phase-10-agent-scheduler.zh-CN.md)
+
 Full verification:
 
 ```bash
@@ -70,5 +83,6 @@ npm run typecheck
 npm run build
 npm run test:embedding
 npm run test:mcp
+npm run test:scheduler
 npm run test:electron-smoke
 ```

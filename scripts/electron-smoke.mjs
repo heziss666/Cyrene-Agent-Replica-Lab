@@ -130,7 +130,20 @@ try {
       noHorizontalOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     };
     await window.cyrene.mcp.remove(mcpConfig.id);
-    return { ...skillsResult, mcp: mcpResult };
+    const schedulerInput = {
+      name: "Electron Smoke Task", prompt: "Do not run automatically",
+      schedule: { kind: "once", runAt: "2099-01-01T00:00:00.000Z" },
+      timezone: "UTC", missedRunPolicy: "skip", enabled: true,
+    };
+    const scheduledTask = await window.cyrene.scheduler.createTask(schedulerInput);
+    document.querySelector("#scheduler-view-button").click();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const schedulerResult = {
+      visible: !document.querySelector("#scheduler-view").hidden,
+      taskNames: [...document.querySelectorAll(".scheduler-task-row h3")].map((item) => item.textContent),
+    };
+    await window.cyrene.scheduler.removeTask(scheduledTask.id);
+    return { ...skillsResult, mcp: mcpResult, scheduler: schedulerResult };
   })()`);
   if (!result.skillsVisible
     || !result.skillNames.includes("Agent Learning Tutor")
@@ -143,6 +156,9 @@ try {
     || !["echo", "read_demo", "write_demo"].every((name) => result.mcp.toolNames.includes(name))
     || !result.mcp.noHorizontalOverflow) {
     throw new Error(`Unexpected MCP view: ${JSON.stringify(result.mcp)}`);
+  }
+  if (!result.scheduler.visible || !result.scheduler.taskNames.includes("Electron Smoke Task")) {
+    throw new Error(`Unexpected Scheduler view: ${JSON.stringify(result.scheduler)}`);
   }
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } catch (error) {

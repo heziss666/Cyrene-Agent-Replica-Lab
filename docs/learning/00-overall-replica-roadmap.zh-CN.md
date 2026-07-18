@@ -65,3 +65,6 @@ npm.cmd run dev:electron
 ```
 
 API Key 只写入本地 `.env`，禁止提交到 Git。
+# Phase 10 补充：Agent Scheduler
+
+Phase 10 已完成持久化定时任务、一次性/间隔/Cron 时间规则、错过任务策略、隔离 Agent 执行、运行历史、Electron Tasks 页面、系统通知和关闭排空。详细说明见 `phase-10-agent-scheduler.zh-CN.md`。
