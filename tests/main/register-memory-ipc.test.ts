@@ -437,6 +437,15 @@ describe("combineIpcShutdownRuntimes", () => {
     await combined.beginShutdown();
     expect(mcpRuntime.shutdown).toHaveBeenCalledOnce();
   });
+  it("stops and counts scheduled task work during combined shutdown", async () => {
+    const chatRuntime = { beginShutdown: vi.fn(async () => undefined), flushBackgroundTasks: vi.fn(async () => undefined), pendingBackgroundTaskCount: () => 0 };
+    const memoryRuntime = { beginShutdown: vi.fn(async () => undefined), pendingOperationCount: () => 0, dispose: vi.fn() };
+    const schedulerRuntime = { beginShutdown: vi.fn(async () => undefined), pendingCount: vi.fn(() => 3) };
+    const combined = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, undefined, schedulerRuntime);
+    expect(combined.pendingBackgroundTaskCount()).toBe(3);
+    await combined.beginShutdown();
+    expect(schedulerRuntime.beginShutdown).toHaveBeenCalledOnce();
+  });
   it("drains accepted chat and resolver work before shutting down maintenance", async () => {
     const calls: string[] = [];
     const chatRuntime: ChatIpcRuntime = {

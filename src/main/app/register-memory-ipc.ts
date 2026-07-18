@@ -66,6 +66,10 @@ export function combineIpcShutdownRuntimes(
     shutdown(): Promise<void>;
     pendingBackgroundTaskCount(): number;
   },
+  schedulerRuntime?: {
+    beginShutdown(): Promise<void>;
+    pendingCount(): number;
+  },
 ): ChatIpcRuntime {
   let shutdownPromise: Promise<void> | undefined;
 
@@ -86,6 +90,9 @@ export function combineIpcShutdownRuntimes(
       const mcpShutdown = mcpRuntime === undefined
         ? undefined
         : captureShutdown(() => mcpRuntime.shutdown());
+      const schedulerShutdown = schedulerRuntime === undefined
+        ? undefined
+        : captureShutdown(() => schedulerRuntime.beginShutdown());
       shutdownPromise = (async () => {
         const gateResults = await Promise.allSettled([
           ...(memoryAcceptance === undefined ? [] : [memoryAcceptance]),
@@ -93,6 +100,7 @@ export function combineIpcShutdownRuntimes(
           ...(chatAcceptance === undefined ? [] : [chatAcceptance]),
           ...(chatShutdown === undefined ? [] : [chatShutdown]),
           ...(mcpShutdown === undefined ? [] : [mcpShutdown]),
+          ...(schedulerShutdown === undefined ? [] : [schedulerShutdown]),
         ]);
         const finalChatResults = chatAcceptance === undefined
           ? []
@@ -116,6 +124,7 @@ export function combineIpcShutdownRuntimes(
     pendingBackgroundTaskCount: () => (
       chatRuntime.pendingBackgroundTaskCount() + memoryRuntime.pendingOperationCount()
         + (mcpRuntime?.pendingBackgroundTaskCount() ?? 0)
+        + (schedulerRuntime?.pendingCount() ?? 0)
     ),
     inspectRestoredMemory: (id, sender, runId) => (
       chatRuntime.inspectRestoredMemory?.(id, sender, runId) ?? Promise.resolve()

@@ -11,6 +11,7 @@ import type {
   ScheduledTaskRun,
 } from "./scheduled-task-types.js";
 import { parseScheduledTask, parseScheduledTaskInput } from "./scheduled-task-validation.js";
+import type { AgentEvent } from "../agent/agent-events.js";
 
 const MAX_TIMER_MS = 24 * 60 * 60 * 1_000;
 
@@ -44,6 +45,7 @@ export interface TaskSchedulerOptions {
   clearTimer?: (timer: unknown) => void;
   onChanged?: () => void;
   onRunFinished?: (run: ScheduledTaskRun, task: ScheduledTask) => void;
+  onEvent?: (event: AgentEvent) => void;
 }
 
 export function createTaskScheduler(options: TaskSchedulerOptions): TaskScheduler {
@@ -139,12 +141,14 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
       toolCalls: [],
     };
     await options.runStore.append(queued);
+    options.onEvent?.({ type: "scheduled_task_queued", taskId: task.id, runId });
     const accepted = await options.queue.enqueue({
       taskId: task.id,
       runId,
       run: async () => {
         const startedAt = validNow(now()).toISOString();
         await options.runStore.update(runId, (run) => ({ ...run, status: "running", startedAt }));
+        options.onEvent?.({ type: "scheduled_task_started", taskId: task.id, runId });
         options.onChanged?.();
         const result = await options.runner.run({ runId, task, executionMode });
         const finishedAt = validNow(now()).toISOString();
@@ -157,7 +161,17 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
           ...(result.errorCode ? { errorCode: result.errorCode } : {}),
         }));
         const terminal = await getRun(runId);
-        if (terminal) options.onRunFinished?.(terminal, task);
+        if (terminal) {
+          if (terminal.status === "failed") {
+            options.onEvent?.({ type: "scheduled_task_failed", taskId: task.id, runId, errorCode: terminal.errorCode ?? "SCHEDULE_AGENT_FAILED" });
+          } else {
+            options.onEvent?.({ type: "scheduled_task_finished", taskId: task.id, runId, status: terminal.status as "succeeded" | "needs_attention", toolCallCount: terminal.toolCalls.length, durationMs: Math.max(0, Date.parse(terminal.finishedAt ?? startedAt) - Date.parse(startedAt)) });
+            for (const call of terminal.toolCalls.filter((item) => item.status === "blocked")) {
+              options.onEvent?.({ type: "scheduled_tool_blocked", taskId: task.id, runId, toolId: call.toolId });
+            }
+          }
+          options.onRunFinished?.(terminal, task);
+        }
         options.onChanged?.();
       },
       cancel: async () => {
@@ -176,6 +190,7 @@ export function createTaskScheduler(options: TaskSchedulerOptions): TaskSchedule
         finishedAt: validNow(now()).toISOString(),
         errorCode: "SCHEDULE_RUN_OVERLAP",
       }));
+      options.onEvent?.({ type: "scheduled_task_skipped", taskId: task.id, runId, reason: "overlap" });
     }
     options.onChanged?.();
     return runId;

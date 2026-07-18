@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, Notification } from "electron";
 import { join } from "node:path";
 import { registerBackgroundMemoryShutdown } from "./background-memory-shutdown.js";
 import { createMainWindow } from "./create-window.js";
@@ -59,6 +59,13 @@ import { registerSkillTools } from "../skills/skill-tools.js";
 import { createMcpRuntime } from "../mcp/create-mcp-runtime.js";
 import type { McpApprovalRequest } from "../mcp/mcp-permission.js";
 import { registerMcpIpc } from "./register-mcp-ipc.js";
+import { registerSchedulerIpc } from "./register-scheduler-ipc.js";
+import { createSchedulerRuntime } from "../scheduler/create-scheduler-runtime.js";
+import { createScheduledAgentRunner } from "../scheduler/scheduled-agent-runner.js";
+import { createPromptComposer } from "../prompts/prompt-composer.js";
+import { loadPersonaConfig } from "../config/persona-config.js";
+import { buildSkillCatalog } from "../skills/skill-catalog.js";
+import { buildMemoryContext } from "../memory/memory-context.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
@@ -119,12 +126,13 @@ async function boot(): Promise<void> {
       },
     },
   });
+  const memoryRecall = createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex });
   const chatRuntime = await registerChatIpc({
     ipcMain,
     skillRegistry: skillRuntime.registry,
     createToolRegistry: () => mcpRuntime.manager.createToolRegistrySnapshot(),
     memoryStore,
-    memoryRecall: createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex }),
+    memoryRecall,
     memoryResolverQueue: resolverQueue,
     memoryScheduler,
   });
@@ -146,9 +154,43 @@ async function boot(): Promise<void> {
     manager: mcpRuntime.manager,
     approvalBroker: mcpRuntime.approvalBroker,
   });
+  const promptComposer = createPromptComposer();
+  const scheduledRunner = createScheduledAgentRunner({
+    composeSystemPrompt: async (taskPrompt) => {
+      const persona = await loadPersonaConfig();
+      let memoryContext = "";
+      try { memoryContext = buildMemoryContext(await memoryRecall.recall(taskPrompt)); } catch { /* Run without memory. */ }
+      return [
+        promptComposer.composeSystemPrompt({ styleId: persona.styleId }),
+        buildSkillCatalog(skillRuntime.registry.list()),
+        memoryContext,
+        "## Scheduled execution\nThis is an isolated scheduled task. Complete the task and report the result. Sensitive MCP tools require interactive approval; if approval is unavailable, explain what needs attention.",
+      ].filter((part) => part.trim()).join("\n\n---\n\n");
+    },
+    createToolRegistry: () => mcpRuntime.manager.createToolRegistrySnapshot(),
+    getModelConfig: loadRuntimeModelConfig,
+    adapter: openAICompatibleAdapter,
+    onEvent: broadcastAgentEvent,
+  });
+  const schedulerRuntime = createSchedulerRuntime({
+    dataDir: join(userData, "scheduler"),
+    runner: scheduledRunner,
+    onChanged: broadcastSchedulerChanged,
+    onEvent: (event) => broadcastAgentEvent("scheduler", event),
+    onRunFinished: (run, task) => {
+      if (!Notification.isSupported()) return;
+      new Notification({
+        title: task.name,
+        body: run.status === "succeeded" ? "Scheduled task completed" : `Scheduled task: ${run.status}`,
+      }).show();
+    },
+  });
+  await schedulerRuntime.initialize();
+  const schedulerIpcRuntime = registerSchedulerIpc({ ipcMain, scheduler: schedulerRuntime });
   app.once("will-quit", () => skillsIpcRuntime.dispose());
   app.once("will-quit", () => mcpIpcRuntime.dispose());
-  const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime);
+  app.once("will-quit", () => schedulerIpcRuntime.dispose());
+  const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime, schedulerRuntime);
   registerBackgroundMemoryShutdown({ app, runtime });
   await createMainWindow();
 
@@ -241,6 +283,12 @@ function broadcastMcpApproval(request: McpApprovalRequest): boolean {
     }
   }
   return delivered;
+}
+
+function broadcastSchedulerChanged(): void {
+  for (const window of BrowserWindow.getAllWindows()) {
+    try { window.webContents.send(IPC_CHANNELS.scheduler.changed); } catch { /* Window closed. */ }
+  }
 }
 
 app.on("window-all-closed", () => {
