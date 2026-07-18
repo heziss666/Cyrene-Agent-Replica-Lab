@@ -11,6 +11,7 @@ export interface AgentRunManager {
   submit(input: Omit<AgentRunIdentity, "runId"> & { execute(context: AgentRunExecutionContext): Promise<void> }): Promise<{ runId: string; status: "queued" | "running" }>;
   cancel(id: string): Promise<boolean>; list(): Promise<AgentRunSummary[]>; get(id: string): Promise<AgentRunRecord | undefined>;
   wait(id: string): Promise<AgentRunRecord | undefined>;
+  pendingCount(): number;
   remove(id: string): Promise<void>; clear(): Promise<void>; beginShutdown(): Promise<void>; flush(): Promise<void>;
 }
 
@@ -53,6 +54,7 @@ export function createAgentRunManager(options: { store: AgentRunStore; maxConcur
       controller?.abort(); return true;
     },
     async wait(id) { await (completions.get(id) ?? Promise.resolve()); completions.delete(id); return options.store.load(id); },
+    pendingCount: () => queue.pendingCount() + queue.activeCount(),
     list: () => options.store.list(), get: (id) => options.store.load(id), remove: (id) => options.store.remove(id), clear: () => options.store.clear(),
     async beginShutdown() { shuttingDown = true; queue.beginShutdown(); for (const controller of controllers.values()) controller.abort(); await queue.flush(); await options.store.flush(); },
     async flush() { await queue.flush(); await options.store.flush(); },

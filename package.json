@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:mcp": "tsx scripts/mcp-smoke.ts",
     "test:scheduler": "tsx scripts/scheduler-smoke.ts",
+    "test:streaming": "tsx scripts/streaming-smoke.ts",
     "test:electron-smoke": "npm run build && node scripts/electron-smoke.mjs",
     "test:embedding": "tsx src/cli/test-embedding.ts",
     "rag:benchmark": "tsx src/cli/rag-benchmark.ts",

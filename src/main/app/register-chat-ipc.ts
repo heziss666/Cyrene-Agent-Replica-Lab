@@ -492,7 +492,7 @@ export async function registerChatIpc(
           requestId: persistentInput.requestId,
         });
       }
-      return runSessionOperation(async () => {
+      const execute = async (): Promise<ChatSendResult> => {
         const command = deps.skillRegistry
           ? parseSkillCommand(rawText, deps.skillRegistry.list())
           : { kind: "none" as const, text: rawText };
@@ -808,7 +808,8 @@ export async function registerChatIpc(
           }
           throw error;
         }
-      });
+      };
+      return managed ? execute() : runSessionOperation(execute);
   }
 
   deps.ipcMain.handle(

@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, Notification } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Notification } from "electron";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { registerBackgroundMemoryShutdown } from "./background-memory-shutdown.js";
 import { createMainWindow } from "./create-window.js";
@@ -75,11 +76,39 @@ import { createConversationSummarizer } from "../context/conversation-summarizer
 import { createConservativeTokenEstimator } from "../context/token-estimator.js";
 import { createContextManager } from "../context/context-manager.js";
 import { registerConversationIpc } from "./register-conversation-ipc.js";
+import { createAgentRunStore } from "../runs/agent-run-store.js";
+import { createAgentRunManager } from "../runs/agent-run-manager.js";
+import { loadAgentRunConfig } from "../config/run-config.js";
+import { registerRunsIpc } from "./register-runs-ipc.js";
+import type { AgentRunEventEnvelope } from "../runs/agent-run-types.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
   const baseToolRegistry = createRuntimeToolRegistry();
   const userData = app.getPath("userData");
+  const runConfig = loadAgentRunConfig();
+  const agentRunStore = createAgentRunStore({ rootDir: join(userData, "agent-runs") });
+  await agentRunStore.initialize();
+  const agentRunManager = createAgentRunManager({
+    store: agentRunStore,
+    maxConcurrent: runConfig.maxConcurrent,
+    onEvent: (event) => {
+      broadcastRunEvent(event);
+      broadcastRunsChanged();
+    },
+  });
+  const runsIpcRuntime = registerRunsIpc({
+    ipcMain,
+    manager: agentRunManager,
+    selectExportPath: async (runId) => {
+      const result = await dialog.showSaveDialog({
+        defaultPath: `${runId}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      return result.canceled ? undefined : result.filePath;
+    },
+    writeExport: (path, content) => writeFile(path, content, "utf8"),
+  });
   const skillRuntime = await createSkillRuntime({
     builtinRoot: app.isPackaged
       ? join(process.resourcesPath, "skills")
@@ -185,6 +214,7 @@ async function boot(): Promise<void> {
     contextManager,
     conversationSummarizer,
     conversationHistoryRetriever,
+    agentRunManager,
   });
   const memoryRuntime = registerMemoryIpc({
     ipcMain,
@@ -221,6 +251,7 @@ async function boot(): Promise<void> {
     getModelConfig: loadRuntimeModelConfig,
     adapter: openAICompatibleAdapter,
     onEvent: broadcastAgentEvent,
+    agentRunManager,
   });
   const schedulerRuntime = createSchedulerRuntime({
     dataDir: join(userData, "scheduler"),
@@ -241,7 +272,22 @@ async function boot(): Promise<void> {
   app.once("will-quit", () => mcpIpcRuntime.dispose());
   app.once("will-quit", () => schedulerIpcRuntime.dispose());
   app.once("will-quit", () => conversationIpcRuntime.dispose());
-  const runtime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime, schedulerRuntime);
+  app.once("will-quit", () => runsIpcRuntime.dispose());
+  const backgroundRuntime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime, schedulerRuntime);
+  const runtime = {
+    beginShutdown: async () => {
+      await backgroundRuntime.beginShutdown();
+      await agentRunManager.beginShutdown();
+      await conversationService.flush();
+    },
+    flushBackgroundTasks: async () => {
+      await backgroundRuntime.flushBackgroundTasks();
+      await agentRunManager.flush();
+      await conversationService.flush();
+    },
+    pendingBackgroundTaskCount: () =>
+      backgroundRuntime.pendingBackgroundTaskCount() + agentRunManager.pendingCount(),
+  };
   registerBackgroundMemoryShutdown({ app, runtime });
   await createMainWindow();
 
@@ -339,6 +385,18 @@ function broadcastMcpApproval(request: McpApprovalRequest): boolean {
 function broadcastSchedulerChanged(): void {
   for (const window of BrowserWindow.getAllWindows()) {
     try { window.webContents.send(IPC_CHANNELS.scheduler.changed); } catch { /* Window closed. */ }
+  }
+}
+
+function broadcastRunEvent(event: AgentRunEventEnvelope): void {
+  for (const window of BrowserWindow.getAllWindows()) {
+    try { window.webContents.send(IPC_CHANNELS.runs.event, event); } catch { /* Window closed. */ }
+  }
+}
+
+function broadcastRunsChanged(): void {
+  for (const window of BrowserWindow.getAllWindows()) {
+    try { window.webContents.send(IPC_CHANNELS.runs.changed, { runs: [] }); } catch { /* Window closed. */ }
   }
 }
 
