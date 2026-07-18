@@ -88,6 +88,97 @@ describe("conversation service", () => {
     expect(record.title).toBe("What time is it?");
   });
 
+  it("checkpoints a streamed reply under one stable message id", async () => {
+    const service = await setup();
+    const conversationId = (await service.list()).activeConversationId;
+    await service.appendPendingUserMessage({
+      conversationId,
+      requestId: "req_stream",
+      text: "Explain streaming",
+      tokenEstimate: 3,
+    });
+
+    const started = await service.startAssistantStream(conversationId, "req_stream");
+    const assistant = started.messages[1];
+    expect(started.messages[0].status).toBe("complete");
+    expect(assistant).toMatchObject({ role: "assistant", status: "streaming", content: "" });
+
+    const checkpoint = await service.checkpointAssistantStream(
+      conversationId,
+      "req_stream",
+      "partial reply",
+    );
+    expect(checkpoint.messages[1]).toMatchObject({
+      id: assistant.id,
+      status: "streaming",
+      content: "partial reply",
+    });
+
+    const cancelled = await service.finishAssistantStream(
+      conversationId,
+      "req_stream",
+      "cancelled",
+    );
+    expect(cancelled.messages[1]).toMatchObject({
+      id: assistant.id,
+      status: "cancelled",
+      content: "partial reply",
+    });
+  });
+
+  it("replaces a streaming placeholder with the completed agent transcript", async () => {
+    const service = await setup();
+    const conversationId = (await service.list()).activeConversationId;
+    await service.appendPendingUserMessage({
+      conversationId,
+      requestId: "req_stream",
+      text: "Use a tool",
+      tokenEstimate: 3,
+    });
+    await service.startAssistantStream(conversationId, "req_stream");
+    await service.checkpointAssistantStream(conversationId, "req_stream", "draft");
+
+    await service.completeRun(conversationId, "req_stream", [{
+      role: "assistant",
+      content: "final reply",
+    }]);
+
+    const record = await service.get(conversationId);
+    expect(record.messages.map(({ role, status, content }) => [role, status, content])).toEqual([
+      ["user", "complete", "Use a tool"],
+      ["assistant", "complete", "final reply"],
+    ]);
+  });
+
+  it("marks interrupted pending and streaming messages failed on restart", async () => {
+    const rootDir = await mkdtemp(join(tmpdir(), "cyrene-service-restart-"));
+    roots.push(rootDir);
+    let id = 0;
+    const first = createConversationService({
+      store: createConversationStore({ rootDir }),
+      idFactory: (prefix) => `${prefix}_${++id}`,
+    });
+    await first.initialize("default");
+    const conversationId = (await first.list()).activeConversationId;
+    await first.appendPendingUserMessage({
+      conversationId,
+      requestId: "req_interrupted",
+      text: "long answer",
+      tokenEstimate: 2,
+    });
+    await first.startAssistantStream(conversationId, "req_interrupted");
+    await first.checkpointAssistantStream(conversationId, "req_interrupted", "half answer");
+    await first.flush();
+
+    const restarted = createConversationService({ store: createConversationStore({ rootDir }) });
+    await restarted.initialize("default");
+
+    expect((await restarted.get(conversationId)).messages.map(({ status }) => status)).toEqual([
+      "complete",
+      "failed",
+    ]);
+  });
+
   it("marks failed requests and rejects concurrent requests in one conversation", async () => {
     const service = await setup();
     const conversationId = (await service.list()).activeConversationId;

@@ -117,6 +117,8 @@ export function toIndexEntry(record: ConversationRecord): ConversationIndexEntry
     lastMessageAt: record.lastMessageAt,
     styleId: record.styleId,
     messageCount: record.messages.length,
-    hasPendingRun: record.messages.some(({ status }) => status === "pending"),
+    hasPendingRun: record.messages.some(({ status }) =>
+      status === "pending" || status === "streaming"
+    ),
   };
 }

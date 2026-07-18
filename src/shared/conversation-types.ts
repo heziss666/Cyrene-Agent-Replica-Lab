@@ -2,7 +2,9 @@ import type { StyleId } from "./persona-types.js";
 
 export const CONVERSATION_MESSAGE_STATUSES = [
   "pending",
+  "streaming",
   "complete",
+  "cancelled",
   "failed",
 ] as const;
 

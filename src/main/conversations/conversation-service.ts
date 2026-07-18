@@ -25,6 +25,17 @@ export interface ConversationService {
     text: string;
     tokenEstimate: number;
   }): Promise<ConversationRecord>;
+  startAssistantStream(conversationId: string, requestId: string): Promise<ConversationRecord>;
+  checkpointAssistantStream(
+    conversationId: string,
+    requestId: string,
+    content: string,
+  ): Promise<ConversationRecord>;
+  finishAssistantStream(
+    conversationId: string,
+    requestId: string,
+    status: "complete" | "cancelled" | "failed",
+  ): Promise<ConversationRecord>;
   completeRun(conversationId: string, requestId: string, generated: ChatMessage[]): Promise<ConversationRecord>;
   failRun(conversationId: string, requestId: string): Promise<ConversationRecord>;
   setStyle(id: string, styleId: StyleId): Promise<ConversationRecord>;
@@ -88,6 +99,21 @@ export function createConversationService(options: {
   return {
     async initialize(defaultStyleId) {
       await options.store.initialize();
+      for (const entry of await options.store.list()) {
+        const record = await options.store.load(entry.id);
+        if (!record) continue;
+        let recovered = false;
+        for (const message of record.messages) {
+          if (message.status === "pending" || message.status === "streaming") {
+            message.status = "failed";
+            recovered = true;
+          }
+        }
+        if (recovered) {
+          record.updatedAt = now();
+          await options.store.save(record);
+        }
+      }
       if ((await options.store.list()).length === 0) await create(defaultStyleId);
       return list();
     },
@@ -123,7 +149,7 @@ export function createConversationService(options: {
       const text = input.text.trim();
       if (!text) return Promise.reject(new Error("CHAT_MESSAGE_EMPTY"));
       return mutate(input.conversationId, (record) => {
-        if (record.messages.some(({ status }) => status === "pending")) {
+        if (record.messages.some(({ status }) => status === "pending" || status === "streaming")) {
           throw new Error("CONVERSATION_RUN_IN_PROGRESS");
         }
         if (record.messages.some(({ requestId }) => requestId === input.requestId)) {
@@ -147,13 +173,67 @@ export function createConversationService(options: {
       });
     },
 
-    completeRun(conversationId, requestId, generated) {
+    startAssistantStream(conversationId, requestId) {
       return mutate(conversationId, (record) => {
         const pending = record.messages.find((message) =>
           message.requestId === requestId && message.role === "user" && message.status === "pending"
         );
         if (!pending) throw new Error("CONVERSATION_PENDING_REQUEST_NOT_FOUND");
+        if (record.messages.some((message) =>
+          message.requestId === requestId && message.role === "assistant" && message.status === "streaming"
+        )) {
+          throw new Error("CONVERSATION_STREAM_ALREADY_STARTED");
+        }
+        const timestamp = now();
         pending.status = "complete";
+        record.messages.push({
+          id: idFactory("msg"),
+          conversationId,
+          requestId,
+          role: "assistant",
+          content: "",
+          createdAt: timestamp,
+          tokenEstimate: 0,
+          status: "streaming",
+        });
+        record.lastMessageAt = timestamp;
+      });
+    },
+
+    checkpointAssistantStream(conversationId, requestId, content) {
+      return mutate(conversationId, (record) => {
+        const assistant = record.messages.find((message) =>
+          message.requestId === requestId && message.role === "assistant" && message.status === "streaming"
+        );
+        if (!assistant) throw new Error("CONVERSATION_STREAM_NOT_FOUND");
+        assistant.content = content;
+        assistant.tokenEstimate = Math.max(0, Math.ceil(content.length / 4));
+        record.lastMessageAt = now();
+      });
+    },
+
+    finishAssistantStream(conversationId, requestId, status) {
+      return mutate(conversationId, (record) => {
+        const assistant = record.messages.find((message) =>
+          message.requestId === requestId && message.role === "assistant" && message.status === "streaming"
+        );
+        if (!assistant) throw new Error("CONVERSATION_STREAM_NOT_FOUND");
+        assistant.status = status;
+        record.lastMessageAt = now();
+      });
+    },
+
+    completeRun(conversationId, requestId, generated) {
+      return mutate(conversationId, (record) => {
+        const user = record.messages.find((message) =>
+          message.requestId === requestId && message.role === "user" &&
+          (message.status === "pending" || message.status === "complete")
+        );
+        if (!user) throw new Error("CONVERSATION_PENDING_REQUEST_NOT_FOUND");
+        user.status = "complete";
+        record.messages = record.messages.filter((message) => !(
+          message.requestId === requestId && message.role === "assistant" && message.status === "streaming"
+        ));
         for (const message of generated) {
           const timestamp = now();
           const persisted: ConversationMessage = {
