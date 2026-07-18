@@ -754,9 +754,14 @@ export async function registerChatIpc(
 
   deps.ipcMain.handle(
     IPC_CHANNELS.persona.getStyle,
-    async (): Promise<PersonaStyleResult> => {
+    async (_event, payload): Promise<PersonaStyleResult> => {
       return runSessionOperation(
-        async () => ({ styleId: session.getStyle() }),
+        async () => {
+          if (payload === undefined) return { styleId: session.getStyle() };
+          const conversationId = parseConversationIdPayload(payload);
+          if (!deps.conversationService) throw new Error("CONVERSATION_RUNTIME_NOT_CONFIGURED");
+          return { styleId: (await deps.conversationService.get(conversationId)).styleId };
+        },
       );
     },
   );
@@ -765,9 +770,16 @@ export async function registerChatIpc(
     IPC_CHANNELS.persona.setStyle,
     async (_event, payload): Promise<PersonaStyleResult> => {
       return runSessionOperation(async () => {
-        if (!isStyleId(payload)) {
-          throw new Error(`Invalid persona style: ${String(payload)}`);
+        if (typeof payload === "object" && payload !== null) {
+          const value = payload as Record<string, unknown>;
+          if (Reflect.ownKeys(value).length !== 2 || typeof value.conversationId !== "string"
+            || !CHAT_ID.test(value.conversationId) || !isStyleId(value.styleId)) {
+            throw new Error(`Invalid persona style: ${String(value.styleId)}`);
+          }
+          if (!deps.conversationService) throw new Error("CONVERSATION_RUNTIME_NOT_CONFIGURED");
+          return { styleId: (await deps.conversationService.setStyle(value.conversationId, value.styleId)).styleId };
         }
+        if (!isStyleId(payload)) throw new Error(`Invalid persona style: ${String(payload)}`);
         await saveConfig({ styleId: payload });
         session.setStyle(payload);
         return { styleId: session.getStyle() };
@@ -786,4 +798,14 @@ export async function registerChatIpc(
         + conversationBackgroundTasks.size,
     inspectRestoredMemory,
   };
+}
+
+function parseConversationIdPayload(payload: unknown): string {
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)
+    || Reflect.ownKeys(payload).length !== 1) throw new Error("Invalid persona payload");
+  const conversationId = (payload as Record<string, unknown>).conversationId;
+  if (typeof conversationId !== "string" || !CHAT_ID.test(conversationId)) {
+    throw new Error("Invalid persona payload");
+  }
+  return conversationId;
 }

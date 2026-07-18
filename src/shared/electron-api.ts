@@ -40,13 +40,13 @@ export interface MemoryMaintenanceRunResult {
 export interface CyreneApi {
   conversations: ConversationsApi;
   chat: {
-    sendMessage: (text: string) => Promise<ChatSendResult>;
+    sendMessage: (input: import("./conversation-types.js").ConversationSendInput) => Promise<ChatSendResult>;
     clearSession: () => Promise<ChatClearResult>;
     onAgentEvent: (listener: AgentEventListener) => () => void;
   };
   persona: {
-    getStyle: () => Promise<PersonaStyleResult>;
-    setStyle: (styleId: StyleId) => Promise<PersonaStyleResult>;
+    getStyle: (conversationId: string) => Promise<PersonaStyleResult>;
+    setStyle: (conversationId: string, styleId: StyleId) => Promise<PersonaStyleResult>;
   };
   memory: MemoryApi & {
     runMaintenance: () => Promise<MemoryMaintenanceRunResult>;

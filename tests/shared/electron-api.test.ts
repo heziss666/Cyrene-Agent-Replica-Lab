@@ -13,12 +13,12 @@ describe("CyreneApi persona contract", () => {
   it("uses a validated style id for get and set results", async () => {
     const result: PersonaStyleResult = { styleId: "healing" };
     const persona: CyreneApi["persona"] = {
-      getStyle: async () => result,
-      setStyle: async (styleId) => ({ styleId }),
+      getStyle: async (_conversationId) => result,
+      setStyle: async (_conversationId, styleId) => ({ styleId }),
     };
 
-    await expect(persona.getStyle()).resolves.toEqual({ styleId: "healing" });
-    await expect(persona.setStyle("sweet")).resolves.toEqual({ styleId: "sweet" });
+    await expect(persona.getStyle("conv_1")).resolves.toEqual({ styleId: "healing" });
+    await expect(persona.setStyle("conv_1", "sweet")).resolves.toEqual({ styleId: "sweet" });
   });
 });
 

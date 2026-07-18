@@ -3,13 +3,15 @@ import type { StyleId } from "../../shared/persona-types.js";
 
 export async function loadSelectedStyle(
   api: CyreneApi["persona"],
+  conversationId: string,
 ): Promise<StyleId> {
-  return (await api.getStyle()).styleId;
+  return (await api.getStyle(conversationId)).styleId;
 }
 
 export async function changeSelectedStyle(
   api: CyreneApi["persona"],
+  conversationId: string,
   styleId: StyleId,
 ): Promise<StyleId> {
-  return (await api.setStyle(styleId)).styleId;
+  return (await api.setStyle(conversationId, styleId)).styleId;
 }

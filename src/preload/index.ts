@@ -22,8 +22,8 @@ const api: CyreneApi = {
     },
   },
   chat: {
-    sendMessage: async (text) => {
-      return ipcRenderer.invoke(IPC_CHANNELS.chat.sendMessage, text);
+    sendMessage: async (input) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.chat.sendMessage, input);
     },
     clearSession: async () => {
       return ipcRenderer.invoke(IPC_CHANNELS.chat.clearSession);
@@ -40,11 +40,11 @@ const api: CyreneApi = {
     },
   },
   persona: {
-    getStyle: async () => {
-      return ipcRenderer.invoke(IPC_CHANNELS.persona.getStyle);
+    getStyle: async (conversationId) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.persona.getStyle, { conversationId });
     },
-    setStyle: async (styleId) => {
-      return ipcRenderer.invoke(IPC_CHANNELS.persona.setStyle, styleId);
+    setStyle: async (conversationId, styleId) => {
+      return ipcRenderer.invoke(IPC_CHANNELS.persona.setStyle, { conversationId, styleId });
     },
   },
   memory: {

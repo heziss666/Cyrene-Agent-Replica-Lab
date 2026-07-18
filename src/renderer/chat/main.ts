@@ -17,6 +17,12 @@ import { mountSkillsView } from "./skills-view.js";
 import { mountMcpView } from "./mcp-view.js";
 import { mountMcpApprovalView } from "./mcp-approval-view.js";
 import { mountSchedulerView } from "./scheduler-view.js";
+import { mountConversationView } from "./conversation-view.js";
+import { createConversationViewModel } from "./conversation-view-model.js";
+import type {
+  ConversationChangedPayload,
+  ConversationDetail,
+} from "../../shared/conversation-types.js";
 import "./style.css";
 
 declare global {
@@ -43,6 +49,7 @@ const mcpViewButtonElement = document.querySelector<HTMLButtonElement>("#mcp-vie
 const schedulerViewElement = document.querySelector<HTMLElement>("#scheduler-view");
 const schedulerViewButtonElement = document.querySelector<HTMLButtonElement>("#scheduler-view-button");
 const mcpApprovalRootElement = document.querySelector<HTMLElement>("#mcp-approval-root");
+const conversationSidebarElement = document.querySelector<HTMLElement>("#conversation-sidebar");
 
 function requireElement<T extends Element>(element: T | null, name: string): T {
   if (!element) {
@@ -69,8 +76,11 @@ const mcpViewButton = requireElement(mcpViewButtonElement, "mcp-view-button");
 const schedulerView = requireElement(schedulerViewElement, "scheduler-view");
 const schedulerViewButton = requireElement(schedulerViewButtonElement, "scheduler-view-button");
 const mcpApprovalRoot = requireElement(mcpApprovalRootElement, "mcp-approval-root");
+const conversationSidebar = requireElement(conversationSidebarElement, "conversation-sidebar");
 let isChatBusy = false;
 let selectedStyle: StyleId = "default";
+let activeConversationId = "";
+let conversationModel: ReturnType<typeof createConversationViewModel> | undefined;
 
 const memoryPanel = mountMemoryView({
   root: memoryView,
@@ -83,6 +93,14 @@ const skillsPanel = mountSkillsView({
 const mcpPanel = mountMcpView({ root: mcpView, api: window.cyrene.mcp });
 const schedulerPanel = mountSchedulerView({ root: schedulerView, api: window.cyrene.scheduler });
 mountMcpApprovalView({ root: mcpApprovalRoot, api: window.cyrene.mcp });
+
+const conversationPanel = mountConversationView({
+  root: conversationSidebar,
+  onCreate: () => createConversation(),
+  onSelect: (id) => openConversation(id),
+  onRename: (id) => renameConversation(id),
+  onRemove: (id) => removeConversation(id),
+});
 
 function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler"): void {
   const isMemory = view === "memory";
@@ -121,9 +139,12 @@ function appendEvent(text: string): void {
   eventList.scrollTop = eventList.scrollHeight;
 }
 
-function clearChatView(): void {
+function renderConversation(detail: ConversationDetail): void {
   messageList.replaceChildren();
-  eventList.replaceChildren();
+  for (const message of detail.messages) {
+    if (message.status === "failed") continue;
+    appendMessage(message.role === "user" ? "user" : "agent", message.content);
+  }
 }
 
 function setBusy(isBusy: boolean): void {
@@ -145,14 +166,67 @@ function populateStyleOptions(): void {
   }
 }
 
-async function initializeStyleSelector(): Promise<void> {
-  populateStyleOptions();
-  selectedStyle = await loadSelectedStyle(window.cyrene.persona);
+async function loadConversationStyle(): Promise<void> {
+  selectedStyle = await loadSelectedStyle(window.cyrene.persona, activeConversationId);
   styleSelect.value = selectedStyle;
 }
 
+function renderConversationList(snapshot: ConversationChangedPayload): void {
+  conversationPanel.render({
+    ...snapshot,
+    unreadConversationIds: conversationModel?.snapshot().unreadConversationIds ?? [],
+  });
+}
+
+async function openConversation(id: string, persistActive = true): Promise<void> {
+  const detail = persistActive
+    ? await window.cyrene.conversations.setActive(id)
+    : await window.cyrene.conversations.get(id);
+  activeConversationId = id;
+  conversationModel?.setActive(id);
+  renderConversation(detail);
+  await loadConversationStyle();
+  renderConversationList(await window.cyrene.conversations.list());
+}
+
+async function createConversation(): Promise<void> {
+  const result = await window.cyrene.conversations.create();
+  if (!conversationModel) conversationModel = createConversationViewModel(result.conversation.id);
+  await openConversation(result.conversation.id, false);
+  messageInput.focus();
+}
+
+async function renameConversation(id: string): Promise<void> {
+  const current = (await window.cyrene.conversations.get(id)).title;
+  const title = window.prompt("Conversation title", current)?.trim();
+  if (!title) return;
+  await window.cyrene.conversations.rename(id, title);
+  renderConversationList(await window.cyrene.conversations.list());
+}
+
+async function removeConversation(id: string): Promise<void> {
+  if (!window.confirm("Delete this conversation?")) return;
+  const result = await window.cyrene.conversations.remove(id);
+  if (!conversationModel) conversationModel = createConversationViewModel(result.activeConversationId);
+  await openConversation(result.activeConversationId, false);
+}
+
+async function initializeConversations(): Promise<void> {
+  populateStyleOptions();
+  const snapshot = await window.cyrene.conversations.list();
+  activeConversationId = snapshot.activeConversationId;
+  conversationModel = createConversationViewModel(activeConversationId);
+  renderConversationList(snapshot);
+  await openConversation(activeConversationId, false);
+}
+
 window.cyrene.chat.onAgentEvent((payload) => {
+  if (payload.conversationId && payload.conversationId !== activeConversationId) return;
   appendEvent(formatRendererEventPayload(payload));
+});
+
+window.cyrene.conversations.onChanged((payload) => {
+  renderConversationList(payload);
 });
 
 chatViewButton.addEventListener("click", () => {
@@ -189,7 +263,11 @@ styleSelect.addEventListener("change", async () => {
 
   styleSelect.disabled = true;
   try {
-    selectedStyle = await changeSelectedStyle(window.cyrene.persona, requestedStyle);
+    selectedStyle = await changeSelectedStyle(
+      window.cyrene.persona,
+      activeConversationId,
+      requestedStyle,
+    );
     styleSelect.value = selectedStyle;
   } catch (error) {
     styleSelect.value = selectedStyle;
@@ -204,8 +282,7 @@ styleSelect.addEventListener("change", async () => {
 newChat.addEventListener("click", async () => {
   setBusy(true);
   try {
-    await window.cyrene.chat.clearSession();
-    clearChatView();
+    await createConversation();
     statusBadge.textContent = "Ready";
   } catch (error) {
     const message = formatRendererErrorMessage(error);
@@ -226,14 +303,24 @@ chatForm.addEventListener("submit", async (event) => {
   appendMessage("user", text);
   messageInput.value = "";
   setBusy(true);
+  const conversationId = activeConversationId;
+  const requestId = `request_${crypto.randomUUID()}`;
+  conversationModel?.beginRun(conversationId, requestId);
 
   try {
-    const result = await window.cyrene.chat.sendMessage(text);
-    appendMessage("agent", result.reply);
+    const result = await window.cyrene.chat.sendMessage({
+      conversationId,
+      requestId,
+      text,
+    });
+    const route = conversationModel?.finishRun(result);
+    if (route?.renderInActiveConversation) appendMessage("agent", result.reply);
+    renderConversationList(await window.cyrene.conversations.list());
     statusBadge.textContent = "Ready";
   } catch (error) {
+    conversationModel?.finishRun({ conversationId, requestId });
     const message = formatRendererErrorMessage(error);
-    appendMessage("agent", message);
+    if (activeConversationId === conversationId) appendMessage("agent", message);
     appendEvent(message);
     statusBadge.textContent = "Error";
   } finally {
@@ -242,7 +329,7 @@ chatForm.addEventListener("submit", async (event) => {
   }
 });
 
-initializeStyleSelector().catch((error) => {
+initializeConversations().catch((error) => {
   const message = formatRendererErrorMessage(error);
   appendEvent(message);
   statusBadge.textContent = "Error";

@@ -32,12 +32,15 @@
         </header>
 
         <section id="chat-view" class="chat-pane" aria-label="Chat">
-          <div id="messages" class="messages"></div>
+          <aside id="conversation-sidebar" class="conversation-sidebar" aria-label="Conversations"></aside>
+          <section class="conversation-chat">
+            <div id="messages" class="messages"></div>
 
-          <form id="chat-form" class="composer">
-            <input id="message-input" type="text" autocomplete="off" placeholder="Type a message..." />
-            <button type="submit">Send</button>
-          </form>
+            <form id="chat-form" class="composer">
+              <input id="message-input" type="text" autocomplete="off" placeholder="Type a message..." />
+              <button type="submit">Send</button>
+            </form>
+          </section>
         </section>
 
         <section id="memory-view" class="memory-view" aria-label="Memory" hidden></section>
