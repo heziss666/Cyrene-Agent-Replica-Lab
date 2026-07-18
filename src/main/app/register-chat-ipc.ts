@@ -7,6 +7,7 @@ import type {
 } from "../../shared/electron-api.js";
 import { IPC_CHANNELS } from "../../shared/ipc-channels.js";
 import { isStyleId } from "../../shared/persona-types.js";
+import type { ConversationSendInput } from "../../shared/conversation-types.js";
 import {
   createRuntimeToolRegistry,
   loadRuntimeModelConfig,
@@ -24,6 +25,31 @@ import {
 import type { ToolAgentResult } from "../agent/tool-agent.js";
 import { runToolAgent } from "../agent/tool-agent.js";
 import { createChatSession } from "../chat/chat-session.js";
+import type { ConversationService } from "../conversations/conversation-service.js";
+import { toChatMessages } from "../conversations/conversation-types.js";
+import type { ContextManager } from "../context/context-manager.js";
+import type { ConversationSummarizer } from "../context/conversation-summarizer.js";
+import type { ConversationHistoryRetriever } from "../context/conversation-history-retriever.js";
+
+const CHAT_ID = /^[A-Za-z0-9_.-]{1,200}$/u;
+
+export function parseConversationSendInput(payload: unknown): ConversationSendInput {
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)
+    || Object.getPrototypeOf(payload) !== Object.prototype) {
+    throw new Error("Invalid chat IPC payload");
+  }
+  const keys = Reflect.ownKeys(payload);
+  if (keys.length !== 3 || !keys.includes("conversationId") || !keys.includes("requestId") || !keys.includes("text")) {
+    throw new Error("Invalid chat IPC payload");
+  }
+  const value = payload as Record<string, unknown>;
+  if (typeof value.conversationId !== "string" || !CHAT_ID.test(value.conversationId)
+    || typeof value.requestId !== "string" || !CHAT_ID.test(value.requestId)
+    || typeof value.text !== "string" || !value.text.trim()) {
+    throw new Error("Invalid chat IPC payload");
+  }
+  return { conversationId: value.conversationId, requestId: value.requestId, text: value.text };
+}
 import {
   defaultPersonaConfigPath,
   loadPersonaConfig,
@@ -125,6 +151,10 @@ export interface RegisterChatIpcDeps {
     SkillRegistry,
     "list" | "get" | "readBody" | "readReference"
   >;
+  conversationService?: ConversationService;
+  contextManager?: ContextManager;
+  conversationSummarizer?: ConversationSummarizer;
+  conversationHistoryRetriever?: ConversationHistoryRetriever;
 }
 
 export interface ChatIpcRuntime {
@@ -146,11 +176,14 @@ function sendAgentEvent(
 ): void {
   if (!sender || !runId) return;
   try {
-    sender.send(IPC_CHANNELS.chat.agentEvent, { runId, event: agentEvent });
+    const identity = runConversationIdentities.get(runId);
+    sender.send(IPC_CHANNELS.chat.agentEvent, { runId, ...identity, event: agentEvent });
   } catch {
     // The renderer may disappear while a chat or background write is running.
   }
 }
+
+const runConversationIdentities = new Map<string, { conversationId: string; requestId: string }>();
 
 function hasText(value: string | undefined): boolean {
   return typeof value === "string" && value.trim().length > 0;
@@ -236,6 +269,7 @@ export async function registerChatIpc(
   const session = createChatSession(await loadConfig());
   const serializeSessionOperation = createSerialExecutor();
   const acceptedSessionOperations = new Set<Promise<unknown>>();
+  const conversationBackgroundTasks = new Set<Promise<unknown>>();
   let shuttingDown = false;
   let acceptanceClosedPromise: Promise<void> | undefined;
   let shutdownPromise: Promise<void> | undefined;
@@ -273,6 +307,13 @@ export async function registerChatIpc(
   async function flushBackgroundTasks(): Promise<void> {
     await memoryWriteQueue.flush();
     await memoryResolverQueue.flush();
+    await Promise.allSettled([...conversationBackgroundTasks]);
+  }
+
+  function scheduleConversationBackground(task: () => Promise<void>): void {
+    const operation = task();
+    conversationBackgroundTasks.add(operation);
+    void operation.finally(() => conversationBackgroundTasks.delete(operation));
   }
 
   async function startResolverAttempt(conflictId: string): Promise<{
@@ -416,9 +457,21 @@ export async function registerChatIpc(
   deps.ipcMain.handle(
     IPC_CHANNELS.chat.sendMessage,
     async (event, payload): Promise<ChatSendResult> => {
-      const rawText = typeof payload === "string" ? payload : "";
+      const persistentInput = typeof payload === "string"
+        ? undefined
+        : parseConversationSendInput(payload);
+      if (persistentInput && (!deps.conversationService || !deps.contextManager)) {
+        throw new Error("CONVERSATION_RUNTIME_NOT_CONFIGURED");
+      }
+      const rawText = persistentInput?.text ?? (typeof payload === "string" ? payload : "");
       const runId = `run_${nextRunNumber}`;
       nextRunNumber += 1;
+      if (persistentInput) {
+        runConversationIdentities.set(runId, {
+          conversationId: persistentInput.conversationId,
+          requestId: persistentInput.requestId,
+        });
+      }
       return runSessionOperation(async () => {
         const command = deps.skillRegistry
           ? parseSkillCommand(rawText, deps.skillRegistry.list())
@@ -448,9 +501,24 @@ export async function registerChatIpc(
             throw new Error(code);
           }
         }
-        const history = session.appendUserMessage(text);
-        const styleId = session.getStyle();
-        const transition = session.getPendingStyleTransition();
+        let pendingSaved = false;
+        try {
+        let persistentRecord;
+        let history: ChatMessage[];
+        if (persistentInput) {
+          persistentRecord = await deps.conversationService!.appendPendingUserMessage({
+            conversationId: persistentInput.conversationId,
+            requestId: persistentInput.requestId,
+            text,
+            tokenEstimate: 0,
+          });
+          pendingSaved = true;
+          history = toChatMessages(persistentRecord.messages);
+        } else {
+          history = session.appendUserMessage(text);
+        }
+        const styleId = persistentRecord?.styleId ?? session.getStyle();
+        const transition = persistentRecord?.pendingStyleTransition ?? session.getPendingStyleTransition();
         let memoryContext = "";
         let injectedL2Ids: string[] | undefined;
         sendAgentEvent(event.sender, runId, { type: "memory_recall_started" });
@@ -492,8 +560,16 @@ export async function registerChatIpc(
           content: promptParts.join("\n\n---\n\n"),
         };
         const toolRegistry = getToolRegistry() as ToolRegistry;
+        const agentMessages = persistentInput
+          ? (await deps.contextManager!.build({
+            record: persistentRecord!,
+            systemPrompt: systemMessage.content,
+            tools: toolRegistry.getEnabledToolSpecs(),
+            currentRequestId: persistentInput.requestId,
+          })).messages
+          : [systemMessage, ...history];
         const result: ToolAgentResult = await runAgent({
-          messages: [systemMessage, ...history],
+          messages: agentMessages,
           config: getConfig(),
           adapter,
           toolRegistry,
@@ -502,8 +578,25 @@ export async function registerChatIpc(
           },
         });
         const persistedMessages = withoutSystemMessages(result.messages);
-        session.replaceMessages(persistedMessages);
-        session.acknowledgeStyleTransition(transition);
+        let finalMessageCount: number;
+        let finalizedConversation = persistentRecord;
+        if (persistentInput) {
+          const generatedMessages = result.messages.slice(agentMessages.length);
+          finalizedConversation = await deps.conversationService!.completeRun(
+            persistentInput.conversationId,
+            persistentInput.requestId,
+            generatedMessages,
+          );
+          await deps.conversationService!.acknowledgeStyleTransition(
+            persistentInput.conversationId,
+            transition,
+          );
+          finalMessageCount = finalizedConversation.messages.length;
+        } else {
+          session.replaceMessages(persistedMessages);
+          session.acknowledgeStyleTransition(transition);
+          finalMessageCount = persistedMessages.length;
+        }
 
         if (injectedL2Ids) {
           recentMemoryTracker.recordInjected(runId, injectedL2Ids);
@@ -609,12 +702,36 @@ export async function registerChatIpc(
           );
         }
 
+        if (persistentInput && finalizedConversation) {
+          const record = finalizedConversation;
+          scheduleConversationBackground(async () => {
+            await deps.conversationHistoryRetriever?.indexConversation(record);
+            if (deps.conversationSummarizer?.shouldSummarize(record)) {
+              const summary = await deps.conversationSummarizer.summarize(record);
+              if (summary.status === "updated") {
+                await deps.conversationService!.updateSummary(record.id, summary.summary);
+              }
+            }
+          });
+        }
+
         return {
           reply: result.reply,
           runId,
-          messageCount: persistedMessages.length,
+          conversationId: persistentInput?.conversationId,
+          requestId: persistentInput?.requestId,
+          messageCount: finalMessageCount,
           toolResultCount: result.toolResults.length,
         };
+        } catch (error) {
+          if (persistentInput && pendingSaved) {
+            await deps.conversationService!.failRun(
+              persistentInput.conversationId,
+              persistentInput.requestId,
+            ).catch(() => undefined);
+          }
+          throw error;
+        }
       });
     },
   );
@@ -663,7 +780,8 @@ export async function registerChatIpc(
     pendingBackgroundTaskCount: () =>
       acceptedSessionOperations.size
         + memoryWriteQueue.pendingCount()
-        + memoryResolverQueue.pendingCount(),
+        + memoryResolverQueue.pendingCount()
+        + conversationBackgroundTasks.size,
     inspectRestoredMemory,
   };
 }

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { AgentEvent } from "../../src/main/agent/agent-events.js";
-import { registerChatIpc } from "../../src/main/app/register-chat-ipc.js";
+import {
+  parseConversationSendInput,
+  registerChatIpc,
+} from "../../src/main/app/register-chat-ipc.js";
 import { buildMemoryContext } from "../../src/main/memory/memory-context.js";
 import { RecentMemoryTracker } from "../../src/main/memory/recent-memory-tracker.js";
 import type { MemoryStore } from "../../src/main/memory/memory-store.js";
@@ -18,6 +21,7 @@ import {
 import type { ChatMessage } from "../../src/shared/chat-types.js";
 import type { ChatAgentEventPayload } from "../../src/shared/electron-api.js";
 import { IPC_CHANNELS } from "../../src/shared/ipc-channels.js";
+import { createEmptyConversation } from "../../src/main/conversations/conversation-types.js";
 
 type IpcEvent = {
   sender: {
@@ -203,6 +207,56 @@ function successfulAgent(reply = "reply") {
 }
 
 describe("registerChatIpc", () => {
+  it("parses exact conversation-aware send payloads", () => {
+    expect(parseConversationSendInput({
+      conversationId: "conv_1",
+      requestId: "request_1",
+      text: "hello",
+    })).toEqual({ conversationId: "conv_1", requestId: "request_1", text: "hello" });
+    expect(() => parseConversationSendInput({
+      conversationId: "conv_1",
+      requestId: "request_1",
+      text: "hello",
+      path: "C:/secret",
+    })).toThrow("Invalid chat IPC payload");
+  });
+
+  it("persists a pending conversation message before the Agent run and commits its result", async () => {
+    const record = createEmptyConversation({ id: "conv_1", styleId: "default", now: "2026-07-18T00:00:00.000Z" });
+    const appendPendingUserMessage = vi.fn(async (input: { requestId: string; text: string }) => {
+      record.messages.push({ id: "msg_user", conversationId: record.id, requestId: input.requestId, role: "user", content: input.text, createdAt: record.createdAt, tokenEstimate: 2, status: "pending" });
+      return structuredClone(record);
+    });
+    const completeRun = vi.fn(async (_id: string, requestId: string, generated: ChatMessage[]) => {
+      record.messages[0].status = "complete";
+      generated.forEach((message, index) => record.messages.push({ id: `msg_${index}`, conversationId: record.id, requestId, role: message.role as "user" | "assistant" | "tool", content: message.content, createdAt: record.createdAt, tokenEstimate: 2, status: "complete" }));
+      return structuredClone(record);
+    });
+    const conversationService = {
+      appendPendingUserMessage,
+      completeRun,
+      failRun: vi.fn(),
+      acknowledgeStyleTransition: vi.fn(async () => record),
+      updateSummary: vi.fn(),
+    };
+    const runAgent = successfulAgent("persistent reply");
+    const deps = createFakeDeps(runAgent, {
+      conversationService: conversationService as never,
+      contextManager: { build: vi.fn(async ({ record: current }: { record: typeof record }) => ({ messages: [{ role: "system", content: "system" }, { role: "user", content: current.messages[0].content }], estimatedInputTokens: 10, inputBudgetTokens: 100, recentMessageIds: [], retrievedChunkIds: [], retrievalMode: "keyword", summaryRecommended: false })) } as never,
+      conversationHistoryRetriever: { indexConversation: vi.fn(async () => ({ indexed: 0, pending: 0 })) } as never,
+    });
+    await registerChatIpc(deps);
+
+    const result = await deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!(createSender(), {
+      conversationId: "conv_1",
+      requestId: "request_1",
+      text: "hello",
+    });
+
+    expect(appendPendingUserMessage.mock.invocationCallOrder[0]).toBeLessThan(runAgent.mock.invocationCallOrder[0]);
+    expect(completeRun).toHaveBeenCalledWith("conv_1", "request_1", [{ role: "assistant", content: "persistent reply" }]);
+    expect(result).toMatchObject({ conversationId: "conv_1", requestId: "request_1", reply: "persistent reply" });
+  });
   it("wires default conflict inspection to recall neighbors and the three latest injected-ID sets", async () => {
     let conflictOptions: Parameters<NonNullable<RegisterDeps["createMemoryConflictService"]>>[0] | undefined;
     const inspectNewMemory = vi.fn(async () => undefined);

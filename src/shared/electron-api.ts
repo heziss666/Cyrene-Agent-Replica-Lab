@@ -9,6 +9,8 @@ import type { ConversationsApi } from "./conversation-types.js";
 export interface ChatSendResult {
   reply: string;
   runId: string;
+  conversationId?: string;
+  requestId?: string;
   messageCount: number;
   toolResultCount: number;
 }

@@ -30,6 +30,7 @@ export interface ConversationService {
   setStyle(id: string, styleId: StyleId): Promise<ConversationRecord>;
   acknowledgeStyleTransition(id: string, transition?: StyleTransition): Promise<ConversationRecord>;
   setMessagePinned(id: string, messageId: string, pinned: boolean): Promise<ConversationRecord>;
+  clearMessages(id: string): Promise<ConversationRecord>;
   updateSummary(id: string, summary: ConversationSummary): Promise<ConversationRecord>;
   flush(): Promise<void>;
 }
@@ -210,6 +211,19 @@ export function createConversationService(options: {
         if (pinned) ids.add(messageId);
         else ids.delete(messageId);
         record.pinnedMessageIds = [...ids];
+      });
+    },
+
+    clearMessages(id) {
+      return mutate(id, (record) => {
+        record.messages = [];
+        record.pinnedMessageIds = [];
+        record.summary = createEmptyConversation({
+          id: record.id,
+          styleId: record.styleId,
+          now: record.createdAt,
+        }).summary;
+        delete record.lastMessageAt;
       });
     },
 

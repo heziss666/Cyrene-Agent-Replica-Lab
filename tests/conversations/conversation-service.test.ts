@@ -128,4 +128,17 @@ describe("conversation service", () => {
     expect(result.conversations).toHaveLength(1);
     expect((await service.get(result.activeConversationId)).styleId).toBe("focused");
   });
+
+  it("clears messages without resetting the conversation persona", async () => {
+    const service = await setup();
+    const conversationId = (await service.list()).activeConversationId;
+    await service.setStyle(conversationId, "lively");
+    await service.appendPendingUserMessage({ conversationId, requestId: "req_1", text: "hello", tokenEstimate: 2 });
+    await service.failRun(conversationId, "req_1");
+
+    const cleared = await service.clearMessages(conversationId);
+
+    expect(cleared.messages).toEqual([]);
+    expect(cleared.styleId).toBe("lively");
+  });
 });
