@@ -19,6 +19,8 @@ export interface ChatClearResult {
 
 export interface ChatAgentEventPayload {
   runId: string;
+  conversationId?: string;
+  requestId?: string;
   event: AgentEvent;
 }
 
