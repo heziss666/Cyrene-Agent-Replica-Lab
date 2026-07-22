@@ -1,63 +1,98 @@
 import { z } from "zod";
-import {
-  CURRENCY_WAR_ENTITY_TYPES,
-  type CurrencyWarEntity,
-  type CurrencyWarEntityType,
-  type CurrencyWarRuntimeDataset,
+import type {
+  CurrencyWarBond,
+  CurrencyWarCharacter,
+  CurrencyWarEquipment,
+  CurrencyWarInvestmentEnvironment,
+  CurrencyWarInvestmentStrategy,
+  CurrencyWarSource,
 } from "./currency-war-data-types.js";
 
-const entityTypeSchema = z.enum(CURRENCY_WAR_ENTITY_TYPES);
+export type CurrencyWarSimpleDataset = "characters" | "bonds" | "equipment" | "investment_environments" | "investment_strategies";
 
-const entitySchema = z.object({
-  id: z.string().min(1),
-  names: z.object({
-    zh_cn: z.string().min(1),
-    aliases: z.array(z.string()).optional(),
-  }).passthrough(),
-  bond_ids: z.array(z.string()).optional(),
-  member_ids: z.array(z.string()).optional(),
-  related_character_ids: z.array(z.string()).optional(),
-  related_bond_ids: z.array(z.string()).optional(),
-  effect: z.object({
-    current_text: z.string().nullable().optional(),
-    status: z.string().optional(),
-    parse_status: z.string().optional(),
-  }).passthrough().optional(),
+const sourceSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().min(1),
+  updated_at: z.string().min(1),
 }).passthrough();
+const baseDocumentSchema = z.object({ version: z.string().min(1), source: sourceSchema }).passthrough();
+const namedEntitySchema = z.object({ name: z.string().min(1), aliases: z.array(z.string()).optional() }).passthrough();
+const characterSchema = namedEntitySchema.extend({
+  cost: z.union([z.number().int(), z.array(z.number().int()).min(1)]),
+  field: z.string().min(1),
+  roles: z.array(z.string()),
+  bonds: z.array(z.string()),
+  empowerment: z.object({ front: z.unknown(), back: z.unknown(), stars: z.record(z.string(), z.unknown()) }).passthrough(),
+  advisor: z.union([z.boolean(), z.record(z.string(), z.unknown()), z.null()]),
+}).passthrough();
+const bondSchema = namedEntitySchema.extend({
+  category: z.string().min(1),
+  members: z.array(z.string()),
+  effects: z.record(z.string(), z.unknown()),
+}).passthrough();
+const equipmentSchema = namedEntitySchema.extend({
+  type: z.string().min(1),
+  stats: z.record(z.string(), z.unknown()),
+  effect: z.string().nullable(),
+  recipe: z.array(z.string()).optional(),
+}).passthrough();
+const strategySchema = namedEntitySchema.extend({
+  rarity: z.string().min(1),
+  effect: z.string().min(1),
+  planes: z.array(z.number().int()),
+}).passthrough();
+const environmentSchema = namedEntitySchema.extend({ effect: z.string().nullable() }).passthrough();
 
-const runtimeDatasetSchema = z.object({
-  schema_version: z.literal("3.0.0"),
-  dataset: entityTypeSchema,
-  game_version_target: z.string().min(1),
-  generated_from: z.string().optional(),
-  records: z.array(entitySchema),
-}).strict();
+const DATASET_CONFIG = {
+  characters: { collection: "characters", schema: characterSchema },
+  bonds: { collection: "bonds", schema: bondSchema },
+  equipment: { collection: "equipment", schema: equipmentSchema },
+  investment_environments: { collection: "environments", schema: environmentSchema },
+  investment_strategies: { collection: "strategies", schema: strategySchema },
+} as const;
 
-export function parseCurrencyWarRuntimeFile(
+export type CurrencyWarSimpleFile = {
+  version: string;
+  source: CurrencyWarSource;
+  characters?: CurrencyWarCharacter[];
+  bonds?: CurrencyWarBond[];
+  equipment?: CurrencyWarEquipment[];
+  environments?: CurrencyWarInvestmentEnvironment[];
+  strategies?: CurrencyWarInvestmentStrategy[];
+};
+
+export function parseCurrencyWarSimpleFile(
   value: unknown,
-  expectedDataset: CurrencyWarEntityType,
+  expectedDataset: CurrencyWarSimpleDataset,
   gameVersion: string,
-): CurrencyWarRuntimeDataset {
-  const parsed = runtimeDatasetSchema.safeParse(value);
-  if (!parsed.success) throw new Error("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID");
-  if (parsed.data.dataset !== expectedDataset) {
-    throw new Error("CURRENCY_WAR_RUNTIME_DATASET_MISMATCH");
-  }
-  if (parsed.data.game_version_target !== gameVersion) {
-    throw new Error("CURRENCY_WAR_RUNTIME_VERSION_MISMATCH");
-  }
+): CurrencyWarSimpleFile {
+  const base = baseDocumentSchema.safeParse(value);
+  if (!base.success) throw new Error("CURRENCY_WAR_SIMPLE_SCHEMA_INVALID");
+  if (base.data.version !== gameVersion) throw new Error("CURRENCY_WAR_SIMPLE_VERSION_MISMATCH");
 
-  const ids = new Set<string>();
-  for (const record of parsed.data.records) {
-    if (ids.has(record.id)) throw new Error("CURRENCY_WAR_RUNTIME_DUPLICATE_ID");
-    ids.add(record.id);
-  }
+  const config = DATASET_CONFIG[expectedDataset];
+  const records = base.data[config.collection];
+  const parsedRecords = z.array(config.schema).safeParse(records);
+  if (!parsedRecords.success) throw new Error("CURRENCY_WAR_SIMPLE_SCHEMA_INVALID");
+  assertNoForbiddenFields(parsedRecords.data);
+  assertUniqueNames(parsedRecords.data);
 
-  return {
-    schemaVersion: parsed.data.schema_version,
-    dataset: parsed.data.dataset,
-    gameVersion: parsed.data.game_version_target,
-    ...(parsed.data.generated_from ? { generatedFrom: parsed.data.generated_from } : {}),
-    records: parsed.data.records as CurrencyWarEntity[],
-  };
+  return { version: base.data.version, source: base.data.source, [config.collection]: parsedRecords.data } as CurrencyWarSimpleFile;
+}
+
+function assertUniqueNames(records: Array<{ name: string }>): void {
+  const names = new Set<string>();
+  for (const record of records) {
+    if (names.has(record.name)) throw new Error("CURRENCY_WAR_SIMPLE_DUPLICATE_NAME");
+    names.add(record.name);
+  }
+}
+
+function assertNoForbiddenFields(records: Array<Record<string, unknown>>): void {
+  const forbidden = new Set(["id", "names", "dataset", "records", "status", "review", "freshness", "evidence"]);
+  for (const record of records) {
+    if (Object.keys(record).some((key) => forbidden.has(key))) {
+      throw new Error("CURRENCY_WAR_SIMPLE_FORBIDDEN_FIELD");
+    }
+  }
 }

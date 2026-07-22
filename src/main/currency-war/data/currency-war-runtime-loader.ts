@@ -1,53 +1,22 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { z } from "zod";
-import {
-  CURRENCY_WAR_ENTITY_TYPES,
-  type CurrencyWarEntity,
-  type CurrencyWarEntityIndex,
-  type CurrencyWarEntityIndexEntry,
-  type CurrencyWarEntityType,
-  type CurrencyWarGameRules,
-  type CurrencyWarRuntimeDataset,
+import type {
+  CurrencyWarBond,
+  CurrencyWarCharacter,
+  CurrencyWarEquipment,
+  CurrencyWarInvestmentEnvironment,
+  CurrencyWarInvestmentStrategy,
 } from "./currency-war-data-types.js";
 import { defaultCurrencyWarRuntimeDir } from "./currency-war-data-paths.js";
-import { parseCurrencyWarRuntimeFile } from "./currency-war-data-schemas.js";
-
-const DATASET_FILES: Record<CurrencyWarEntityType, string> = {
-  characters: "characters.json",
-  bonds: "bonds.json",
-  equipment: "equipment.json",
-  investment_environments: "investment_environments.json",
-  investment_strategies: "investment_strategies.json",
-};
-
-const entityTypeSchema = z.enum(CURRENCY_WAR_ENTITY_TYPES);
-const entityIndexSchema = z.object({
-  schema_version: z.literal("3.0.0"),
-  game_version_target: z.string().min(1),
-  entities: z.record(z.string(), z.object({
-    type: entityTypeSchema,
-    name_zh: z.string().min(1),
-    cost: z.number().optional(),
-    bonds: z.array(z.string()).optional(),
-  }).passthrough()),
-}).strict();
-const gameRulesSchema = z.object({
-  schema_version: z.literal("3.0.0"),
-  dataset: z.literal("game_rules"),
-  game_version_target: z.string().min(1),
-  economy: z.record(z.string(), z.unknown()),
-  population: z.record(z.string(), z.unknown()),
-  shop: z.record(z.string(), z.unknown()),
-  board: z.record(z.string(), z.unknown()),
-  nodes: z.record(z.string(), z.unknown()),
-}).passthrough();
+import { parseCurrencyWarSimpleFile } from "./currency-war-data-schemas.js";
 
 export interface CurrencyWarRuntimeSnapshot {
   gameVersion: string;
-  datasets: Record<CurrencyWarEntityType, CurrencyWarRuntimeDataset>;
-  entityIndex: CurrencyWarEntityIndex;
-  gameRules: CurrencyWarGameRules;
+  characters: CurrencyWarCharacter[];
+  bonds: CurrencyWarBond[];
+  equipment: CurrencyWarEquipment[];
+  investmentEnvironments: CurrencyWarInvestmentEnvironment[];
+  investmentStrategies: CurrencyWarInvestmentStrategy[];
 }
 
 export interface LoadCurrencyWarRuntimeOptions {
@@ -62,111 +31,60 @@ export async function loadCurrencyWarRuntime(
 ): Promise<CurrencyWarRuntimeSnapshot> {
   const gameVersion = options.gameVersion ?? "4.4";
   const runtimeDir = options.runtimeDir ?? defaultCurrencyWarRuntimeDir(gameVersion);
-  const datasets = {} as Record<CurrencyWarEntityType, CurrencyWarRuntimeDataset>;
+  const [charactersFile, bondsFile, equipmentFile, environmentsFile, strategiesFile] = await Promise.all([
+    readRuntimeFile(runtimeDir, "characters.json", "characters", gameVersion),
+    readRuntimeFile(runtimeDir, "bonds.json", "bonds", gameVersion),
+    readRuntimeFile(runtimeDir, "equipment.json", "equipment", gameVersion),
+    readRuntimeFile(runtimeDir, "investment_environments.json", "investment_environments", gameVersion),
+    readRuntimeFile(runtimeDir, "investment_strategies.json", "investment_strategies", gameVersion),
+  ]);
 
-  for (const entityType of CURRENCY_WAR_ENTITY_TYPES) {
-    const json = await readJson(join(runtimeDir, DATASET_FILES[entityType]));
-    datasets[entityType] = parseCurrencyWarRuntimeFile(json, entityType, gameVersion);
-  }
-
-  const entityIndex = parseEntityIndex(
-    await readJson(join(runtimeDir, "entity_index.json")),
+  const snapshot: CurrencyWarRuntimeSnapshot = {
     gameVersion,
-  );
-  const gameRules = parseGameRules(
-    await readJson(join(runtimeDir, "game_rules.json")),
-    gameVersion,
-  );
-
-  validateCrossFileReferences(datasets, entityIndex);
-  return { gameVersion, datasets, entityIndex, gameRules };
+    characters: charactersFile.characters ?? [],
+    bonds: bondsFile.bonds ?? [],
+    equipment: equipmentFile.equipment ?? [],
+    investmentEnvironments: environmentsFile.environments ?? [],
+    investmentStrategies: strategiesFile.strategies ?? [],
+  };
+  validateRelations(snapshot);
+  return snapshot;
 }
 
-async function readJson(path: string): Promise<unknown> {
+async function readRuntimeFile(
+  runtimeDir: string,
+  file: string,
+  dataset: Parameters<typeof parseCurrencyWarSimpleFile>[1],
+  gameVersion: string,
+) {
   try {
-    return JSON.parse(await readFile(path, "utf8")) as unknown;
-  } catch {
-    throw new Error("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID");
+    return parseCurrencyWarSimpleFile(JSON.parse(await readFile(join(runtimeDir, file), "utf8")), dataset, gameVersion);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("CURRENCY_WAR_SIMPLE_")) throw error;
+    throw new Error("CURRENCY_WAR_SIMPLE_SCHEMA_INVALID");
   }
 }
 
-function parseEntityIndex(value: unknown, gameVersion: string): CurrencyWarEntityIndex {
-  const parsed = entityIndexSchema.safeParse(value);
-  if (!parsed.success) throw new Error("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID");
-  if (parsed.data.game_version_target !== gameVersion) {
-    throw new Error("CURRENCY_WAR_RUNTIME_VERSION_MISMATCH");
-  }
-  const entities: Record<string, CurrencyWarEntityIndexEntry> = {};
-  for (const [id, entry] of Object.entries(parsed.data.entities)) {
-    entities[id] = {
-      type: entry.type,
-      nameZh: entry.name_zh,
-      ...(entry.cost === undefined ? {} : { cost: entry.cost }),
-      ...(entry.bonds === undefined ? {} : { bonds: [...entry.bonds] }),
-    };
-  }
-  return {
-    schemaVersion: parsed.data.schema_version,
-    gameVersion: parsed.data.game_version_target,
-    entities,
-  };
-}
+function validateRelations(snapshot: CurrencyWarRuntimeSnapshot): void {
+  const characterNames = new Set(snapshot.characters.map((character) => character.name));
+  const bondNames = new Set(snapshot.bonds.map((bond) => bond.name));
+  const equipmentNames = new Set(snapshot.equipment.map((item) => item.name));
 
-function parseGameRules(value: unknown, gameVersion: string): CurrencyWarGameRules {
-  const parsed = gameRulesSchema.safeParse(value);
-  if (!parsed.success) throw new Error("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID");
-  if (parsed.data.game_version_target !== gameVersion) {
-    throw new Error("CURRENCY_WAR_RUNTIME_VERSION_MISMATCH");
-  }
-  return {
-    schemaVersion: parsed.data.schema_version,
-    gameVersion: parsed.data.game_version_target,
-    economy: parsed.data.economy,
-    population: parsed.data.population,
-    shop: parsed.data.shop,
-    board: parsed.data.board,
-    nodes: parsed.data.nodes,
-  };
-}
-
-function validateCrossFileReferences(
-  datasets: Record<CurrencyWarEntityType, CurrencyWarRuntimeDataset>,
-  entityIndex: CurrencyWarEntityIndex,
-): void {
-  const owners = new Map<string, CurrencyWarEntityType>();
-  for (const [entityType, dataset] of Object.entries(datasets) as Array<[CurrencyWarEntityType, CurrencyWarRuntimeDataset]>) {
-    for (const entity of dataset.records) owners.set(entity.id, entityType);
-  }
-
-  for (const [id, entry] of Object.entries(entityIndex.entities)) {
-    if (owners.get(id) !== entry.type) {
-      throw new Error("CURRENCY_WAR_RUNTIME_INDEX_REFERENCE_MISSING");
+  for (const character of snapshot.characters) {
+    for (const bondName of character.bonds) {
+      if (!bondNames.has(bondName)) throw new Error("CURRENCY_WAR_SIMPLE_RELATION_REFERENCE_MISSING");
+      const bond = snapshot.bonds.find((candidate) => candidate.name === bondName)!;
+      if (!bond.members.includes(character.name)) throw new Error("CURRENCY_WAR_SIMPLE_RELATION_MISMATCH");
     }
   }
-
-  for (const dataset of Object.values(datasets)) {
-    for (const entity of dataset.records) validateEntityRelations(entity, owners);
+  for (const bond of snapshot.bonds) {
+    for (const memberName of bond.members) {
+      if (!characterNames.has(memberName)) throw new Error("CURRENCY_WAR_SIMPLE_RELATION_REFERENCE_MISSING");
+    }
   }
-}
-
-function validateEntityRelations(
-  entity: CurrencyWarEntity,
-  owners: ReadonlyMap<string, CurrencyWarEntityType>,
-): void {
-  validateReferences(entity.bond_ids, "bonds", owners);
-  validateReferences(entity.member_ids, "characters", owners);
-  validateReferences(entity.related_character_ids, "characters", owners);
-  validateReferences(entity.related_bond_ids, "bonds", owners);
-}
-
-function validateReferences(
-  ids: readonly string[] | undefined,
-  expectedType: CurrencyWarEntityType,
-  owners: ReadonlyMap<string, CurrencyWarEntityType>,
-): void {
-  for (const id of ids ?? []) {
-    if (owners.get(id) !== expectedType) {
-      throw new Error("CURRENCY_WAR_RUNTIME_RELATION_REFERENCE_MISSING");
+  for (const item of snapshot.equipment) {
+    for (const componentName of item.recipe ?? []) {
+      if (!equipmentNames.has(componentName)) throw new Error("CURRENCY_WAR_SIMPLE_RELATION_REFERENCE_MISSING");
     }
   }
 }

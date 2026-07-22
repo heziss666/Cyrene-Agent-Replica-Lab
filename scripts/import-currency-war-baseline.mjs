@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 
@@ -8,9 +8,9 @@ const REQUIRED_CANONICAL_FILES = [
   "game_rules.json", "version_events.json", "unresolved_questions.json",
 ];
 
-const REQUIRED_RUNTIME_FILES = [
-  "entity_index.json", "characters.json", "bonds.json", "equipment.json",
-  "investment_environments.json", "investment_strategies.json", "game_rules.json",
+const REQUIRED_SIMPLE_FILES = [
+  "characters.json", "bonds.json", "equipment.json",
+  "investment_environments.json", "investment_strategies.json",
 ];
 
 function parseArguments(argumentsList) {
@@ -35,8 +35,8 @@ function parseArguments(argumentsList) {
   };
 }
 
-function assertRuntimeVersion(document, file, gameVersion) {
-  if (document.game_version_target !== gameVersion) {
+function assertSimpleVersion(document, file, gameVersion) {
+  if (document.version !== gameVersion) {
     throw new Error(`CURRENCY_WAR_IMPORT_VERSION_MISMATCH: ${file}`);
   }
 }
@@ -62,34 +62,37 @@ async function hashFile(path) {
   return createHash("sha256").update(await readFile(path)).digest("hex");
 }
 
-async function validateRuntimeJson(directory, gameVersion) {
-  const files = await readdir(directory, { recursive: true });
-  await Promise.all(files
-    .filter((file) => file.endsWith(".json"))
-    .map(async (file) => {
-      const document = await readJson(join(directory, file));
-      assertRuntimeVersion(document, file, gameVersion);
-    }));
+async function validateSimpleJson(directory, gameVersion) {
+  await Promise.all(REQUIRED_SIMPLE_FILES.map(async (file) => {
+    const document = await readJson(join(directory, file));
+    assertSimpleVersion(document, file, gameVersion);
+  }));
 }
 
 async function importBaseline({ sourceRoot, targetRoot, gameVersion }) {
   const sourceCanonicalDirectory = join(sourceRoot, "canonical", "v3");
-  const sourceRuntimeDirectory = join(sourceRoot, "runtime", gameVersion);
+  const sourceSimpleDirectory = join(sourceRoot, "simple", gameVersion);
   const targetCanonicalDirectory = join(targetRoot, "canonical", "v3");
   const targetRuntimeDirectory = join(targetRoot, "runtime", gameVersion);
 
   await assertRequiredFiles(sourceCanonicalDirectory, REQUIRED_CANONICAL_FILES);
-  await assertRequiredFiles(sourceRuntimeDirectory, REQUIRED_RUNTIME_FILES);
+  await assertRequiredFiles(sourceSimpleDirectory, REQUIRED_SIMPLE_FILES);
 
   await cp(sourceCanonicalDirectory, targetCanonicalDirectory, { recursive: true, force: true });
-  await cp(sourceRuntimeDirectory, targetRuntimeDirectory, { recursive: true, force: true });
+  await rm(targetRuntimeDirectory, { recursive: true, force: true });
+  await mkdir(targetRuntimeDirectory, { recursive: true });
+  await Promise.all(REQUIRED_SIMPLE_FILES.map((file) => cp(
+    join(sourceSimpleDirectory, file),
+    join(targetRuntimeDirectory, file),
+    { force: true },
+  )));
 
-  await validateRuntimeJson(targetRuntimeDirectory, gameVersion);
+  await validateSimpleJson(targetRuntimeDirectory, gameVersion);
   const datasetManifest = await readJson(join(targetCanonicalDirectory, "dataset_manifest.json"));
 
   const importedFiles = [
     ...REQUIRED_CANONICAL_FILES.map((file) => `canonical/v3/${file}`),
-    ...REQUIRED_RUNTIME_FILES.map((file) => `runtime/${gameVersion}/${file}`),
+    ...REQUIRED_SIMPLE_FILES.map((file) => `runtime/${gameVersion}/${file}`),
   ];
   const importedFileHashes = Object.fromEntries(await Promise.all(importedFiles.map(async (file) => [
     file,

@@ -10,9 +10,9 @@ const REQUIRED_CANONICAL_FILES = [
   "game_rules.json", "version_events.json", "unresolved_questions.json",
 ];
 
-const REQUIRED_RUNTIME_FILES = [
-  "entity_index.json", "characters.json", "bonds.json", "equipment.json",
-  "investment_environments.json", "investment_strategies.json", "game_rules.json",
+const REQUIRED_SIMPLE_FILES = [
+  "characters.json", "bonds.json", "equipment.json",
+  "investment_environments.json", "investment_strategies.json",
 ];
 
 const scriptPath = resolve("scripts/import-currency-war-baseline.mjs");
@@ -38,19 +38,25 @@ function seedSourceSnapshot(sourceRoot: string): Record<string, unknown> {
     writeJson(join(sourceRoot, "canonical", "v3", file), { dataset: file });
   }
 
-  const runtimeDocuments: Record<string, unknown> = {};
-  for (const file of REQUIRED_RUNTIME_FILES) {
+  const simpleDocuments: Record<string, unknown> = {};
+  const collectionNames: Record<string, string> = {
+    "characters.json": "characters",
+    "bonds.json": "bonds",
+    "equipment.json": "equipment",
+    "investment_environments.json": "environments",
+    "investment_strategies.json": "strategies",
+  };
+  for (const file of REQUIRED_SIMPLE_FILES) {
     const document = {
-      schema_version: "3.0.0",
-      dataset: file.replace(".json", ""),
-      game_version_target: "4.4",
-      records: [],
+      version: "4.4",
+      source: { name: "test", url: "https://example.test", updated_at: "2026-07-21" },
+      [collectionNames[file]!]: [],
     };
-    runtimeDocuments[file] = document;
-    writeJson(join(sourceRoot, "runtime", "4.4", file), document);
+    simpleDocuments[file] = document;
+    writeJson(join(sourceRoot, "simple", "4.4", file), document);
   }
 
-  return runtimeDocuments;
+  return simpleDocuments;
 }
 
 afterEach(() => {
@@ -60,10 +66,10 @@ afterEach(() => {
 });
 
 describe("import-currency-war-baseline", () => {
-  it("copies only the canonical and requested runtime snapshot and writes a manifest", () => {
+  it("copies only the canonical and requested compact snapshot and writes a manifest", () => {
     const sourceRoot = makeTemporaryDirectory("currency-war-source-");
     const targetRoot = makeTemporaryDirectory("currency-war-target-");
-    const runtimeDocuments = seedSourceSnapshot(sourceRoot);
+    const simpleDocuments = seedSourceSnapshot(sourceRoot);
 
     const result = spawnSync(process.execPath, [
       scriptPath,
@@ -74,7 +80,7 @@ describe("import-currency-war-baseline", () => {
 
     expect(result.status).toBe(0);
     expect(readJson(join(targetRoot, "runtime/4.4/characters.json"))).toEqual(
-      runtimeDocuments["characters.json"],
+      simpleDocuments["characters.json"],
     );
     expect(readJson(join(targetRoot, "manifests/import-4.4.json"))).toMatchObject({
       gameVersion: "4.4",
@@ -83,15 +89,14 @@ describe("import-currency-war-baseline", () => {
     expect(existsSync(join(targetRoot, "staging"))).toBe(false);
   });
 
-  it("refuses a source snapshot whose runtime version does not equal the requested game version", () => {
+  it("refuses a source snapshot whose compact version does not equal the requested game version", () => {
     const sourceRoot = makeTemporaryDirectory("currency-war-source-");
     const targetRoot = makeTemporaryDirectory("currency-war-target-");
     seedSourceSnapshot(sourceRoot);
-    writeJson(join(sourceRoot, "runtime/4.4/characters.json"), {
-      schema_version: "3.0.0",
-      dataset: "characters",
-      game_version_target: "4.2",
-      records: [],
+    writeJson(join(sourceRoot, "simple/4.4/characters.json"), {
+      version: "4.2",
+      source: { name: "test", url: "https://example.test", updated_at: "2026-07-21" },
+      characters: [],
     });
 
     const result = spawnSync(process.execPath, [
@@ -105,12 +110,12 @@ describe("import-currency-war-baseline", () => {
     expect(result.stderr).toContain("CURRENCY_WAR_IMPORT_VERSION_MISMATCH");
   });
 
-  it("refuses a copied runtime JSON document that cannot be parsed", () => {
+  it("refuses a required compact JSON document that cannot be parsed", () => {
     const sourceRoot = makeTemporaryDirectory("currency-war-source-");
     const targetRoot = makeTemporaryDirectory("currency-war-target-");
     seedSourceSnapshot(sourceRoot);
-    const invalidRuntimePath = join(sourceRoot, "runtime/4.4/additional.json");
-    writeFileSync(invalidRuntimePath, "{");
+    const invalidSimplePath = join(sourceRoot, "simple/4.4/characters.json");
+    writeFileSync(invalidSimplePath, "{");
 
     const result = spawnSync(process.execPath, [
       scriptPath,

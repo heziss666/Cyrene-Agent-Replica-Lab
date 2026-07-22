@@ -12,12 +12,12 @@ async function main(): Promise<void> {
   const runtime = createCurrencyWarRuntime(snapshot);
 
   console.log(`Currency War runtime: ${runtime.gameVersion}`);
-  console.log(`characters: ${snapshot.datasets.characters.records.length}`);
-  console.log(`bonds: ${snapshot.datasets.bonds.records.length}`);
-  console.log(`equipment: ${snapshot.datasets.equipment.records.length}`);
-  console.log(`investment strategies: ${snapshot.datasets.investment_strategies.records.length}`);
-  console.log(`investment environments available: ${snapshot.datasets.investment_environments.records.length}`);
-  console.log(`game rules complete: ${runtime.dataHealth.gameRulesComplete}`);
+  console.log(`characters: ${snapshot.characters.length}`);
+  console.log(`bonds: ${snapshot.bonds.length}`);
+  console.log(`equipment: ${snapshot.equipment.length}`);
+  console.log(`investment strategies: ${snapshot.investmentStrategies.length}`);
+  console.log(`investment environments: ${snapshot.investmentEnvironments.length}`);
+  console.log(`economy rules available: ${runtime.dataHealth.economyRulesAvailable}`);
 }
 
 function parseArgs(args: string[]): DataCheckOptions {

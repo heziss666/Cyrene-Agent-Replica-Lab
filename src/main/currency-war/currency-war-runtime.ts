@@ -3,7 +3,7 @@ import type { CurrencyWarRuntimeSnapshot } from "./data/currency-war-runtime-loa
 
 export interface CurrencyWarDataHealth {
   investmentEnvironmentsAvailable: boolean;
-  gameRulesComplete: boolean;
+  economyRulesAvailable: boolean;
 }
 
 export interface CurrencyWarRuntime {
@@ -13,23 +13,13 @@ export interface CurrencyWarRuntime {
 }
 
 export function createCurrencyWarRuntime(snapshot: CurrencyWarRuntimeSnapshot): CurrencyWarRuntime {
-  const economy = snapshot.gameRules.economy;
-  const population = snapshot.gameRules.population;
-  const shop = snapshot.gameRules.shop;
-
   return {
     gameVersion: snapshot.gameVersion,
     catalog: createCurrencyWarCatalog(snapshot),
     dataHealth: {
-      investmentEnvironmentsAvailable: snapshot.datasets.investment_environments.records.length > 0,
-      gameRulesComplete: economy.shop_refresh_cost !== null
-        && hasRecords(economy.interest_rules)
-        && hasRecords(population.levels)
-        && hasRecords(shop.odds_by_level),
+      investmentEnvironmentsAvailable: snapshot.investmentEnvironments.length > 0,
+      // Economy rules are intentionally outside the first compact data snapshot.
+      economyRulesAvailable: false,
     },
   };
-}
-
-function hasRecords(value: unknown): boolean {
-  return Array.isArray(value) && value.length > 0;
 }

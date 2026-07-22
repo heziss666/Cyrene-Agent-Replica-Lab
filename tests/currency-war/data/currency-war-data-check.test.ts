@@ -21,8 +21,8 @@ describe("currency-war:data-check CLI", () => {
     expect(stdout).toContain("Currency War runtime: 4.4");
     expect(stdout).toContain("characters: 1");
     expect(stdout).toContain("bonds: 1");
-    expect(stdout).toContain("investment environments available: 0");
-    expect(stdout).toContain("game rules complete: false");
+    expect(stdout).toContain("investment environments: 1");
+    expect(stdout).toContain("economy rules available: false");
   });
 
   it("returns a stable error code for an invalid runtime directory", async () => {
@@ -31,6 +31,6 @@ describe("currency-war:data-check CLI", () => {
       cliPath,
       "--runtime-dir",
       "does-not-exist",
-    ])).rejects.toMatchObject({ stderr: expect.stringContaining("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID") });
+    ])).rejects.toMatchObject({ stderr: expect.stringContaining("CURRENCY_WAR_SIMPLE_SCHEMA_INVALID") });
   });
 });

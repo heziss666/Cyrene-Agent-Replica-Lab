@@ -1,4648 +1,974 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "equipment",
-  "game_version_target": "4.4",
-  "generated_from": "canonical/v3",
-  "records": [
-    {
-      "id": "equip-1629de6fb6",
-      "names": {
-        "zh_cn": "以太钻头",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "击破效率",
-          "value": 10,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "击破效率10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
+  "version": "4.4",
+  "source": {
+    "name": "BWIKI 装备一览",
+    "url": "https://wiki.biligame.com/sr/装备一览",
+    "updated_at": "2026-07-15"
+  },
+  "equipment": [
+    {
+      "name": "以太钻头",
+      "type": "简易装备",
+      "stats": {
+        "击破效率": "10%"
       },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-2d670da283",
-      "names": {
-        "zh_cn": "光能电池",
-        "en": null,
-        "aliases": []
+      "name": "光能电池",
+      "type": "简易装备",
+      "stats": {
+        "初始能量": "15"
       },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "初始能量",
-          "value": 15,
-          "unit": "flat",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "初始能量15。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-4ea4646469",
-      "names": {
-        "zh_cn": "和平手枪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "后台强度",
-          "value": 10,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "后台强度10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
+      "name": "和平手枪",
+      "type": "简易装备",
+      "stats": {
+        "后台强度": "10%"
       },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-98746d2014",
-      "names": {
-        "zh_cn": "幸运星",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "幸运一击率",
-          "value": 5,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "幸运一击率5%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
+      "name": "幸运星",
+      "type": "简易装备",
+      "stats": {
+        "幸运一击率": "5%"
       },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-eb883baa88",
-      "names": {
-        "zh_cn": "折叠小刀",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "前台强度",
-          "value": 10,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "前台强度10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
+      "name": "折叠小刀",
+      "type": "简易装备",
+      "stats": {
+        "前台强度": "10%"
       },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-66cf9149ae",
-      "names": {
-        "zh_cn": "生命之花",
-        "en": null,
-        "aliases": []
+      "name": "生命之花",
+      "type": "简易装备",
+      "stats": {
+        "生命增幅": "5%"
       },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "生命增幅",
-          "value": 5,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "生命增幅5%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-a7e775b480",
-      "names": {
-        "zh_cn": "轮滑鞋",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "速度增幅",
-          "value": 5,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "速度增幅5%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
+      "name": "轮滑鞋",
+      "type": "简易装备",
+      "stats": {
+        "速度增幅": "5%"
       },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-7205d07903",
-      "names": {
-        "zh_cn": "量产型装甲",
-        "en": null,
-        "aliases": []
-      },
-      "category": "simple_equipment",
-      "base_stats": [
-        {
-          "stat": "伤害减免",
-          "value": 5,
-          "unit": "percent",
-          "scope": "wearer"
-        }
-      ],
-      "effect": {
-        "current_text": "伤害减免5%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "no_separate_effect_base_attribute_only",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
+      "name": "量产型装甲",
+      "type": "简易装备",
+      "stats": {
+        "伤害减免": "5%"
       },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "effect": null
     },
     {
-      "id": "equip-85751e52f9",
-      "names": {
-        "zh_cn": "以牙还牙甲",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、幸运一击率20%、护盾强度20%。战斗开始时为全体前台提供装备者300%防御力的护盾；受击后按受击前护盾量250%对攻击者造成物理伤害，无法消灭目标。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "以牙还牙甲",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、幸运一击率20%、护盾强度20%。战斗开始时为全体前台提供装备者300%防御力的护盾；受击后按受击前护盾量250%对攻击者造成物理伤害，无法消灭目标。"
     },
     {
-      "id": "equip-2639a770b4",
-      "names": {
-        "zh_cn": "信心注入器",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、前台强度30%。对我方目标施放技能时，使其前台强度提高30%并获得10%伤害减免，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "信心注入器",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、前台强度30%。对我方目标施放技能时，使其前台强度提高30%并获得10%伤害减免，持续2回合。"
     },
     {
-      "id": "equip-986a04b828",
-      "names": {
-        "zh_cn": "光能盾牌",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、初始能量30、护盾强度20%。前台生命低于50%时提供装备者300%防御力护盾，持续2回合，最多5次；有护盾的前台免疫行动延后。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "光能盾牌",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、初始能量30、护盾强度20%。前台生命低于50%时提供装备者300%防御力护盾，持续2回合，最多5次；有护盾的前台免疫行动延后。"
     },
     {
-      "id": "equip-3244eea98a",
-      "names": {
-        "zh_cn": "光速螺旋桨",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得2%前台强度和1%后台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "光速螺旋桨",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得2%前台强度和1%后台强度。"
     },
     {
-      "id": "equip-fe262eab06",
-      "names": {
-        "zh_cn": "冷笑话引擎",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量60、幸运一击率10%。施放终结技时幸运一击率提高10%，最多5层。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "冷笑话引擎",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "初始能量60、幸运一击率10%。施放终结技时幸运一击率提高10%，最多5层。"
     },
     {
-      "id": "equip-14423d1405",
-      "names": {
-        "zh_cn": "动能激发剑",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%。回合开始恢复1战技点；消耗战技点后恢复1点，每回合最多3点。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "动能激发剑",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度40%。回合开始恢复1战技点；消耗战技点后恢复1点，每回合最多3点。"
     },
     {
-      "id": "equip-55cd13cf2d",
-      "names": {
-        "zh_cn": "反卫星狙击枪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度30%、幸运一击率30%。战斗开始时若位于后台，幸运一击伤害提高10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "反卫星狙击枪",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "后台强度30%、幸运一击率30%。战斗开始时若位于后台，幸运一击伤害提高10%。"
     },
     {
-      "id": "equip-d04470ac81",
-      "names": {
-        "zh_cn": "反重力皮靴",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅20%。每回合开始时速度增幅提高15%，可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "反重力皮靴",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "速度增幅20%。每回合开始时速度增幅提高15%，可叠加。"
     },
     {
-      "id": "equip-9a96c777f3",
-      "names": {
-        "zh_cn": "天基轨道炮",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅15%、后台强度60%；大幅提高后台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "天基轨道炮",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害增幅15%、后台强度60%；大幅提高后台强度。"
     },
     {
-      "id": "equip-9ce586b60c",
-      "names": {
-        "zh_cn": "很硬的甲",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%；我方小队获得18%伤害减免。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "很硬的甲",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免20%；我方小队获得18%伤害减免。"
     },
     {
-      "id": "equip-43bd0843d3",
-      "names": {
-        "zh_cn": "战场进化手册",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量20，前台强度20%，后台强度20%；装备者的每个星级提供10%速度增幅和10%伤害增幅。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "战场进化手册",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "初始能量20，前台强度20%，后台强度20%；装备者的每个星级提供10%速度增幅和10%伤害增幅。"
     },
     {
-      "id": "equip-fadd120c59",
-      "names": {
-        "zh_cn": "掩体生成枪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%，后台强度20%，生命增幅10%；装备者回合开始时，为我方全体前台提供等同于装备者30%生命上限的护盾，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "掩体生成枪",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度20%，后台强度20%，生命增幅10%；装备者回合开始时，为我方全体前台提供等同于装备者30%生命上限的护盾，持续2回合。"
     },
     {
-      "id": "equip-1e47de58ec",
-      "names": {
-        "zh_cn": "斩首行动",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%，后台强度20%，速度增幅10%；装备者对精英和首领敌人的伤害增幅提高40%，弱点击破效率提高25%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "斩首行动",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度20%，后台强度20%，速度增幅10%；装备者对精英和首领敌人的伤害增幅提高40%，弱点击破效率提高25%。"
     },
     {
-      "id": "equip-1995fcaaac",
-      "names": {
-        "zh_cn": "杀红眼",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%，后台强度30%，生命增幅10%；装备者消灭1个敌人后，伤害增幅提高25%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "杀红眼",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度30%，后台强度30%，生命增幅10%；装备者消灭1个敌人后，伤害增幅提高25%。"
     },
     {
-      "id": "equip-26fcd73ec0",
-      "names": {
-        "zh_cn": "步步生花",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅15%，生命增幅10%，速度增幅10%；战斗中，装备者若位于前台，当前生命值高于生命上限的70%时，伤害增幅提高30%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "步步生花",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害增幅15%，生命增幅10%，速度增幅10%；战斗中，装备者若位于前台，当前生命值高于生命上限的70%时，伤害增幅提高30%。"
     },
     {
-      "id": "equip-2bc606d5f8",
-      "names": {
-        "zh_cn": "武器大师",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%，后台强度20%；我方小队前/后台强度提高25%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "武器大师",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度20%，后台强度20%；我方小队前/后台强度提高25%。"
     },
     {
-      "id": "equip-7519ff9d7a",
-      "names": {
-        "zh_cn": "永动机",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%，后台强度20%；进入战斗时，装备者激活终结技。每施放3个终结技后，再次激活终结技；通过该装备激活的终结技不计入施放次数。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "永动机",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度20%，后台强度20%；进入战斗时，装备者激活终结技。每施放3个终结技后，再次激活终结技；通过该装备激活的终结技不计入施放次数。"
     },
     {
-      "id": "equip-10d78303b2",
-      "names": {
-        "zh_cn": "流星飞翼",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、速度增幅15%。施放终结技后恢复1战技点，并使全体速度增幅提高15%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "流星飞翼",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、速度增幅15%。施放终结技后恢复1战技点，并使全体速度增幅提高15%，持续2回合。"
     },
     {
-      "id": "equip-3828b51b61",
-      "names": {
-        "zh_cn": "火力风暴潮",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度20%、速度增幅10%。每次攻击后，前/后台强度提高8%，可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "火力风暴潮",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前/后台强度20%、速度增幅10%。每次攻击后，前/后台强度提高8%，可叠加。"
     },
     {
-      "id": "equip-1901825ef3",
-      "names": {
-        "zh_cn": "热血沸腾拳",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%、生命增幅10%。生命上限超过5000后，每1000生命提高2%幸运一击率，最多40%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "热血沸腾拳",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "幸运一击率10%、生命增幅10%。生命上限超过5000后，每1000生命提高2%幸运一击率，最多40%。"
     },
     {
-      "id": "equip-b310c173ee",
-      "names": {
-        "zh_cn": "物质分解液",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "生命增幅10%、速度增幅15%。每回合首次攻击后，对随机攻击目标造成其3%最大生命值的真实伤害。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "物质分解液",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "生命增幅10%、速度增幅15%。每回合首次攻击后，对随机攻击目标造成其3%最大生命值的真实伤害。"
     },
     {
-      "id": "equip-948985cd2d",
-      "names": {
-        "zh_cn": "生命之环",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "生命增幅15%；小队生命上限提高15%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "生命之环",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "生命增幅15%；小队生命上限提高15%。"
     },
     {
-      "id": "equip-b79f698310",
-      "names": {
-        "zh_cn": "电光履",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅25%，初始能量30；装备者每个回合开始时，固定恢复等同于能量上限10%的能量。（唯一装备）",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "电光履",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "速度增幅25%，初始能量30；装备者每个回合开始时，固定恢复等同于能量上限10%的能量。（唯一装备）"
     },
     {
-      "id": "equip-8a517119e7",
-      "names": {
-        "zh_cn": "电磁弹射器",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度30%，速度增幅20%；装备者若位于后台，战斗开始时行动提前50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "电磁弹射器",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "后台强度30%，速度增幅20%；装备者若位于后台，战斗开始时行动提前50%。"
     },
     {
-      "id": "equip-0ea1e0d163",
-      "names": {
-        "zh_cn": "痛觉阻断芯片",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "护盾强度20%、生命增幅10%。治疗或施加护盾后，使目标获得15%伤害减免，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "痛觉阻断芯片",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "护盾强度20%、生命增幅10%。治疗或施加护盾后，使目标获得15%伤害减免，持续2回合。"
     },
     {
-      "id": "equip-7c2d47d029",
-      "names": {
-        "zh_cn": "碎星斩舰刀",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅15%、前台强度60%；大幅提高前台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "碎星斩舰刀",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害增幅15%、前台强度60%；大幅提高前台强度。"
     },
     {
-      "id": "equip-7ed6ff6c59",
-      "names": {
-        "zh_cn": "绝对热量",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量20、生命增幅15%。小队行动时回复装备者20%生命上限；装备者施放终结技后恢复10能量，唯一装备。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "绝对热量",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "初始能量20、生命增幅15%。小队行动时回复装备者20%生命上限；装备者施放终结技后恢复10能量，唯一装备。"
     },
     {
-      "id": "equip-279b4d85f0",
-      "names": {
-        "zh_cn": "胜利之旗",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%。小队幸运一击率提高12%，并可抵抗4次控制类负面状态，可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "胜利之旗",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "幸运一击率10%。小队幸运一击率提高12%，并可抵抗4次控制类负面状态，可叠加。"
     },
     {
-      "id": "equip-1dc72f827e",
-      "names": {
-        "zh_cn": "自适应外骨骼",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、前/后台强度20%。前台时获得25%伤害减免且更易受击；后台时后台强度和速度增幅各提高20%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "自适应外骨骼",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、前/后台强度20%。前台时获得25%伤害减免且更易受击；后台时后台强度和速度增幅各提高20%。"
     },
     {
-      "id": "equip-66d5a772a7",
-      "names": {
-        "zh_cn": "蓄能帆",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量20，前台强度30%，后台强度30%；装备者经过的每点行动值固定恢复2点能量。（唯一装备）",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "蓄能帆",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "初始能量20，前台强度30%，后台强度30%；装备者经过的每点行动值固定恢复2点能量。（唯一装备）"
     },
     {
-      "id": "equip-fca20209fe",
-      "names": {
-        "zh_cn": "虫洞掘进钻头",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%；大幅提高弱点击破效率，击破特攻提高250%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "虫洞掘进钻头",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "击破效率50%；大幅提高弱点击破效率，击破特攻提高250%。"
     },
     {
-      "id": "equip-3f99037dcb",
-      "names": {
-        "zh_cn": "行星钻地弹",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量15；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高35%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "行星钻地弹",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "初始能量15；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高35%，持续2回合。"
     },
     {
-      "id": "equip-c0b653989b",
-      "names": {
-        "zh_cn": "追逐星辰",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%，速度增幅10%；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高35%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "追逐星辰",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "幸运一击率10%，速度增幅10%；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高35%，持续2回合。"
     },
     {
-      "id": "equip-0cd740b16a",
-      "names": {
-        "zh_cn": "闪光手榴弹",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%、速度增幅15%。敌人进入战斗后陷入虚弱，造成伤害降低20%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "闪光手榴弹",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免10%、速度增幅15%。敌人进入战斗后陷入虚弱，造成伤害降低20%。"
     },
     {
-      "id": "equip-b9c65120ca",
-      "names": {
-        "zh_cn": "随便骰子",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%、幸运一击率20%。每个节点随机为角色填充两件装备，需要空装备栏。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "随便骰子",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "伤害减免20%、幸运一击率20%。每个节点随机为角色填充两件装备，需要空装备栏。"
     },
     {
-      "id": "equip-8f00333a93",
-      "names": {
-        "zh_cn": "高周波电锯",
-        "en": null,
-        "aliases": []
-      },
-      "category": "advanced_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%、幸运一击率30%。战斗开始时若位于前台，幸运一击伤害提高10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "高周波电锯",
+      "type": "进阶装备",
+      "stats": {},
+      "effect": "前台强度30%、幸运一击率30%。战斗开始时若位于前台，幸运一击伤害提高10%。"
     },
     {
-      "id": "equip-35560bd42a",
-      "names": {
-        "zh_cn": "以牙还牙甲•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，幸运一击率40%，护盾强度40%；战斗开始时，我方全体前台获得等同于装备者600%防御力的护盾。装备者受到攻击后，对攻击者造成等同于500%受攻击前护盾量的物理属性伤害，该伤害无法消灭敌方目标。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "以牙还牙甲•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，幸运一击率40%，护盾强度40%；战斗开始时，我方全体前台获得等同于装备者600%防御力的护盾。装备者受到攻击后，对攻击者造成等同于500%受攻击前护盾量的物理属性伤害，该伤害无法消灭敌方目标。"
     },
     {
-      "id": "equip-9f135507f7",
-      "names": {
-        "zh_cn": "信心注入器•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，前台强度60%；装备者对我方目标施放技能时，使其前台强度提高60%，获得20%伤害减免，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "信心注入器•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，前台强度60%；装备者对我方目标施放技能时，使其前台强度提高60%，获得20%伤害减免，持续2回合。"
     },
     {
-      "id": "equip-cd036541f1",
-      "names": {
-        "zh_cn": "光能盾牌•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，护盾强度40%；我方前台生命值降低至生命上限50%以下时，装备者为目标提供等同于装备者600%防御力的护盾，持续2回合，最多触发10次。持有护盾时免疫行动延后。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "光能盾牌•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，护盾强度40%；我方前台生命值降低至生命上限50%以下时，装备者为目标提供等同于装备者600%防御力的护盾，持续2回合，最多触发10次。持有护盾时免疫行动延后。"
     },
     {
-      "id": "equip-943fbfc02a",
-      "names": {
-        "zh_cn": "光速螺旋桨•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，速度增幅20%；战斗中，装备者每有10点速度，获得4%前台强度和2%后台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "光速螺旋桨•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率50%，速度增幅20%；战斗中，装备者每有10点速度，获得4%前台强度和2%后台强度。"
     },
     {
-      "id": "equip-4bddebc59f",
-      "names": {
-        "zh_cn": "冷笑话引擎•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量120，幸运一击率20%；装备者施放终结技时，使幸运一击率提高20%，最多叠加5层。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "冷笑话引擎•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量120，幸运一击率20%；装备者施放终结技时，使幸运一击率提高20%，最多叠加5层。"
     },
     {
-      "id": "equip-f8ec2edddc",
-      "names": {
-        "zh_cn": "动能激发剑•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，前台强度80%；装备者回合开始时恢复1个战技点，消耗战技点后获得1个战技点，每回合最多恢复6点。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "动能激发剑•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率50%，前台强度80%；装备者回合开始时恢复1个战技点，消耗战技点后获得1个战技点，每回合最多恢复6点。"
     },
     {
-      "id": "equip-14d9f2ed4c",
-      "names": {
-        "zh_cn": "反卫星狙击枪•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度60%，幸运一击率60%；战斗开始时，装备者若位于后台，使幸运一击伤害提高20%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "反卫星狙击枪•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "后台强度60%，幸运一击率60%；战斗开始时，装备者若位于后台，使幸运一击伤害提高20%。"
     },
     {
-      "id": "equip-95defba146",
-      "names": {
-        "zh_cn": "反重力皮靴•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅40%；装备者每个回合开始时，速度增幅提高30%，可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "反重力皮靴•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "速度增幅40%；装备者每个回合开始时，速度增幅提高30%，可叠加。"
     },
     {
-      "id": "equip-a467e2351f",
-      "names": {
-        "zh_cn": "天基轨道炮•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅30%，后台强度120%；大幅提高后台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "天基轨道炮•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害增幅30%，后台强度120%；大幅提高后台强度。"
     },
     {
-      "id": "equip-ba91cbe515",
-      "names": {
-        "zh_cn": "很硬的甲•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免40%；我方小队获得36%伤害减免。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "很硬的甲•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免40%；我方小队获得36%伤害减免。"
     },
     {
-      "id": "equip-8d67bfbd8d",
-      "names": {
-        "zh_cn": "战场进化手册•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量40，前台强度40%，后台强度40%；装备者每个星级提供20%速度增幅和20%伤害增幅。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "战场进化手册•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量40，前台强度40%，后台强度40%；装备者每个星级提供20%速度增幅和20%伤害增幅。"
     },
     {
-      "id": "equip-84b207bf92",
-      "names": {
-        "zh_cn": "掩体生成枪•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%，后台强度40%，生命增幅20%；装备者回合开始时，为我方全体前台提供等同于装备者60%生命上限的护盾，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "掩体生成枪•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度40%，后台强度40%，生命增幅20%；装备者回合开始时，为我方全体前台提供等同于装备者60%生命上限的护盾，持续2回合。"
     },
     {
-      "id": "equip-c9eba481e4",
-      "names": {
-        "zh_cn": "斩首行动•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，前台强度20%，速度增幅40%，后台强度40%；装备者对精英和首领敌人的伤害增幅提高80%，弱点击破效率提高50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "斩首行动•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率50%，前台强度20%，速度增幅40%，后台强度40%；装备者对精英和首领敌人的伤害增幅提高80%，弱点击破效率提高50%。"
     },
     {
-      "id": "equip-703f47edeb",
-      "names": {
-        "zh_cn": "杀红眼•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度60%，后台强度60%，生命增幅20%；装备者消灭1个敌人后，伤害增幅提高50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "杀红眼•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度60%，后台强度60%，生命增幅20%；装备者消灭1个敌人后，伤害增幅提高50%。"
     },
     {
-      "id": "equip-1ee4a9fd31",
-      "names": {
-        "zh_cn": "步步生花•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅30%，生命增幅20%，速度增幅20%；战斗中，装备者若位于前台，当前生命值高于生命上限50%时，伤害增幅提高60%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "步步生花•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害增幅30%，生命增幅20%，速度增幅20%；战斗中，装备者若位于前台，当前生命值高于生命上限50%时，伤害增幅提高60%。"
     },
     {
-      "id": "equip-c592952b6d",
-      "names": {
-        "zh_cn": "武器大师•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%，后台强度40%；我方小队前/后台强度提高50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "武器大师•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度40%，后台强度40%；我方小队前/后台强度提高50%。"
     },
     {
-      "id": "equip-69f14244b5",
-      "names": {
-        "zh_cn": "永动机•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%，后台强度40%；进入战斗时激活终结技。每施放3个终结技后再次激活终结技；通过该装备激活的终结技不计入施放次数。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "永动机•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度40%，后台强度40%；进入战斗时激活终结技。每施放3个终结技后再次激活终结技；通过该装备激活的终结技不计入施放次数。"
     },
     {
-      "id": "equip-0b7cae3782",
-      "names": {
-        "zh_cn": "流星飞翼•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，速度增幅30%；施放终结技后恢复2个战技点，并使我方全体速度增幅提高30%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "流星飞翼•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，速度增幅30%；施放终结技后恢复2个战技点，并使我方全体速度增幅提高30%，持续2回合。"
     },
     {
-      "id": "equip-978e8a9075",
-      "names": {
-        "zh_cn": "火力风暴潮•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%，后台强度40%，速度增幅20%；装备者每次攻击后，前/后台强度提高16%，可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "火力风暴潮•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度40%，后台强度40%，速度增幅20%；装备者每次攻击后，前/后台强度提高16%，可叠加。"
     },
     {
-      "id": "equip-a679c670d1",
-      "names": {
-        "zh_cn": "热血沸腾拳•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率20%，生命增幅20%；装备者生命上限大于5000后，每1000生命值提高4%幸运一击率，最多80%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "热血沸腾拳•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "幸运一击率20%，生命增幅20%；装备者生命上限大于5000后，每1000生命值提高4%幸运一击率，最多80%。"
     },
     {
-      "id": "equip-1626747211",
-      "names": {
-        "zh_cn": "物质分解液•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，生命增幅20%，速度增幅30%；装备者每回合首次攻击后，对随机1个攻击目标造成其6%最大生命值的真实伤害。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "物质分解液•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率50%，生命增幅20%，速度增幅30%；装备者每回合首次攻击后，对随机1个攻击目标造成其6%最大生命值的真实伤害。"
     },
     {
-      "id": "equip-47f9221373",
-      "names": {
-        "zh_cn": "生命之环•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "治疗强度40%，生命增幅30%；我方小队生命上限提高30%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "生命之环•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "治疗强度40%，生命增幅30%；我方小队生命上限提高30%。"
     },
     {
-      "id": "equip-bf4e8db16f",
-      "names": {
-        "zh_cn": "电光履•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量60，速度增幅50%；装备者每个回合开始时，固定恢复等同于能量上限20%的能量。（唯一装备）",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "电光履•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量60，速度增幅50%；装备者每个回合开始时，固定恢复等同于能量上限20%的能量。（唯一装备）"
     },
     {
-      "id": "equip-29092909c7",
-      "names": {
-        "zh_cn": "电磁弹射器•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度60%，速度增幅40%；装备者若位于后台，战斗开始时行动提前100%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "电磁弹射器•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "后台强度60%，速度增幅40%；装备者若位于后台，战斗开始时行动提前100%。"
     },
     {
-      "id": "equip-f96b87ceaf",
-      "names": {
-        "zh_cn": "痛觉阻断芯片•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "护盾强度40%，治疗强度40%，生命增幅20%；装备者治疗我方目标或施加护盾后，使其获得30%伤害减免，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "痛觉阻断芯片•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "护盾强度40%，治疗强度40%，生命增幅20%；装备者治疗我方目标或施加护盾后，使其获得30%伤害减免，持续2回合。"
     },
     {
-      "id": "equip-387428f8a8",
-      "names": {
-        "zh_cn": "碎星斩舰刀•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅30%，前台强度120%；大幅提高前台强度。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "碎星斩舰刀•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害增幅30%，前台强度120%；大幅提高前台强度。"
     },
     {
-      "id": "equip-a3c8cd88ec",
-      "names": {
-        "zh_cn": "绝对热量•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量40，生命增幅30%；我方小队行动时回复等同于装备者40%生命上限的生命值，装备者施放终结技后恢复20点能量。（唯一装备）",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "绝对热量•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量40，生命增幅30%；我方小队行动时回复等同于装备者40%生命上限的生命值，装备者施放终结技后恢复20点能量。（唯一装备）"
     },
     {
-      "id": "equip-06b811876c",
-      "names": {
-        "zh_cn": "胜利之旗•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，幸运一击率20%；我方小队幸运一击率提高24%，并可抵抗8次控制类负面状态，该效果可叠加。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "胜利之旗•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率50%，幸运一击率20%；我方小队幸运一击率提高24%，并可抵抗8次控制类负面状态，该效果可叠加。"
     },
     {
-      "id": "equip-1a3d98c5b9",
-      "names": {
-        "zh_cn": "自适应外骨骼•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，前台强度40%，后台强度40%；前台时获得50%伤害减免且受击概率大幅提高；后台时后台强度提高40%、速度增幅提高40%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "自适应外骨骼•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，前台强度40%，后台强度40%；前台时获得50%伤害减免且受击概率大幅提高；后台时后台强度提高40%、速度增幅提高40%。"
     },
     {
-      "id": "equip-3655af0a5b",
-      "names": {
-        "zh_cn": "蓄能帆•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量40，前台强度60%，后台强度60%；装备者经过的每点行动值固定恢复4点能量。（唯一装备）",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "蓄能帆•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量40，前台强度60%，后台强度60%；装备者经过的每点行动值固定恢复4点能量。（唯一装备）"
     },
     {
-      "id": "equip-57e53cfc45",
-      "names": {
-        "zh_cn": "虫洞掘进钻头•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率100%；大幅提高弱点击破效率，击破特攻提高500%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "虫洞掘进钻头•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "击破效率100%；大幅提高弱点击破效率，击破特攻提高500%。"
     },
     {
-      "id": "equip-d45d2ab3b8",
-      "names": {
-        "zh_cn": "行星钻地弹•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量30；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高70%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "行星钻地弹•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "初始能量30；装备者施放攻击后，使攻击目标陷入脆弱：受到的伤害提高70%，持续2回合。"
     },
     {
-      "id": "equip-a6396faaec",
-      "names": {
-        "zh_cn": "追逐星辰•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率20%，速度增幅20%；攻击后使目标陷入脆弱，受到伤害提高70%，持续2回合。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "追逐星辰•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "幸运一击率20%，速度增幅20%；攻击后使目标陷入脆弱，受到伤害提高70%，持续2回合。"
     },
     {
-      "id": "equip-8c489e9816",
-      "names": {
-        "zh_cn": "闪光手榴弹•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，击破效率20%，速度增幅30%；敌人进入战斗后陷入虚弱，造成伤害降低40%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "闪光手榴弹•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，击破效率20%，速度增幅30%；敌人进入战斗后陷入虚弱，造成伤害降低40%。"
     },
     {
-      "id": "equip-769f96aea5",
-      "names": {
-        "zh_cn": "随便骰子•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免20%，幸运一击率20%；每个节点随机为角色填充两件特权装备（需要空装备栏）。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "随便骰子•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "伤害减免20%，幸运一击率20%；每个节点随机为角色填充两件特权装备（需要空装备栏）。"
     },
     {
-      "id": "equip-26f059f49b",
-      "names": {
-        "zh_cn": "高周波电锯•特权",
-        "en": null,
-        "aliases": []
-      },
-      "category": "privileged_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度60%，幸运一击率60%；战斗开始时，装备者若位于前台，使幸运一击伤害提高20%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "高周波电锯•特权",
+      "type": "特权装备",
+      "stats": {},
+      "effect": "前台强度60%，幸运一击率60%；战斗开始时，装备者若位于前台，使幸运一击伤害提高20%。"
     },
     {
-      "id": "equip-d0bccef487",
-      "names": {
-        "zh_cn": "极•白昼•光速螺旋桨",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得4%前台强度、2%后台强度和1%伤害增幅；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•白昼•光速螺旋桨",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得4%前台强度、2%后台强度和1%伤害增幅；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-14287f04cc",
-      "names": {
-        "zh_cn": "极•白昼•斩首行动",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率50%，前台强度20%，速度增幅40%，后台强度40%；装备者对精英和首领敌人的伤害增幅提高100%，弱点击破效率提高75%；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•白昼•斩首行动",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "击破效率50%，前台强度20%，速度增幅40%，后台强度40%；装备者对精英和首领敌人的伤害增幅提高100%，弱点击破效率提高75%；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-9e9ea7d7a8",
-      "names": {
-        "zh_cn": "极•白昼•武器大师",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%，后台强度40%；我方小队前/后台强度提高50%，伤害增幅提高10%；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•白昼•武器大师",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "前台强度40%，后台强度40%；我方小队前/后台强度提高50%，伤害增幅提高10%；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-62fc5ef03d",
-      "names": {
-        "zh_cn": "白昼•光速螺旋桨",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得2%前台强度和1%后台强度；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "白昼•光速螺旋桨",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "击破效率25%，速度增幅10%；战斗中，装备者每有10点速度，获得2%前台强度和1%后台强度；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-8f900af7b1",
-      "names": {
-        "zh_cn": "白昼•斩首行动",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%，前台强度10%，后台强度20%，速度增幅20%；装备者对精英和首领敌人的伤害增幅提高40%，弱点击破效率提高25%；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "白昼•斩首行动",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "击破效率25%，前台强度10%，后台强度20%，速度增幅20%；装备者对精英和首领敌人的伤害增幅提高40%，弱点击破效率提高25%；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-8a91ef2ca9",
-      "names": {
-        "zh_cn": "白昼•武器大师",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_equipment",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%，后台强度20%；我方小队前/后台强度提高25%；仅供昼之半神羁绊队员穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "白昼•武器大师",
+      "type": "羁绊装备",
+      "stats": {},
+      "effect": "前台强度20%，后台强度20%；我方小队前/后台强度提高25%；仅供昼之半神羁绊队员穿戴。"
     },
     {
-      "id": "equip-362fbaf839",
-      "names": {
-        "zh_cn": "仙舟星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%；装备者加入仙舟羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "仙舟星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "前台强度20%；装备者加入仙舟羁绊。"
     },
     {
-      "id": "equip-6b3d61f6c5",
-      "names": {
-        "zh_cn": "减益星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度20%；装备者加入减益羁绊；敌人每有1个负面状态，装备者对其造成的伤害提高5%，最多计入5个。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "减益星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "后台强度20%；装备者加入减益羁绊；敌人每有1个负面状态，装备者对其造成的伤害提高5%，最多计入5个。"
     },
     {
-      "id": "equip-e09ab03a8d",
-      "names": {
-        "zh_cn": "击破星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%；装备者加入击破羁绊，击破特攻提高150%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "击破星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "击破效率25%；装备者加入击破羁绊，击破特攻提高150%。"
     },
     {
-      "id": "equip-e3a0b7fbb1",
-      "names": {
-        "zh_cn": "列车同行星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅10%；装备者加入列车同行羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "列车同行星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "速度增幅10%；装备者加入列车同行羁绊。"
     },
     {
-      "id": "equip-11ba43176a",
-      "names": {
-        "zh_cn": "命运圣杯星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅10%；装备者加入命运圣杯羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "命运圣杯星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "伤害增幅10%；装备者加入命运圣杯羁绊。"
     },
     {
-      "id": "equip-dd68eda05f",
-      "names": {
-        "zh_cn": "夜之半神星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "后台强度20%；装备者加入夜之半神羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "夜之半神星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "后台强度20%；装备者加入夜之半神羁绊。"
     },
     {
-      "id": "equip-c1cac0b1d1",
-      "names": {
-        "zh_cn": "战技点星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度20%；装备者加入战技点羁绊，施放战技或普攻造成的伤害无视敌人20%的防御力。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "战技点星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "前台强度20%；装备者加入战技点羁绊，施放战技或普攻造成的伤害无视敌人20%的防御力。"
     },
     {
-      "id": "equip-1e4b6b6a43",
-      "names": {
-        "zh_cn": "护盾星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%；装备者加入护盾羁绊，战斗开始时，为我方全体前台提供等同于装备者100%防御力的护盾。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "护盾星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "伤害减免10%；装备者加入护盾羁绊，战斗开始时，为我方全体前台提供等同于装备者100%防御力的护盾。"
     },
     {
-      "id": "equip-3b3ea9715b",
-      "names": {
-        "zh_cn": "持续伤害星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅10%；装备者加入持续伤害羁绊，攻击后使目标陷入业火，目标回合开始时受到等同于装备者300%攻击力的火属性持续伤害。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "持续伤害星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "速度增幅10%；装备者加入持续伤害羁绊，攻击后使目标陷入业火，目标回合开始时受到等同于装备者300%攻击力的火属性持续伤害。"
     },
     {
-      "id": "equip-e7a6727b05",
-      "names": {
-        "zh_cn": "星间旅人星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "击破效率25%；装备者加入星间旅人羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "星间旅人星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "击破效率25%；装备者加入星间旅人羁绊。"
     },
     {
-      "id": "equip-328375cd86",
-      "names": {
-        "zh_cn": "昼之半神星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅10%；装备者加入昼之半神羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "昼之半神星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "速度增幅10%；装备者加入昼之半神羁绊。"
     },
     {
-      "id": "equip-ed1971830d",
-      "names": {
-        "zh_cn": "欢愉星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅10%。装备者加入欢愉羁绊，获得阿哈20%属性增益和欢愉技“极乐漩涡”。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "欢愉星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "伤害增幅10%。装备者加入欢愉羁绊，获得阿哈20%属性增益和欢愉技“极乐漩涡”。"
     },
     {
-      "id": "equip-4916627757",
-      "names": {
-        "zh_cn": "治疗星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%；装备者加入治疗羁绊，行动时为我方全体前台回复等同于装备者生命上限10%的生命。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "治疗星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "伤害减免10%；装备者加入治疗羁绊，行动时为我方全体前台回复等同于装备者生命上限10%的生命。"
     },
     {
-      "id": "equip-c09823c125",
-      "names": {
-        "zh_cn": "燃血星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "生命增幅10%；装备者加入燃血羁绊，攻击时消耗当前生命值的20%，并获得40%前/后台强度，持续至此次攻击结束。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "燃血星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "生命增幅10%；装备者加入燃血羁绊，攻击时消耗当前生命值的20%，并获得40%前/后台强度，持续至此次攻击结束。"
     },
     {
-      "id": "equip-01c148819f",
-      "names": {
-        "zh_cn": "狼狩星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "生命增幅10%；装备者加入狼狩羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "狼狩星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "生命增幅10%；装备者加入狼狩羁绊。"
     },
     {
-      "id": "equip-6161abdbfb",
-      "names": {
-        "zh_cn": "盛会之星星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%；装备者加入盛会之星羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "盛会之星星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "幸运一击率10%；装备者加入盛会之星羁绊。"
     },
     {
-      "id": "equip-4cc2d3f6ed",
-      "names": {
-        "zh_cn": "群攻星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%；装备者加入群攻羁绊；场上每存在1名敌人，装备者的前/后台强度提高8%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "群攻星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "幸运一击率10%；装备者加入群攻羁绊；场上每存在1名敌人，装备者的前/后台强度提高8%。"
     },
     {
-      "id": "equip-fe43e62f50",
-      "names": {
-        "zh_cn": "能量星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量30；装备者加入能量羁绊；造成的所有伤害视为终结技伤害，施放终结技后固定恢复10点能量。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "能量星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "初始能量30；装备者加入能量羁绊；造成的所有伤害视为终结技伤害，施放终结技后固定恢复10点能量。"
     },
     {
-      "id": "equip-4c0d88976e",
-      "names": {
-        "zh_cn": "贝洛伯格星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免10%；装备者加入贝洛伯格羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "贝洛伯格星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "伤害减免10%；装备者加入贝洛伯格羁绊。"
     },
     {
-      "id": "equip-12442eaa77",
-      "names": {
-        "zh_cn": "追击星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "速度增幅10%；装备者加入追击羁绊；造成的所有伤害视为追击伤害，行动后行动提前10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "追击星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "速度增幅10%；装备者加入追击羁绊；造成的所有伤害视为追击伤害，行动后行动提前10%。"
     },
     {
-      "id": "equip-2be9e7f7a9",
-      "names": {
-        "zh_cn": "量子同频星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率10%；装备者加入量子同频羁绊，每点同频额外提供10%量子属性穿透。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "量子同频星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "幸运一击率10%；装备者加入量子同频羁绊，每点同频额外提供10%量子属性穿透。"
     },
     {
-      "id": "equip-eeb48bdf41",
-      "names": {
-        "zh_cn": "银河学者星徽",
-        "en": null,
-        "aliases": []
-      },
-      "category": "bond_badge",
-      "base_stats": [],
-      "effect": {
-        "current_text": "初始能量30；装备者加入银河学者羁绊。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "银河学者星徽",
+      "type": "羁绊徽章",
+      "stats": {},
+      "effect": "初始能量30；装备者加入银河学者羁绊。"
     },
     {
-      "id": "equip-f78908ac62",
-      "names": {
-        "zh_cn": "红钻",
-        "en": null,
-        "aliases": []
-      },
-      "category": "diamond_component",
-      "base_stats": [],
-      "effect": {
-        "current_text": "无基础属性；用于合成阵营星徽。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "红钻",
+      "type": "钻石组件",
+      "stats": {},
+      "effect": "无基础属性；用于合成阵营星徽。"
     },
     {
-      "id": "equip-597d2c1551",
-      "names": {
-        "zh_cn": "蓝钻",
-        "en": null,
-        "aliases": []
-      },
-      "category": "diamond_component",
-      "base_stats": [],
-      "effect": {
-        "current_text": "无基础属性；用于合成流派星徽。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "蓝钻",
+      "type": "钻石组件",
+      "stats": {},
+      "effect": "无基础属性；用于合成流派星徽。"
     },
     {
-      "id": "equip-82c5ddec08",
-      "names": {
-        "zh_cn": "财富宝钻",
-        "en": null,
-        "aliases": []
-      },
-      "category": "diamond_component",
-      "base_stats": [],
-      "effect": {
-        "current_text": "团队规模上限+1（无论是否穿戴）；装备者每经过3个备战阶段，提供1金币。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "财富宝钻",
+      "type": "钻石组件",
+      "stats": {},
+      "effect": "团队规模上限+1（无论是否穿戴）；装备者每经过3个备战阶段，提供1金币。"
     },
     {
-      "id": "equip-9aaed5b96b",
-      "names": {
-        "zh_cn": "分身墨镜",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%。获得时解锁并获得1星专家银狼；银狼LV.999与银狼同时在场时，各获得20%速度和20%伤害增幅。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "分身墨镜",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度40%。获得时解锁并获得1星专家银狼；银狼LV.999与银狼同时在场时，各获得20%速度和20%伤害增幅。"
     },
     {
-      "id": "equip-7e18e36cba",
-      "names": {
-        "zh_cn": "分身墨镜Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%。获得时解锁并获得2星专家银狼；两位银狼同时在场时，各获得30%速度和30%伤害增幅。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "分身墨镜Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%。获得时解锁并获得2星专家银狼；两位银狼同时在场时，各获得30%速度和30%伤害增幅。"
     },
     {
-      "id": "equip-964933c45e",
-      "names": {
-        "zh_cn": "扑满病毒",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%。非首领战中敌人有概率变成扑满，击杀后掉落奖励。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "扑满病毒",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度30%。非首领战中敌人有概率变成扑满，击杀后掉落奖励。"
     },
     {
-      "id": "equip-5f42e20944",
-      "names": {
-        "zh_cn": "扑满病毒Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%。非首领战中敌人高概率变成扑满；获得时立即获得1个棱彩晶矿。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "扑满病毒Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%。非首领战中敌人高概率变成扑满；获得时立即获得1个棱彩晶矿。"
     },
     {
-      "id": "equip-7633d103e4",
-      "names": {
-        "zh_cn": "扑满病毒Pro",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%。非首领战中敌人有概率变成扑满，击杀后掉落奖励。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "扑满病毒Pro",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度40%。非首领战中敌人有概率变成扑满，击杀后掉落奖励。"
     },
     {
-      "id": "equip-2ae3a99e8d",
-      "names": {
-        "zh_cn": "数据拷贝仪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%。每参与3场战斗获得自身1星复制；其他方式获得装备者时也有30%概率获得复制；2/3星时伤害增幅提高20%/50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "数据拷贝仪",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度30%。每参与3场战斗获得自身1星复制；其他方式获得装备者时也有30%概率获得复制；2/3星时伤害增幅提高20%/50%。"
     },
     {
-      "id": "equip-10d9268495",
-      "names": {
-        "zh_cn": "数据拷贝仪Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%。立即获得1个银狼LV.999；每参与2场战斗获得自身1星复制；其他获得方式有30%概率复制；伤害增幅提高50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "数据拷贝仪Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%。立即获得1个银狼LV.999；每参与2场战斗获得自身1星复制；其他获得方式有30%概率复制；伤害增幅提高50%。"
     },
     {
-      "id": "equip-c2305b9ff5",
-      "names": {
-        "zh_cn": "星核猎手卡带",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%；「星核猎手」羁绊计数+1。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "星核猎手卡带",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度40%；「星核猎手」羁绊计数+1。"
     },
     {
-      "id": "equip-51867de2f6",
-      "names": {
-        "zh_cn": "星核猎手卡带Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%；「星核猎手」羁绊计数+1；触发额外攻击需要的攻击次数-1。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "星核猎手卡带Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%；「星核猎手」羁绊计数+1；触发额外攻击需要的攻击次数-1。"
     },
     {
-      "id": "equip-9a46dba26d",
-      "names": {
-        "zh_cn": "欢愉卡带",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度40%。装备者加入欢愉羁绊；若本已属于欢愉，羁绊计数+1。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "欢愉卡带",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度40%。装备者加入欢愉羁绊；若本已属于欢愉，羁绊计数+1。"
     },
     {
-      "id": "equip-bb1373cc41",
-      "names": {
-        "zh_cn": "欢愉卡带Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%。装备者加入欢愉羁绊或使计数+1；银狼LV.999装备时，欢愉技伤害和阿哈属性增益提高50%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "欢愉卡带Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%。装备者加入欢愉羁绊或使计数+1；银狼LV.999装备时，欢愉技伤害和阿哈属性增益提高50%。"
     },
     {
-      "id": "equip-7909e60453",
-      "names": {
-        "zh_cn": "病毒防火墙",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%；所有敌人陷入脆弱：受到的伤害提高35%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "病毒防火墙",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度30%；所有敌人陷入脆弱：受到的伤害提高35%。"
     },
     {
-      "id": "equip-3c4d23bff6",
-      "names": {
-        "zh_cn": "病毒防火墙Max",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度50%；所有敌人陷入超级脆弱和超级虚弱：受到的伤害提高60%，造成的伤害降低30%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "病毒防火墙Max",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度50%；所有敌人陷入超级脆弱和超级虚弱：受到的伤害提高60%，造成的伤害降低30%。"
     },
     {
-      "id": "equip-3ffbcf65cc",
-      "names": {
-        "zh_cn": "破解芯片",
-        "en": null,
-        "aliases": []
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度30%；首次穿戴时，使多个节点变为弱化状态：敌人生命上限降低10%，伤害降低20%，速度降低10%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
-    },
-    {
-      "id": "equip-5d6be00177",
-      "names": {
-        "zh_cn": "管理员手套ProMax",
-        "en": null,
-        "aliases": [
-          "管理者手套ProMax"
-        ]
-      },
-      "category": "hacker_module",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免99%，伤害增幅99%，前台强度99%，幸运一击伤害99%，幸运一击率99%，速度增幅99%；打个响指，你将接管整场货币战争。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "破解芯片",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "前台强度30%；首次穿戴时，使多个节点变为弱化状态：敌人生命上限降低10%，伤害降低20%，速度降低10%。"
     },
     {
-      "id": "equip-576a6bdcf5",
-      "names": {
-        "zh_cn": "分裂•圣杯",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免、伤害增幅、前台强度、幸运一击伤害、幸运一击率、速度增幅均为99%；页面未列出单独描述。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "管理员手套ProMax",
+      "type": "黑客模块",
+      "stats": {},
+      "effect": "伤害减免99%，伤害增幅99%，前台强度99%，幸运一击伤害99%，幸运一击率99%，速度增幅99%；打个响指，你将接管整场货币战争。"
     },
     {
-      "id": "equip-8e71690deb",
-      "names": {
-        "zh_cn": "圣杯",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害减免、伤害增幅、前台强度、幸运一击伤害、幸运一击率、速度增幅均为99%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "分裂•圣杯",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "伤害减免、伤害增幅、前台强度、幸运一击伤害、幸运一击率、速度增幅均为99%；页面未列出单独描述。"
     },
     {
-      "id": "equip-e9188fff82",
-      "names": {
-        "zh_cn": "天地乖离开辟之星",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度30%。每1点“星”使装备者获得1%伤害增幅；吉尔伽美什穿戴时为2%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "圣杯",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "伤害减免、伤害增幅、前台强度、幸运一击伤害、幸运一击率、速度增幅均为99%。"
     },
     {
-      "id": "equip-2ef1011365",
-      "names": {
-        "zh_cn": "宝石剑泽尔里奇",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度30%。装备者每穿戴1个星徽/钻石装备，使小队获得20%前后台强度；远坂凛穿戴时为30%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "天地乖离开辟之星",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度30%。每1点“星”使装备者获得1%伤害增幅；吉尔伽美什穿戴时为2%。"
     },
     {
-      "id": "equip-5224dd6e85",
-      "names": {
-        "zh_cn": "干将莫邪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅20%。战斗开始时为所有角色投影1件随机进阶装备；Archer穿戴时从角色推荐列表选取。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "宝石剑泽尔里奇",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度30%。装备者每穿戴1个星徽/钻石装备，使小队获得20%前后台强度；远坂凛穿戴时为30%。"
     },
     {
-      "id": "equip-a0173b1bf9",
-      "names": {
-        "zh_cn": "极•天地乖离开辟之星",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度60%。每1点“星”获得2%伤害增幅；吉尔伽美什为4%；获得时获得200星计数。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "干将莫邪",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "伤害增幅20%。战斗开始时为所有角色投影1件随机进阶装备；Archer穿戴时从角色推荐列表选取。"
     },
     {
-      "id": "equip-471040c7dd",
-      "names": {
-        "zh_cn": "极•宝石剑泽尔里奇",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度60%。每个星徽/钻石使小队获得40%前后台强度；远坂凛为60%；获得时获得财富宝钻。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•天地乖离开辟之星",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度60%。每1点“星”获得2%伤害增幅；吉尔伽美什为4%；获得时获得200星计数。"
     },
     {
-      "id": "equip-7552b268a2",
-      "names": {
-        "zh_cn": "极•干将莫邪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅40%。为所有角色投影随机进阶装备，70%概率为特权装备；Archer穿戴时从推荐列表选取。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•宝石剑泽尔里奇",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度60%。每个星徽/钻石使小队获得40%前后台强度；远坂凛为60%；获得时获得财富宝钻。"
     },
     {
-      "id": "equip-b1eaee5abb",
-      "names": {
-        "zh_cn": "极•阿瓦隆",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度60%。获得60%终结技伤害，回合开始恢复20%能量，生命最多降至1；Saber穿戴时增益翻倍；获得时小队生命+50。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•干将莫邪",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "伤害增幅40%。为所有角色投影随机进阶装备，70%概率为特权装备；Archer穿戴时从推荐列表选取。"
     },
     {
-      "id": "equip-c43ddc24de",
-      "names": {
-        "zh_cn": "穿刺死棘之枪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "幸运一击率20%。召唤速度400的长枪，行动时对当前生命最高敌人造成小队总幸运一击率×2000%的基础物理伤害。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "极•阿瓦隆",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度60%。获得60%终结技伤害，回合开始恢复20%能量，生命最多降至1；Saber穿戴时增益翻倍；获得时小队生命+50。"
     },
     {
-      "id": "equip-a5f55beddd",
-      "names": {
-        "zh_cn": "罪孽王冠",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均提高30%；战败时扣除双倍小队生命值。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "穿刺死棘之枪",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "幸运一击率20%。召唤速度400的长枪，行动时对当前生命最高敌人造成小队总幸运一击率×2000%的基础物理伤害。"
     },
     {
-      "id": "equip-33e520d8b5",
-      "names": {
-        "zh_cn": "诅咒•圣杯",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "多项属性均为99%；页面描述为诅咒版本。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "罪孽王冠",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均提高30%；战败时扣除双倍小队生命值。"
     },
     {
-      "id": "equip-96c31974d6",
-      "names": {
-        "zh_cn": "诅咒•天地乖离开辟之星",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "基础效果同天地乖离开辟之星；进入战斗前穿戴者星级临时降为1星。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "诅咒•圣杯",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "多项属性均为99%；页面描述为诅咒版本。"
     },
     {
-      "id": "equip-7f53c456b7",
-      "names": {
-        "zh_cn": "诅咒•宝石剑泽尔里奇",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "基础效果同宝石剑泽尔里奇；团队规模减少1，无论是否穿戴。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "诅咒•天地乖离开辟之星",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "基础效果同天地乖离开辟之星；进入战斗前穿戴者星级临时降为1星。"
     },
     {
-      "id": "equip-718d03e9da",
-      "names": {
-        "zh_cn": "诅咒•干将莫邪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "基础效果同干将莫邪；进入战斗前随机将3件装备临时变为简易装备。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "诅咒•宝石剑泽尔里奇",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "基础效果同宝石剑泽尔里奇；团队规模减少1，无论是否穿戴。"
     },
     {
-      "id": "equip-a3a345a934",
-      "names": {
-        "zh_cn": "诅咒•阿瓦隆",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度30%，终结技伤害30%，回合恢复10%能量，生命最多降至1；Saber数值更高；战斗结算时小队生命-6。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "诅咒•干将莫邪",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "基础效果同干将莫邪；进入战斗前随机将3件装备临时变为简易装备。"
     },
     {
-      "id": "equip-24eebed4cc",
-      "names": {
-        "zh_cn": "财富",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前台强度10%，后台强度10%；进入新节点时提供4金币。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "诅咒•阿瓦隆",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度30%，终结技伤害30%，回合恢复10%能量，生命最多降至1；Saber数值更高；战斗结算时小队生命-6。"
     },
     {
-      "id": "equip-fc68b9ff95",
-      "names": {
-        "zh_cn": "阿瓦隆",
-        "en": null,
-        "aliases": []
-      },
-      "category": "fate_relic",
-      "base_stats": [],
-      "effect": {
-        "current_text": "前/后台强度30%，终结技伤害30%，回合开始恢复10%能量，生命最多降至1；Saber穿戴时伤害60%、恢复12%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "财富",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前台强度10%，后台强度10%；进入新节点时提供4金币。"
     },
     {
-      "id": "equip-93058b7bfe",
-      "names": {
-        "zh_cn": "冶金炉",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到一件装备上使用，使其变为同类型的随机装备；拖动到一个角色上使用，取下所有装备并使其变为同类型的随机装备；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "阿瓦隆",
+      "type": "命运遗物",
+      "stats": {},
+      "effect": "前/后台强度30%，终结技伤害30%，回合开始恢复10%能量，生命最多降至1；Saber穿戴时伤害60%、恢复12%。"
     },
     {
-      "id": "equip-6291cfd39c",
-      "names": {
-        "zh_cn": "员工投影仪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到3费及以下角色上使用，在备战席创造该角色的1星复制；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "冶金炉",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到一件装备上使用，使其变为同类型的随机装备；拖动到一个角色上使用，取下所有装备并使其变为同类型的随机装备；使用后消失。"
     },
     {
-      "id": "equip-030d52dc05",
-      "names": {
-        "zh_cn": "垃圾袋",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均为3%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "员工投影仪",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到3费及以下角色上使用，在备战席创造该角色的1星复制；使用后消失。"
     },
     {
-      "id": "equip-85a2cda700",
-      "names": {
-        "zh_cn": "好运令牌",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到角色上使用，从该角色四件推荐进阶装备中选择一件获得；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "垃圾袋",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均为3%。"
     },
     {
-      "id": "equip-ef98060c91",
-      "names": {
-        "zh_cn": "完美投影仪",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到任意角色上使用，在备战席创造该角色的1星复制；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "好运令牌",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到角色上使用，从该角色四件推荐进阶装备中选择一件获得；使用后消失。"
     },
     {
-      "id": "equip-be01b82864",
-      "names": {
-        "zh_cn": "拆装扳手",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到角色上使用，取下该角色穿戴的所有装备；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "完美投影仪",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到任意角色上使用，在备战席创造该角色的1星复制；使用后消失。"
     },
     {
-      "id": "equip-423f580410",
-      "names": {
-        "zh_cn": "星徽秘典",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": null,
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_source_lists_entity_but_effect_unavailable",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "拆装扳手",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到角色上使用，取下该角色穿戴的所有装备；使用后消失。"
     },
     {
-      "id": "equip-f09dd6ebf9",
-      "names": {
-        "zh_cn": "特权武装箱",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "开启后从四件特权装备中选择一件获得；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "星徽秘典",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": null
     },
     {
-      "id": "equip-0925c9c72e",
-      "names": {
-        "zh_cn": "特权赋予卡",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到一件进阶装备上使用，使其变为对应的特权装备；或拖动到角色上，从其已穿戴的进阶装备中选择一件变为特权装备；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "特权武装箱",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "开启后从四件特权装备中选择一件获得；使用后消失。"
     },
     {
-      "id": "equip-46be4be993",
-      "names": {
-        "zh_cn": "简易武装箱",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "开启后从四件简易装备中选择一件获得；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "特权赋予卡",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到一件进阶装备上使用，使其变为对应的特权装备；或拖动到角色上，从其已穿戴的进阶装备中选择一件变为特权装备；使用后消失。"
     },
     {
-      "id": "equip-0204e9815b",
-      "names": {
-        "zh_cn": "精密拆装扳手",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "拖动到角色上使用，取下该角色穿戴的所有装备，可无限次使用；拥有后再次获得拆装扳手时，改为获得1金币。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "简易武装箱",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "开启后从四件简易装备中选择一件获得；使用后消失。"
     },
     {
-      "id": "equip-ce35bd60c0",
-      "names": {
-        "zh_cn": "进阶武装箱",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "开启后从四件进阶装备中选择一件获得；使用后消失。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "精密拆装扳手",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "拖动到角色上使用，取下该角色穿戴的所有装备，可无限次使用；拥有后再次获得拆装扳手时，改为获得1金币。"
     },
     {
-      "id": "equip-1f9d3efadb",
-      "names": {
-        "zh_cn": "金垃圾袋",
-        "en": null,
-        "aliases": []
-      },
-      "category": "special_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均为30%。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "进阶武装箱",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "开启后从四件进阶装备中选择一件获得；使用后消失。"
     },
     {
-      "id": "equip-f73ca3147e",
-      "names": {
-        "zh_cn": "财富（狸财经理教材）",
-        "en": null,
-        "aliases": []
-      },
-      "category": "other_item",
-      "base_stats": [],
-      "effect": {
-        "current_text": "狸财经理教你理财，好好学好好看。",
-        "last_known_text": null,
-        "last_known_version": null,
-        "status": "current_community_source_collected",
-        "parse_status": "unparsed",
-        "mechanics": []
-      },
-      "equip_rules": {
-        "allowed_field_modes": [],
-        "exclusive": false,
-        "max_copies_per_character": null
-      },
-      "recommendations": {
-        "character_ids": [],
-        "role_tags": [],
-        "evidence_level": "none"
-      },
-      "tags": []
+      "name": "金垃圾袋",
+      "type": "特殊道具",
+      "stats": {},
+      "effect": "伤害增幅、前/后台强度、幸运一击伤害、幸运一击率、速度增幅均为30%。"
+    },
+    {
+      "name": "财富（狸财经理教材）",
+      "type": "其他道具",
+      "stats": {},
+      "effect": "狸财经理教你理财，好好学好好看。"
     }
   ]
 }

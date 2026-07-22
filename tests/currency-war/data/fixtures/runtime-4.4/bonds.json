@@ -1,10 +1,5 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "bonds",
-  "game_version_target": "4.4",
-  "records": [{
-    "id": "bond-example",
-    "names": { "zh_cn": "Example Bond" },
-    "member_ids": ["char-example"]
-  }]
+  "version": "4.4",
+  "source": { "name": "test", "url": "https://example.test", "updated_at": "2026-07-21" },
+  "bonds": [{ "name": "测试羁绊", "category": "阵营", "members": ["测试角色"], "effects": {} }]
 }

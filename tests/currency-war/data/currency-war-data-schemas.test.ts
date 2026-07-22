@@ -1,56 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { parseCurrencyWarRuntimeFile } from "../../../src/main/currency-war/data/currency-war-data-schemas.js";
+import { parseCurrencyWarSimpleFile } from "../../../src/main/currency-war/data/currency-war-data-schemas.js";
 
+const source = { name: "test", url: "https://example.test", updated_at: "2026-07-21" };
 const validCharacters = {
-  schema_version: "3.0.0",
-  dataset: "characters",
-  game_version_target: "4.4",
-  generated_from: "canonical/v3",
-  records: [{
-    id: "char-example",
-    names: { zh_cn: "Example Character", aliases: ["Example"] },
-    bond_ids: ["bond-example"],
+  version: "4.4",
+  source,
+  characters: [{
+    name: "测试角色",
+    aliases: ["小测"],
+    cost: 3,
+    field: "前台",
+    roles: ["输出"],
+    bonds: ["测试羁绊"],
+    empowerment: { front: null, back: null, stars: {} },
+    advisor: false,
   }],
 };
 
-describe("parseCurrencyWarRuntimeFile", () => {
-  it("accepts a 4.4 character dataset with a stable entity id", () => {
-    expect(parseCurrencyWarRuntimeFile(validCharacters, "characters", "4.4")).toMatchObject({
-      schemaVersion: "3.0.0",
-      dataset: "characters",
-      gameVersion: "4.4",
-      records: [{ id: "char-example", names: { zh_cn: "Example Character" } }],
+describe("parseCurrencyWarSimpleFile", () => {
+  it("accepts a compact 4.4 character document keyed by names", () => {
+    expect(parseCurrencyWarSimpleFile(validCharacters, "characters", "4.4")).toMatchObject({
+      version: "4.4",
+      characters: [{ name: "测试角色", bonds: ["测试羁绊"] }],
     });
   });
 
-  it("rejects a runtime file from another game version", () => {
-    expect(() => parseCurrencyWarRuntimeFile(
-      { ...validCharacters, game_version_target: "4.2" },
+  it("rejects a document from another game version", () => {
+    expect(() => parseCurrencyWarSimpleFile(
+      { ...validCharacters, version: "4.2" },
       "characters",
       "4.4",
-    )).toThrow("CURRENCY_WAR_RUNTIME_VERSION_MISMATCH");
+    )).toThrow("CURRENCY_WAR_SIMPLE_VERSION_MISMATCH");
   });
 
-  it("rejects duplicate entity ids", () => {
-    expect(() => parseCurrencyWarRuntimeFile({
+  it("rejects duplicate names instead of relying on opaque IDs", () => {
+    expect(() => parseCurrencyWarSimpleFile({
       ...validCharacters,
-      records: [validCharacters.records[0], validCharacters.records[0]],
-    }, "characters", "4.4")).toThrow("CURRENCY_WAR_RUNTIME_DUPLICATE_ID");
+      characters: [validCharacters.characters[0], validCharacters.characters[0]],
+    }, "characters", "4.4")).toThrow("CURRENCY_WAR_SIMPLE_DUPLICATE_NAME");
   });
 
-  it("rejects a dataset with a non-array records field", () => {
-    expect(() => parseCurrencyWarRuntimeFile(
-      { ...validCharacters, records: {} },
-      "characters",
-      "4.4",
-    )).toThrow("CURRENCY_WAR_RUNTIME_SCHEMA_INVALID");
+  it("rejects a record that retains a forbidden opaque id", () => {
+    expect(() => parseCurrencyWarSimpleFile({
+      ...validCharacters,
+      characters: [{ ...validCharacters.characters[0], id: "char-a3ee58e525" }],
+    }, "characters", "4.4")).toThrow("CURRENCY_WAR_SIMPLE_FORBIDDEN_FIELD");
   });
 
-  it("rejects a file whose dataset does not match its expected filename", () => {
-    expect(() => parseCurrencyWarRuntimeFile(
-      { ...validCharacters, dataset: "equipment" },
+  it("rejects a document whose expected collection is missing", () => {
+    expect(() => parseCurrencyWarSimpleFile(
+      { version: "4.4", source, records: [] },
       "characters",
       "4.4",
-    )).toThrow("CURRENCY_WAR_RUNTIME_DATASET_MISMATCH");
+    )).toThrow("CURRENCY_WAR_SIMPLE_SCHEMA_INVALID");
   });
 });

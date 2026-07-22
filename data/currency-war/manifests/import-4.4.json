@@ -1,7 +1,7 @@
 {
   "sourcePackageVersion": "cw-4.4-2026-07-21",
   "gameVersion": "4.4",
-  "importedAt": "2026-07-22T12:13:37.092Z",
+  "importedAt": "2026-07-22T12:43:42.804Z",
   "importedFiles": [
     "canonical/v3/dataset_manifest.json",
     "canonical/v3/sources.json",
@@ -13,13 +13,11 @@
     "canonical/v3/game_rules.json",
     "canonical/v3/version_events.json",
     "canonical/v3/unresolved_questions.json",
-    "runtime/4.4/entity_index.json",
     "runtime/4.4/characters.json",
     "runtime/4.4/bonds.json",
     "runtime/4.4/equipment.json",
     "runtime/4.4/investment_environments.json",
-    "runtime/4.4/investment_strategies.json",
-    "runtime/4.4/game_rules.json"
+    "runtime/4.4/investment_strategies.json"
   ],
   "importedFileHashes": {
     "canonical/v3/dataset_manifest.json": "0b4bd86ffdfb7fe7f6e2a3ec4e2dcd71c58708bebec65d88b40524671e2c86a1",
@@ -32,12 +30,10 @@
     "canonical/v3/game_rules.json": "70b0c78f9cfb55f9248496018691a19d022f4ce365abff2e840311f03b5d71d6",
     "canonical/v3/version_events.json": "2bd2805029561bc7052821081c561bbaac2d9a6cdf3b976d95bef455c4807885",
     "canonical/v3/unresolved_questions.json": "8ae54a7845104ad0127b5a8803c35e3e32e08e56703c5efb9b8cd9d6201fdfb5",
-    "runtime/4.4/entity_index.json": "0c44752c0c555e8aafaaaa5de879479374eeccdcc01c13a3c98d079a3b0dc1d5",
-    "runtime/4.4/characters.json": "49bc5f7fe3b3d4835c606b3cc3d5b42a7c75c9d1ec7430c8a5510a9329694228",
-    "runtime/4.4/bonds.json": "8c98c6edb4cc455a9b9d2d75a75565530a12a84b1c8def19e85c51b2cea0bc24",
-    "runtime/4.4/equipment.json": "110ede956bbcb3017deff3a7b40c1c7333da8e15ceef559828b371bf90fe72e2",
-    "runtime/4.4/investment_environments.json": "167deacd3b6e380300ad75aa3310583e7582d68bbba44027cd1a10cb278e8984",
-    "runtime/4.4/investment_strategies.json": "e87eccb04e2bebcf25d792acdb09182604966e10fba1cd551bb61dafedf2bac8",
-    "runtime/4.4/game_rules.json": "70b0c78f9cfb55f9248496018691a19d022f4ce365abff2e840311f03b5d71d6"
+    "runtime/4.4/characters.json": "9044f452fdc09c91e8efd4fc04bd7c833f3f3bac1111a95b4510d960a83581f8",
+    "runtime/4.4/bonds.json": "d6437a14a0387f357864eb38c606124241d850e3bd4d2a1c817a592297d67782",
+    "runtime/4.4/equipment.json": "971268084337c06178830d433bf8af49fa287cdf668bc68d97b4ecb4800e38bf",
+    "runtime/4.4/investment_environments.json": "130e2e9d96f2daa670c46d143409c75513309ea068a126dd24e1d98d788dded2",
+    "runtime/4.4/investment_strategies.json": "26e91f829ea8c1a71df14355cb0bc50c05d61ed21f7e808fc30b7cc9b007b580"
   }
 }

@@ -1,6 +1,5 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "equipment",
-  "game_version_target": "4.4",
-  "records": []
+  "version": "4.4",
+  "source": { "name": "test", "url": "https://example.test", "updated_at": "2026-07-21" },
+  "equipment": [{ "name": "测试装备", "type": "简易装备", "stats": {}, "effect": null }]
 }

@@ -1,10 +1,14 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "characters",
-  "game_version_target": "4.4",
-  "records": [{
-    "id": "char-example",
-    "names": { "zh_cn": "测试角色", "aliases": ["小测"] },
-    "bond_ids": ["bond-example"]
+  "version": "4.4",
+  "source": { "name": "test", "url": "https://example.test", "updated_at": "2026-07-21" },
+  "characters": [{
+    "name": "测试角色",
+    "aliases": ["小测"],
+    "cost": 3,
+    "field": "前台",
+    "roles": ["输出"],
+    "bonds": ["测试羁绊"],
+    "empowerment": { "front": null, "back": null, "stars": {} },
+    "advisor": false
   }]
 }

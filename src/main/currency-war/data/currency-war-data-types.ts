@@ -8,55 +8,52 @@ export const CURRENCY_WAR_ENTITY_TYPES = [
 
 export type CurrencyWarEntityType = (typeof CURRENCY_WAR_ENTITY_TYPES)[number];
 
-export interface CurrencyWarEntityNames {
-  zh_cn: string;
+export interface CurrencyWarSource {
+  name: string;
+  url: string;
+  updated_at: string;
+}
+
+export interface CurrencyWarNamedEntity {
+  name: string;
   aliases?: string[];
   [key: string]: unknown;
 }
 
-export interface CurrencyWarEntity {
-  id: string;
-  names: CurrencyWarEntityNames;
-  bond_ids?: string[];
-  member_ids?: string[];
-  related_character_ids?: string[];
-  related_bond_ids?: string[];
-  effect?: {
-    current_text?: string | null;
-    status?: string;
-    parse_status?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
+export interface CurrencyWarCharacter extends CurrencyWarNamedEntity {
+  cost: number | number[];
+  field: string;
+  roles: string[];
+  bonds: string[];
+  empowerment: { front: unknown; back: unknown; stars: Record<string, unknown> };
+  advisor: boolean | Record<string, unknown> | null;
 }
 
-export interface CurrencyWarRuntimeDataset {
-  schemaVersion: "3.0.0";
-  dataset: CurrencyWarEntityType;
-  gameVersion: string;
-  generatedFrom?: string;
-  records: CurrencyWarEntity[];
+export interface CurrencyWarBond extends CurrencyWarNamedEntity {
+  category: string;
+  members: string[];
+  effects: Record<string, unknown>;
 }
 
-export interface CurrencyWarEntityIndexEntry {
-  type: CurrencyWarEntityType;
-  nameZh: string;
-  cost?: number;
-  bonds?: string[];
+export interface CurrencyWarEquipment extends CurrencyWarNamedEntity {
+  type: string;
+  stats: Record<string, unknown>;
+  effect: string | null;
+  recipe?: string[];
 }
 
-export interface CurrencyWarEntityIndex {
-  schemaVersion: "3.0.0";
-  gameVersion: string;
-  entities: Record<string, CurrencyWarEntityIndexEntry>;
+export interface CurrencyWarInvestmentStrategy extends CurrencyWarNamedEntity {
+  rarity: string;
+  effect: string;
+  planes: number[];
 }
 
-export interface CurrencyWarGameRules {
-  schemaVersion: "3.0.0";
-  gameVersion: string;
-  economy: Record<string, unknown>;
-  population: Record<string, unknown>;
-  shop: Record<string, unknown>;
-  board: Record<string, unknown>;
-  nodes: Record<string, unknown>;
+export interface CurrencyWarInvestmentEnvironment extends CurrencyWarNamedEntity {
+  effect: string | null;
 }
+
+export type CurrencyWarCatalogEntity = CurrencyWarCharacter
+  | CurrencyWarBond
+  | CurrencyWarEquipment
+  | CurrencyWarInvestmentStrategy
+  | CurrencyWarInvestmentEnvironment;

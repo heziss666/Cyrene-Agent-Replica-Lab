@@ -1,6 +1,5 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "investment_environments",
-  "game_version_target": "4.4",
-  "records": []
+  "version": "4.4",
+  "source": { "name": "test", "url": "https://example.test", "updated_at": "2026-07-21" },
+  "environments": [{ "name": "测试环境", "effect": null }]
 }

@@ -1,6 +1,5 @@
 {
-  "schema_version": "3.0.0",
-  "dataset": "investment_strategies",
-  "game_version_target": "4.4",
-  "records": []
+  "version": "4.4",
+  "source": { "name": "test", "url": "https://example.test", "updated_at": "2026-07-21" },
+  "strategies": [{ "name": "测试策略", "rarity": "银色", "effect": "获得金币", "planes": [1] }]
 }
