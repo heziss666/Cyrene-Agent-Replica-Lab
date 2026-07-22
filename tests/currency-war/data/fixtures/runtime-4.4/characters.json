@@ -4,7 +4,7 @@
   "game_version_target": "4.4",
   "records": [{
     "id": "char-example",
-    "names": { "zh_cn": "Example Character", "aliases": ["Example"] },
+    "names": { "zh_cn": "测试角色", "aliases": ["小测"] },
     "bond_ids": ["bond-example"]
   }]
 }
