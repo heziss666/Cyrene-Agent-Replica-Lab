@@ -76,7 +76,7 @@ docs/currency-war/
 
 - [ ] **Step 1: Write the failing importer integration test**
 
-Create `tests/scripts/import-currency-war-baseline.test.ts`. Use `mkdtemp` to make a source fixture and a target fixture. Seed the source with a minimal `canonical/v3/dataset_manifest.json` and `runtime/4.4/characters.json`, then execute the script through `node`.
+Create `tests/scripts/import-currency-war-baseline.test.ts`. Use `mkdtemp` to make a source fixture and a target fixture. Seed every file named in `REQUIRED_CANONICAL_FILES` with a minimal valid JSON object, and every file named in `REQUIRED_RUNTIME_FILES` with a minimal valid 4.4 JSON document, then execute the script through `node`.
 
 ```ts
 it("copies only the canonical and requested runtime snapshot and writes a manifest", () => {
@@ -187,7 +187,7 @@ git commit -m "feat: import currency war 4.4 data snapshot"
 
 - [ ] **Step 1: Write failing schema tests for accepted and rejected Runtime JSON**
 
-Create a valid character Runtime fixture and assert parsing. Add invalid cases for wrong game version, duplicate entity IDs, malformed entity index references, and a non-array `records` field.
+Create a valid character Runtime fixture and assert parsing. Add invalid cases for wrong game version, duplicate entity IDs, and a non-array `records` field. Cross-file entity-index reference validation belongs to Task 3.
 
 ```ts
 it("accepts a 4.4 character dataset with a stable entity id", () => {
@@ -458,6 +458,8 @@ git commit -m "feat: add currency war entity catalog"
 
 ```ts
 it("prints the runtime version, entity counts, environment availability, and game-rule health", () => {
+  const tsxCliPath = fileURLToPath(new URL("../../../node_modules/tsx/dist/cli.mjs", import.meta.url));
+  const cliPath = fileURLToPath(new URL("../../../src/cli/currency-war-data-check.ts", import.meta.url));
   const result = spawnSync(process.execPath, [tsxCliPath, cliPath, "--runtime-dir", fixtureRuntimeDir], { encoding: "utf8" });
 
   expect(result.status).toBe(0);
@@ -467,6 +469,8 @@ it("prints the runtime version, entity counts, environment availability, and gam
 });
 
 it("exits non-zero and names the validation code for an invalid runtime directory", () => {
+  const tsxCliPath = fileURLToPath(new URL("../../../node_modules/tsx/dist/cli.mjs", import.meta.url));
+  const cliPath = fileURLToPath(new URL("../../../src/cli/currency-war-data-check.ts", import.meta.url));
   const result = spawnSync(process.execPath, [tsxCliPath, cliPath, "--runtime-dir", invalidRuntimeDir], { encoding: "utf8" });
 
   expect(result.status).toBe(1);
