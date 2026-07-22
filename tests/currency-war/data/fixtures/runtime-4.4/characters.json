@@ -1,0 +1,10 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "characters",
+  "game_version_target": "4.4",
+  "records": [{
+    "id": "char-example",
+    "names": { "zh_cn": "Example Character", "aliases": ["Example"] },
+    "bond_ids": ["bond-example"]
+  }]
+}

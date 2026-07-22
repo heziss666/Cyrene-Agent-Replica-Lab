@@ -1,0 +1,8 @@
+{
+  "schema_version": "3.0.0",
+  "game_version_target": "4.4",
+  "entities": {
+    "char-example": { "type": "characters", "name_zh": "Example Character", "cost": 2, "bonds": ["bond-example"] },
+    "bond-example": { "type": "bonds", "name_zh": "Example Bond" }
+  }
+}

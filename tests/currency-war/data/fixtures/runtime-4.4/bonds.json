@@ -1,0 +1,10 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "bonds",
+  "game_version_target": "4.4",
+  "records": [{
+    "id": "bond-example",
+    "names": { "zh_cn": "Example Bond" },
+    "member_ids": ["char-example"]
+  }]
+}
