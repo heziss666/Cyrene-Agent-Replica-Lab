@@ -19,6 +19,7 @@
     "test:embedding": "tsx src/cli/test-embedding.ts",
     "rag:benchmark": "tsx src/cli/rag-benchmark.ts",
     "currency-war:import": "node scripts/import-currency-war-baseline.mjs",
+    "currency-war:data-check": "tsx src/cli/currency-war-data-check.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
