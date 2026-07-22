@@ -1,0 +1,6182 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "investment_environments",
+  "dataset_version": "cw-4.4-2026-07-21",
+  "game_version_target": "4.4",
+  "generated_at": "2026-07-21T18:00:00+08:00",
+  "generator": {
+    "name": "currency-war-data-builder",
+    "version": "1.0.0",
+    "input_baseline": "v2.1"
+  },
+  "records": [
+    {
+      "id": "env-50761fee79",
+      "names": {
+        "zh_cn": "三星佩佩",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个穿戴三个随机星徽的佩佩。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：三星佩佩",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-045e071b5f",
+      "names": {
+        "zh_cn": "专家研讨会",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "expert_advisor"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得1个专家邀请函和1个简易武装箱。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：专家研讨会",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2870734ec6",
+      "names": {
+        "zh_cn": "二手市场",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "商店累计刷新20次后，获得30金币和员工投影仪。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：二手市场",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2dfcb62e77",
+      "names": {
+        "zh_cn": "人才下沉",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "商店中有概率出现2星角色。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：人才下沉",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-20fb1d80ec",
+      "names": {
+        "zh_cn": "人才储备",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局补给替换为3个随机3费角色；3费角色升至2/3星时获得速度与伤害增幅。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：人才储备",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-aad0be0b66",
+      "names": {
+        "zh_cn": "人才引进",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局拥有1个随机4费角色。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：人才引进",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8ed5c2865b",
+      "names": {
+        "zh_cn": "人身意外险",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "所有首领节点前额外获得一个补给阶段。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：人身意外险",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-61034c5c71",
+      "names": {
+        "zh_cn": "仙舟概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得仙舟角色和初始简易装备；仙舟角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：仙舟概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2f92136620",
+      "names": {
+        "zh_cn": "仙舟邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个仙舟星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：仙舟邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-a88c689227",
+      "names": {
+        "zh_cn": "公司契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：公司契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-3ca018a962",
+      "names": {
+        "zh_cn": "减益概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得减益角色和初始简易装备；减益角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：减益概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-3fee0d580a",
+      "names": {
+        "zh_cn": "减益邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个减益星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：减益邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-314bd97c49",
+      "names": {
+        "zh_cn": "击破概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得击破角色和初始简易装备；击破角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：击破概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-4c36708cc0",
+      "names": {
+        "zh_cn": "击破邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个击破星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：击破邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8fa9b3caf3",
+      "names": {
+        "zh_cn": "列车同行概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得列车同行角色和初始简易装备；列车同行角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：列车同行概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-81d1e3f59d",
+      "names": {
+        "zh_cn": "列车同行邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个列车同行星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：列车同行邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-b0273e715c",
+      "names": {
+        "zh_cn": "劳务派遣合同",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得随机星徽；每次进入首领节点时，获得对应羁绊的随机角色。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：劳务派遣合同",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-83b3acb3c7",
+      "names": {
+        "zh_cn": "命运圣杯契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得远坂凛、吉尔伽美什；完成两次圣杯试炼后获得Archer。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：命运圣杯契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-6c7e682d35",
+      "names": {
+        "zh_cn": "命运圣杯邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个命运圣杯星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：命运圣杯邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-0dbf257741",
+      "names": {
+        "zh_cn": "命运礼物",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：命运礼物",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-97103cbd80",
+      "names": {
+        "zh_cn": "增发货币",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：增发货币",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-ad64c22946",
+      "names": {
+        "zh_cn": "夜之半神概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得夜之半神角色和初始简易装备；夜之半神角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：夜之半神概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-b44f4cc73a",
+      "names": {
+        "zh_cn": "夜之半神邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个夜之半神星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：夜之半神邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8187c99b6a",
+      "names": {
+        "zh_cn": "头彩",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：头彩",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2c2c8f9cef",
+      "names": {
+        "zh_cn": "尾彩",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：尾彩",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-49b61938fe",
+      "names": {
+        "zh_cn": "彩虹时代",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：彩虹时代",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-53aa85a220",
+      "names": {
+        "zh_cn": "成功经验",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：成功经验",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-b150575f88",
+      "names": {
+        "zh_cn": "战争边疆",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战争边疆",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-7ec4f39c13",
+      "names": {
+        "zh_cn": "战力提升",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战力提升",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-ae6cee8c30",
+      "names": {
+        "zh_cn": "战力飙升",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战力飙升",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-e15e0370d5",
+      "names": {
+        "zh_cn": "战技点契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战技点契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-78e6e87f82",
+      "names": {
+        "zh_cn": "战技点概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得战技点角色和初始简易装备；战技点角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战技点概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-7acf6ee6d7",
+      "names": {
+        "zh_cn": "战技点邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个战技点星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：战技点邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9e6f441609",
+      "names": {
+        "zh_cn": "持续伤害契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：持续伤害契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8e47dec657",
+      "names": {
+        "zh_cn": "持续伤害邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个持续伤害星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：持续伤害邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9678eae4ed",
+      "names": {
+        "zh_cn": "敌后破坏",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局时使一个已生成的敌人词缀失效。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：敌后破坏",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8e851ff80b",
+      "names": {
+        "zh_cn": "星核猎手契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得卡芙卡；满足指定星核猎手共同参战条件后获得流萤，并在2个节点后可上场。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：星核猎手契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-92600b36b9",
+      "names": {
+        "zh_cn": "星间旅人概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得星间旅人角色和初始简易装备；星间旅人角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：星间旅人概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9f0b1d5f4f",
+      "names": {
+        "zh_cn": "星间旅人邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个星间旅人星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：星间旅人邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-d09e602961",
+      "names": {
+        "zh_cn": "昼之半神概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得昼之半神角色和初始简易装备；昼之半神角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：昼之半神概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9bf73b740f",
+      "names": {
+        "zh_cn": "昼之半神邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个昼之半神星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：昼之半神邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-0bfaa562fa",
+      "names": {
+        "zh_cn": "欢愉契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：欢愉契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-1687751ecd",
+      "names": {
+        "zh_cn": "欢愉邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个欢愉星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：欢愉邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-bba5c0acd8",
+      "names": {
+        "zh_cn": "深井角斗场",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：深井角斗场",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-85ee27cef1",
+      "names": {
+        "zh_cn": "火药味",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：火药味",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-1e3e65b732",
+      "names": {
+        "zh_cn": "燃血概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得燃血角色和初始简易装备；燃血角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：燃血概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9d59840e68",
+      "names": {
+        "zh_cn": "燃血邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个燃血星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：燃血邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2cebbd89cb",
+      "names": {
+        "zh_cn": "特权阶级",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：特权阶级",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-f311dc3913",
+      "names": {
+        "zh_cn": "特邀专家：停云",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "expert_advisor"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：特邀专家：停云",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-4720be0e37",
+      "names": {
+        "zh_cn": "特邀专家：加拉赫",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "expert_advisor"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：特邀专家：加拉赫",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-cc3f2bff7f",
+      "names": {
+        "zh_cn": "特邀专家：桑博",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "expert_advisor"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：特邀专家：桑博",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-a212f3f58e",
+      "names": {
+        "zh_cn": "特邀专家：银狼",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "expert_advisor"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：特邀专家：银狼",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-e90ed04ca8",
+      "names": {
+        "zh_cn": "狼狩概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得狼狩角色和初始简易装备；狼狩角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：狼狩概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-6427ec74ba",
+      "names": {
+        "zh_cn": "狼狩邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个狼狩星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：狼狩邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-8c7a316401",
+      "names": {
+        "zh_cn": "白银时代",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：白银时代",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-443bec36d8",
+      "names": {
+        "zh_cn": "盛会之星邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个盛会之星星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：盛会之星邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-bcfbc43ba1",
+      "names": {
+        "zh_cn": "策略大师",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获取投资策略时，获得“2×已拥有投资策略数”的金币；在3-5节点额外获得一个投资策略。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：策略大师",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-e958520eef",
+      "names": {
+        "zh_cn": "粗星佩佩",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个穿戴三个随机星徽的佩佩；其可能把星徽落在物品栏。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：粗星佩佩",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-38be66fcb2",
+      "names": {
+        "zh_cn": "红钻贵族",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局时拥有红钻和一个简易武装箱。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：红钻贵族",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-b8ddd04690",
+      "names": {
+        "zh_cn": "经济严重过热",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "本局全部奖励节点替换为超级次元扑满主题；掉落更多但目标逃跑速度快。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：经济严重过热",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-f26bd58b1e",
+      "names": {
+        "zh_cn": "经济过热",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：经济过热",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-f0dc337c76",
+      "names": {
+        "zh_cn": "群攻概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得群攻角色和初始简易装备；群攻角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：群攻概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-5a50abf30f",
+      "names": {
+        "zh_cn": "群攻邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个群攻星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：群攻邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-e4dd67b341",
+      "names": {
+        "zh_cn": "联席决策",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：联席决策",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-d21387cb51",
+      "names": {
+        "zh_cn": "能量概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得能量角色和初始简易装备；能量角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：能量概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-123a5b258c",
+      "names": {
+        "zh_cn": "能量邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个能量星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：能量邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-e25634414b",
+      "names": {
+        "zh_cn": "英雄登场",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：英雄登场",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9a5985a1b9",
+      "names": {
+        "zh_cn": "蓝海",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：蓝海",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-578d7b5bec",
+      "names": {
+        "zh_cn": "蓝钻贵族",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：蓝钻贵族",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-a48ba3c962",
+      "names": {
+        "zh_cn": "贝洛伯格概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得贝洛伯格角色和初始简易装备；贝洛伯格角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：贝洛伯格概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-9ad6bbc87e",
+      "names": {
+        "zh_cn": "贝洛伯格邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个贝洛伯格星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：贝洛伯格邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-4295586886",
+      "names": {
+        "zh_cn": "轮岗",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：轮岗",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-2d32a2d8d5",
+      "names": {
+        "zh_cn": "过剩经费",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：过剩经费",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-45cbaad6b9",
+      "names": {
+        "zh_cn": "进化算法",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：进化算法",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-bd257a6f9a",
+      "names": {
+        "zh_cn": "追击概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得追击角色和初始简易装备；追击角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：追击概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-6c27f13496",
+      "names": {
+        "zh_cn": "追击邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个追击星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：追击邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-6f4d2cf7e1",
+      "names": {
+        "zh_cn": "量子同频契约",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "special_contract"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：量子同频契约",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-47275601f7",
+      "names": {
+        "zh_cn": "量子同频邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个量子同频星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：量子同频邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-76fd89450c",
+      "names": {
+        "zh_cn": "银•金•彩",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：银•金•彩",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-0ece86b989",
+      "names": {
+        "zh_cn": "银河学者概念股",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_opening",
+        "shop_odds"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "开局获得银河学者角色和初始简易装备；银河学者角色刷新概率提高。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：银河学者概念股",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-ddf435690c",
+      "names": {
+        "zh_cn": "银河学者邀请",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [
+        "bond_badge"
+      ],
+      "effect": {
+        "current_text": null,
+        "last_known_text": "获得一个银河学者星徽。",
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：银河学者邀请",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-c2ef1c9589",
+      "names": {
+        "zh_cn": "长线利好",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：长线利好",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    },
+    {
+      "id": "env-45d0736beb",
+      "names": {
+        "zh_cn": "黄金时代",
+        "en": null,
+        "aliases": []
+      },
+      "tags": [],
+      "effect": {
+        "current_text": null,
+        "last_known_text": null,
+        "last_known_version": null,
+        "status": "latest_version_unconfirmed",
+        "parse_status": "unparsed",
+        "mechanics": []
+      },
+      "related_entity_ids": [],
+      "freshness": {
+        "status": "stale",
+        "target_version": "4.4",
+        "source_version": null,
+        "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。"
+      },
+      "version": {
+        "introduced": null,
+        "removed": null,
+        "last_verified": null,
+        "coverage_status": "stale"
+      },
+      "evidence": [
+        {
+          "source_id": "bwiki_environments",
+          "revision_id": null,
+          "captured_at": "2026-07-21T23:30:00-07:00",
+          "locator": {
+            "raw": "投资环境：黄金时代",
+            "evidence_type": "wiki_page"
+          },
+          "supports_fields": [
+            "names",
+            "effect"
+          ],
+          "confidence": 0.7
+        }
+      ],
+      "review": {
+        "status": "collected",
+        "reviewed_at": null,
+        "reviewer": null,
+        "needs_in_game_verification": true,
+        "notes": null
+      },
+      "missing_fields": [
+        {
+          "field": "effect_text",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'effect_text' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "valid_from",
+          "reason_code": "not_collected",
+          "reason": "V2.1 marked 'valid_from' as incomplete",
+          "required_action": "游戏内或官方来源核验"
+        },
+        {
+          "field": "effect.current_text",
+          "reason_code": "source_stale",
+          "reason": "投资环境页面更新时间早于4.4；按用户要求，未确认的最新版本效果留空。旧文本保存在 last_known_effect_text。",
+          "required_action": "游戏内投资环境图鉴核验"
+        }
+      ]
+    }
+  ]
+}

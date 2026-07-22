@@ -1,0 +1,46 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "game_rules",
+  "game_version_target": "4.4",
+  "economy": {
+    "shop_refresh_cost": null,
+    "interest_rules": [],
+    "sell_price_rules": [],
+    "free_refresh_rules": []
+  },
+  "population": {
+    "levels": [],
+    "upgrade_costs": []
+  },
+  "shop": {
+    "slots": null,
+    "odds_by_level": []
+  },
+  "board": {
+    "max_on_field": null,
+    "bench_capacity": null,
+    "equipment_slots_per_character": null
+  },
+  "nodes": {
+    "types": [],
+    "flow_rules": []
+  },
+  "review": {
+    "status": "incomplete",
+    "needs_in_game_verification": true
+  },
+  "missing_fields": [
+    {
+      "field": "economy.*",
+      "reason_code": "not_collected",
+      "reason": "经济数值需游戏内截图录入",
+      "required_action": "游戏内经济界面截图"
+    },
+    {
+      "field": "shop.odds_by_level",
+      "reason_code": "not_collected",
+      "reason": "商店概率表未公开",
+      "required_action": "游戏内商店概率界面截图"
+    }
+  ]
+}

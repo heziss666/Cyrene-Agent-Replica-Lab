@@ -1,0 +1,15 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "version_events",
+  "game_version_target": "4.4",
+  "events": [],
+  "note": "版本变更事件需从3.7/3.8/4.0/4.2/4.4官方公告逐条提取。当前为空模板。",
+  "missing_fields": [
+    {
+      "field": "events",
+      "reason_code": "not_collected",
+      "reason": "版本公告页面尚未采集(HoYoLAB客户端渲染)；BWIKI上版本公告页面不存在",
+      "required_action": "Playwright抓取官方HoYoLAB公告"
+    }
+  ]
+}

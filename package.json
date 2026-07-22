@@ -18,6 +18,7 @@
     "test:electron-smoke": "npm run build && node scripts/electron-smoke.mjs",
     "test:embedding": "tsx src/cli/test-embedding.ts",
     "rag:benchmark": "tsx src/cli/rag-benchmark.ts",
+    "currency-war:import": "node scripts/import-currency-war-baseline.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

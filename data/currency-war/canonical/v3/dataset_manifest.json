@@ -1,0 +1,44 @@
+{
+  "schema_version": "3.0.0",
+  "dataset_version": "cw-4.4-2026-07-21",
+  "game_version_target": "4.4",
+  "generated_at": "2026-07-21T18:00:00+08:00",
+  "files": {
+    "sources.json": {
+      "description": "Unified source registry",
+      "records": 11
+    },
+    "characters.json": {
+      "description": "Currency War characters",
+      "records": 72
+    },
+    "bonds.json": {
+      "description": "Bond/Synergy definitions",
+      "records": 33
+    },
+    "equipment.json": {
+      "description": "Equipment, items, badges",
+      "records": 158
+    },
+    "investment_environments.json": {
+      "description": "Investment environments",
+      "records": 83
+    },
+    "investment_strategies.json": {
+      "description": "Investment strategies",
+      "records": 334
+    },
+    "game_rules.json": {
+      "description": "Core game rules (economy/shop/population)",
+      "records": "template"
+    },
+    "version_events.json": {
+      "description": "Version change event log",
+      "records": 0
+    },
+    "unresolved_questions.json": {
+      "description": "Open questions requiring verification",
+      "records": 0
+    }
+  }
+}

@@ -1,0 +1,2364 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "characters",
+  "game_version_target": "4.4",
+  "generated_from": "canonical/v3",
+  "records": [
+    {
+      "id": "char-a3ee58e525",
+      "names": {
+        "zh_cn": "姬子•启行",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-56cdea4f83",
+        "bond-5a2a871f68"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-fdc4776633",
+      "names": {
+        "zh_cn": "吉尔伽美什",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ff8651f82d",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-17d4ccb6d4",
+      "names": {
+        "zh_cn": "千冶•刃",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-e1140b824d",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-16f0b0311b",
+      "names": {
+        "zh_cn": "远坂凛",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ff8651f82d",
+        "bond-9c678de163"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-58965d48e6",
+      "names": {
+        "zh_cn": "银狼LV.999",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [
+          4,
+          5
+        ],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-0417c2648b",
+        "bond-e1140b824d",
+        "bond-bbd67abbe0"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-505b9ad2c4",
+      "names": {
+        "zh_cn": "开拓者•欢愉",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-56cdea4f83",
+        "bond-bbd67abbe0",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-c9368854c1",
+      "names": {
+        "zh_cn": "绯英",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-7fa41ac772",
+        "bond-bbd67abbe0"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-eb483b6819",
+      "names": {
+        "zh_cn": "不死途",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-8c64f92060",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-2fa5d44ee3",
+      "names": {
+        "zh_cn": "火花",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-9c678de163",
+        "bond-7fa41ac772",
+        "bond-bbd67abbe0"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-7d8e83505b",
+      "names": {
+        "zh_cn": "大丽花",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-ae82c301a9"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-f6767d5800",
+      "names": {
+        "zh_cn": "爻光",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-bbd67abbe0"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-f16b3b9610",
+      "names": {
+        "zh_cn": "流萤",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-e1140b824d"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-7d3311a5eb",
+      "names": {
+        "zh_cn": "昔涟",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-792d0c2a89",
+        "bond-c4c4f889dc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-36f81484cf",
+      "names": {
+        "zh_cn": "瓦尔特",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-56cdea4f83",
+        "bond-7fa41ac772"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-f360a58fa1",
+      "names": {
+        "zh_cn": "布洛妮娅",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-deeb6b3cd6",
+        "bond-02cd0880a7",
+        "bond-ca07e70f9f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-72107f4e9e",
+      "names": {
+        "zh_cn": "景元",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-94ebdda04e"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-f75aedc160",
+      "names": {
+        "zh_cn": "Archer",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ff8651f82d",
+        "bond-9c678de163",
+        "bond-c9139bb04e"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-4dce87828b",
+      "names": {
+        "zh_cn": "云璃",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-30379e8973",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-ff5b2752af",
+      "names": {
+        "zh_cn": "托帕&账账",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-5d80806d7f",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-d8c74651d7",
+      "names": {
+        "zh_cn": "黑天鹅",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 5,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-ea4266ddbe",
+        "bond-d43fc6eda0",
+        "bond-ae82c301a9"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-d9cf237079",
+      "names": {
+        "zh_cn": "银狼",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-e1140b824d",
+        "bond-c746eb3449"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-02245ff763",
+      "names": {
+        "zh_cn": "开拓者•记忆",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-56cdea4f83",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-8ace8e70d2",
+      "names": {
+        "zh_cn": "知更鸟",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ae82c301a9",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-6ae2a92108",
+      "names": {
+        "zh_cn": "杰帕德",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "护盾",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-50f66b03dd",
+        "bond-ca07e70f9f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-6bb64b72b0",
+      "names": {
+        "zh_cn": "波提欧",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-8c64f92060"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-c2fa148a33",
+      "names": {
+        "zh_cn": "罗刹",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "治疗",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-7fa41ac772",
+        "bond-7d81885ccd"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-02e9dc1438",
+      "names": {
+        "zh_cn": "大黑塔",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-94ebdda04e",
+        "bond-c2d7da93fc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-75ec58ca78",
+      "names": {
+        "zh_cn": "长夜月",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-b41e13fd64",
+      "names": {
+        "zh_cn": "符玄",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "治疗",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-7d81885ccd",
+        "bond-c746eb3449"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-81038169b8",
+      "names": {
+        "zh_cn": "遐蝶",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-a675b74235",
+      "names": {
+        "zh_cn": "彦卿",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-c64b01b4d2",
+        "bond-30379e8973"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-ac33a83b74",
+      "names": {
+        "zh_cn": "海瑟音",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 4,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-d43fc6eda0",
+        "bond-c4c4f889dc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-ccda8bf118",
+      "names": {
+        "zh_cn": "那刻夏",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-c4c4f889dc",
+        "bond-94ebdda04e"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-c2b75339ef",
+      "names": {
+        "zh_cn": "镜流",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-02cd0880a7",
+        "bond-30379e8973"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-6bc3eef330",
+      "names": {
+        "zh_cn": "白厄",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-f180bd04df"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-daeec686f7",
+      "names": {
+        "zh_cn": "忘归人",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-741d1abfb0"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-2395b6600b",
+      "names": {
+        "zh_cn": "姬子",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-56cdea4f83"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-73be6ad958",
+      "names": {
+        "zh_cn": "刻律德菈",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-9c678de163"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-03041f0c18",
+      "names": {
+        "zh_cn": "真理医生",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-7fa41ac772",
+        "bond-59e0edcef6",
+        "bond-c2d7da93fc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-22721acdde",
+      "names": {
+        "zh_cn": "Saber",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ff8651f82d",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-0881803414",
+      "names": {
+        "zh_cn": "黄泉",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-8c64f92060"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-413d0ed742",
+      "names": {
+        "zh_cn": "希儿",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-ca07e70f9f",
+        "bond-c746eb3449"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-d9636d4a90",
+      "names": {
+        "zh_cn": "星期日",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-56cdea4f83",
+        "bond-ae82c301a9",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-134ce318ab",
+      "names": {
+        "zh_cn": "娜塔莎",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 3,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "治疗"
+      ],
+      "bond_ids": [
+        "bond-7d81885ccd",
+        "bond-ca07e70f9f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-2780cf9312",
+      "names": {
+        "zh_cn": "丹恒•腾荒",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "护盾"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-50f66b03dd"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-cdb103e1ee",
+      "names": {
+        "zh_cn": "灵砂",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "治疗",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-7d81885ccd",
+        "bond-30379e8973"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-349899cfd4",
+      "names": {
+        "zh_cn": "砂金",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "护盾",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-5d80806d7f",
+        "bond-50f66b03dd",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-bc45ca675f",
+      "names": {
+        "zh_cn": "丹恒•饮月",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-56cdea4f83",
+        "bond-9c678de163"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-0b8360d04a",
+      "names": {
+        "zh_cn": "花火",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-9c678de163",
+        "bond-ae82c301a9",
+        "bond-c746eb3449"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-622f5b86b3",
+      "names": {
+        "zh_cn": "缇宝",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c4c4f889dc",
+        "bond-94ebdda04e",
+        "bond-c746eb3449"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-b8016efcfb",
+      "names": {
+        "zh_cn": "银枝",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-7fa41ac772",
+        "bond-94ebdda04e"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-5ae6f95c2f",
+      "names": {
+        "zh_cn": "卡芙卡",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-d43fc6eda0",
+        "bond-e1140b824d"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-50917a6d4f",
+      "names": {
+        "zh_cn": "风堇",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "治疗",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c4c4f889dc",
+        "bond-7d81885ccd",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-5217f0facf",
+      "names": {
+        "zh_cn": "阮•梅",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-c2d7da93fc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-ff532eff26",
+      "names": {
+        "zh_cn": "佩拉",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 2,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助",
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-ca07e70f9f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-43ab8e631a",
+      "names": {
+        "zh_cn": "翡翠",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-5d80806d7f",
+        "bond-94ebdda04e"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-a34e260c64",
+      "names": {
+        "zh_cn": "停云",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-3bf0bd53d5",
+      "names": {
+        "zh_cn": "三月七",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "护盾"
+      ],
+      "bond_ids": [
+        "bond-56cdea4f83",
+        "bond-50f66b03dd"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-495f1105ce",
+      "names": {
+        "zh_cn": "乱破",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-8c64f92060"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-99f32a0ab6",
+      "names": {
+        "zh_cn": "藿藿",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "治疗",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-7d81885ccd",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-e4faa4f917",
+      "names": {
+        "zh_cn": "刃",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-e1140b824d",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-89a4e7fdd6",
+      "names": {
+        "zh_cn": "艾丝妲",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-d43fc6eda0",
+        "bond-c2d7da93fc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-06020a1b7f",
+      "names": {
+        "zh_cn": "阿格莱雅",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-c4c4f889dc",
+        "bond-6e01538b7f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-a7173ec844",
+      "names": {
+        "zh_cn": "飞霄",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-30379e8973",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-b7362f7200",
+      "names": {
+        "zh_cn": "椒丘",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "治疗",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-d43fc6eda0",
+        "bond-30379e8973"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-9693e2e893",
+      "names": {
+        "zh_cn": "黑塔",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-94ebdda04e",
+        "bond-c2d7da93fc"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-06be698928",
+      "names": {
+        "zh_cn": "万敌",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-721fca8378",
+        "bond-02cd0880a7"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-6f9c9bbf44",
+      "names": {
+        "zh_cn": "赛飞儿",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-c64b01b4d2",
+        "bond-721fca8378",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-9c89ed591c",
+      "names": {
+        "zh_cn": "貊泽",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "off_field",
+      "role_tags": [
+        "输出",
+        "辅助"
+      ],
+      "bond_ids": [
+        "bond-30379e8973",
+        "bond-59e0edcef6"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "unknown",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-dc4549b198",
+      "names": {
+        "zh_cn": "桑博",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-d43fc6eda0",
+        "bond-7fa41ac772",
+        "bond-ca07e70f9f"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-e0aa75ef88",
+      "names": {
+        "zh_cn": "加拉赫",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "dual_field",
+      "role_tags": [
+        "治疗"
+      ],
+      "bond_ids": [
+        "bond-741d1abfb0",
+        "bond-7d81885ccd",
+        "bond-ae82c301a9"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    },
+    {
+      "id": "char-32880df842",
+      "names": {
+        "zh_cn": "青雀",
+        "en": null,
+        "aliases": []
+      },
+      "shop": {
+        "base_cost": 1,
+        "cost_variants": [],
+        "special_cost_rule": null
+      },
+      "field_mode": "on_field",
+      "role_tags": [
+        "输出"
+      ],
+      "bond_ids": [
+        "bond-fb02c80aae",
+        "bond-9c678de163"
+      ],
+      "empowerment": {
+        "on_field": null,
+        "off_field": null,
+        "star_levels": []
+      },
+      "expert_advisor": {
+        "status": "confirmed_by_secondary_source",
+        "unlock_condition_text": null,
+        "related_environment_ids": [],
+        "related_strategy_ids": []
+      }
+    }
+  ]
+}

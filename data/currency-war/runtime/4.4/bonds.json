@@ -1,0 +1,603 @@
+{
+  "schema_version": "3.0.0",
+  "dataset": "bonds",
+  "game_version_target": "4.4",
+  "generated_from": "canonical/v3",
+  "records": [
+    {
+      "id": "bond-fb02c80aae",
+      "names": {
+        "zh_cn": "仙舟",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-32880df842",
+        "char-72107f4e9e",
+        "char-99f32a0ab6",
+        "char-a34e260c64",
+        "char-a675b74235",
+        "char-b41e13fd64",
+        "char-bc45ca675f",
+        "char-daeec686f7",
+        "char-f6767d5800"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-30379e8973",
+      "names": {
+        "zh_cn": "狼狩",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-4dce87828b",
+        "char-9c89ed591c",
+        "char-a675b74235",
+        "char-a7173ec844",
+        "char-b7362f7200",
+        "char-c2b75339ef",
+        "char-cdb103e1ee"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-721fca8378",
+      "names": {
+        "zh_cn": "夜之半神",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-06be698928",
+        "char-2780cf9312",
+        "char-6f9c9bbf44",
+        "char-73be6ad958",
+        "char-75ec58ca78",
+        "char-7d3311a5eb",
+        "char-81038169b8"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-c4c4f889dc",
+      "names": {
+        "zh_cn": "昼之半神",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-06020a1b7f",
+        "char-50917a6d4f",
+        "char-622f5b86b3",
+        "char-7d3311a5eb",
+        "char-ac33a83b74",
+        "char-ccda8bf118"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-ca07e70f9f",
+      "names": {
+        "zh_cn": "贝洛伯格",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-134ce318ab",
+        "char-413d0ed742",
+        "char-6ae2a92108",
+        "char-dc4549b198",
+        "char-f360a58fa1",
+        "char-ff532eff26"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-56cdea4f83",
+      "names": {
+        "zh_cn": "列车同行",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-02245ff763",
+        "char-2395b6600b",
+        "char-36f81484cf",
+        "char-3bf0bd53d5",
+        "char-505b9ad2c4",
+        "char-a3ee58e525",
+        "char-bc45ca675f",
+        "char-d9636d4a90"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-c2d7da93fc",
+      "names": {
+        "zh_cn": "银河学者",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-02e9dc1438",
+        "char-03041f0c18",
+        "char-5217f0facf",
+        "char-89a4e7fdd6",
+        "char-9693e2e893"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-7fa41ac772",
+      "names": {
+        "zh_cn": "星间旅人",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-03041f0c18",
+        "char-2fa5d44ee3",
+        "char-36f81484cf",
+        "char-b8016efcfb",
+        "char-c2fa148a33",
+        "char-c9368854c1",
+        "char-dc4549b198"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-ae82c301a9",
+      "names": {
+        "zh_cn": "盛会之星",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-0b8360d04a",
+        "char-7d8e83505b",
+        "char-8ace8e70d2",
+        "char-d8c74651d7",
+        "char-d9636d4a90",
+        "char-e0aa75ef88"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-8c64f92060",
+      "names": {
+        "zh_cn": "巡海游侠",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-0881803414",
+        "char-495f1105ce",
+        "char-6bb64b72b0",
+        "char-eb483b6819"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-e1140b824d",
+      "names": {
+        "zh_cn": "星核猎手",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-17d4ccb6d4",
+        "char-58965d48e6",
+        "char-5ae6f95c2f",
+        "char-d9cf237079",
+        "char-e4faa4f917",
+        "char-f16b3b9610"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-5d80806d7f",
+      "names": {
+        "zh_cn": "公司",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-349899cfd4",
+        "char-43ab8e631a",
+        "char-ff5b2752af"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-ff8651f82d",
+      "names": {
+        "zh_cn": "命运圣杯",
+        "en": null,
+        "aliases": []
+      },
+      "category": "faction",
+      "member_ids": [
+        "char-16f0b0311b",
+        "char-22721acdde",
+        "char-f75aedc160",
+        "char-fdc4776633"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-741d1abfb0",
+      "names": {
+        "zh_cn": "击破",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-2395b6600b",
+        "char-495f1105ce",
+        "char-5217f0facf",
+        "char-6bb64b72b0",
+        "char-7d8e83505b",
+        "char-cdb103e1ee",
+        "char-daeec686f7",
+        "char-e0aa75ef88",
+        "char-f16b3b9610"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-59e0edcef6",
+      "names": {
+        "zh_cn": "追击",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-03041f0c18",
+        "char-349899cfd4",
+        "char-6f9c9bbf44",
+        "char-8ace8e70d2",
+        "char-9c89ed591c",
+        "char-a7173ec844",
+        "char-eb483b6819",
+        "char-ff5b2752af"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-6e01538b7f",
+      "names": {
+        "zh_cn": "能量",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-02245ff763",
+        "char-06020a1b7f",
+        "char-22721acdde",
+        "char-4dce87828b",
+        "char-505b9ad2c4",
+        "char-99f32a0ab6",
+        "char-a34e260c64",
+        "char-d9636d4a90",
+        "char-fdc4776633"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-94ebdda04e",
+      "names": {
+        "zh_cn": "群攻",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-02e9dc1438",
+        "char-43ab8e631a",
+        "char-622f5b86b3",
+        "char-72107f4e9e",
+        "char-9693e2e893",
+        "char-b8016efcfb",
+        "char-ccda8bf118"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-02cd0880a7",
+      "names": {
+        "zh_cn": "燃血",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-06be698928",
+        "char-17d4ccb6d4",
+        "char-50917a6d4f",
+        "char-75ec58ca78",
+        "char-81038169b8",
+        "char-c2b75339ef",
+        "char-e4faa4f917",
+        "char-f360a58fa1"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-c64b01b4d2",
+      "names": {
+        "zh_cn": "减益",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-0881803414",
+        "char-17d4ccb6d4",
+        "char-36f81484cf",
+        "char-6f9c9bbf44",
+        "char-a675b74235",
+        "char-b7362f7200",
+        "char-ff532eff26"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-d43fc6eda0",
+      "names": {
+        "zh_cn": "持续伤害",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-5ae6f95c2f",
+        "char-89a4e7fdd6",
+        "char-ac33a83b74",
+        "char-b7362f7200",
+        "char-d8c74651d7",
+        "char-dc4549b198"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-9c678de163",
+      "names": {
+        "zh_cn": "战技点",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-0b8360d04a",
+        "char-16f0b0311b",
+        "char-2fa5d44ee3",
+        "char-32880df842",
+        "char-73be6ad958",
+        "char-bc45ca675f",
+        "char-f75aedc160"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-c746eb3449",
+      "names": {
+        "zh_cn": "量子同频",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-0b8360d04a",
+        "char-413d0ed742",
+        "char-622f5b86b3",
+        "char-b41e13fd64",
+        "char-d9cf237079"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-7d81885ccd",
+      "names": {
+        "zh_cn": "治疗",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-134ce318ab",
+        "char-50917a6d4f",
+        "char-99f32a0ab6",
+        "char-b41e13fd64",
+        "char-c2fa148a33",
+        "char-cdb103e1ee",
+        "char-e0aa75ef88"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-50f66b03dd",
+      "names": {
+        "zh_cn": "护盾",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-2780cf9312",
+        "char-349899cfd4",
+        "char-3bf0bd53d5",
+        "char-6ae2a92108"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-bbd67abbe0",
+      "names": {
+        "zh_cn": "欢愉",
+        "en": null,
+        "aliases": []
+      },
+      "category": "archetype",
+      "member_ids": [
+        "char-2fa5d44ee3",
+        "char-505b9ad2c4",
+        "char-58965d48e6",
+        "char-c9368854c1",
+        "char-f6767d5800"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-ea4266ddbe",
+      "names": {
+        "zh_cn": "命运卜者",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-d8c74651d7"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-deeb6b3cd6",
+      "names": {
+        "zh_cn": "大守护者",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-f360a58fa1"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-c9139bb04e",
+      "names": {
+        "zh_cn": "魔术师",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-f75aedc160"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-792d0c2a89",
+      "names": {
+        "zh_cn": "挚爱之人",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-7d3311a5eb"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-f180bd04df",
+      "names": {
+        "zh_cn": "救世主",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-6bc3eef330"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-0417c2648b",
+      "names": {
+        "zh_cn": "头号玩家",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-58965d48e6"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-5a2a871f68",
+      "names": {
+        "zh_cn": "领航员",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [
+        "char-a3ee58e525"
+      ],
+      "tiers": [],
+      "special_rules": []
+    },
+    {
+      "id": "bond-e498942f8c",
+      "names": {
+        "zh_cn": "师徒",
+        "en": null,
+        "aliases": []
+      },
+      "category": "independent",
+      "member_ids": [],
+      "tiers": [],
+      "special_rules": []
+    }
+  ]
+}
