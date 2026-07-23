@@ -1,6 +1,7 @@
-import { mkdtemp } from "node:fs/promises";
+import { access, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   createSkillRuntime,
@@ -87,5 +88,13 @@ describe("builtin skill resources", () => {
     expect(evidence).toContain("4.4-confirmed");
     expect(evidence).toContain("needs-validation");
     expect(evidence).not.toContain("https://");
+  });
+
+  it("does not retain superseded root currency war documents", async () => {
+    const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
+    await expect(access(join(projectRoot, "CURRENCY_WAR_4_4_DOT_LINEUP_SKILL.md")))
+      .rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(join(projectRoot, "CURRENCY_WAR_GAMEPLAY_RULES_FOR_AGENT.md")))
+      .rejects.toMatchObject({ code: "ENOENT" });
   });
 });
