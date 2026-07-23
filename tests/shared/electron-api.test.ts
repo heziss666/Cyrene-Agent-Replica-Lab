@@ -42,18 +42,23 @@ describe("CyreneApi conversations contract", () => {
 
 describe("CyreneApi currency war contract", () => {
   it("exposes state operations without filesystem access", async () => {
-    const currencyWarState: CyreneApi["currencyWarState"] = {
+    const currencyWarGames: CyreneApi["currencyWarGames"] = {
+      list: async () => ({ activeGameId: "game-1", games: [], maxGames: 10 }),
       get: async () => ({} as never),
       create: async () => ({} as never),
+      setActive: async () => ({} as never),
+      rename: async () => ({} as never),
       update: async () => ({ state: {} as never, saved: true, valid: true, issues: [] }),
       reset: async () => ({} as never),
+      remove: async () => ({ activeGameId: "game-1", games: [], maxGames: 10 }),
       validate: async () => ({ valid: true, issues: [] }),
       getEditorOptions: async () => ({ characters: [], equipment: [] }),
+      summarize: async () => "summary",
     };
 
-    await expect(currencyWarState.validate("conv_1")).resolves.toEqual({ valid: true, issues: [] });
-    await expect(currencyWarState.getEditorOptions()).resolves.toEqual({ characters: [], equipment: [] });
-    expect(Object.keys(currencyWarState)).not.toContain("writeFile");
+    await expect(currencyWarGames.validate("game-1")).resolves.toEqual({ valid: true, issues: [] });
+    await expect(currencyWarGames.getEditorOptions()).resolves.toEqual({ characters: [], equipment: [] });
+    expect(Object.keys(currencyWarGames)).not.toContain("writeFile");
   });
 });
 

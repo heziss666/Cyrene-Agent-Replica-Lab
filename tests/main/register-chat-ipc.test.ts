@@ -267,12 +267,10 @@ describe("registerChatIpc", () => {
     };
     const runAgent = successfulAgent("persistent reply");
     const buildContext = vi.fn(async ({ record: current }: { record: typeof record }) => ({ messages: [{ role: "system" as const, content: "system" }, { role: "user" as const, content: current.messages[0].content }], estimatedInputTokens: 10, inputBudgetTokens: 100, recentMessageIds: [], retrievedChunkIds: [], retrievalMode: "keyword" as const, summaryRecommended: false }));
-    const getAgentContext = vi.fn(async () => "## 当前货币战争对局\n节点：1-3（战斗）");
     const deps = createFakeDeps(runAgent, {
       conversationService: conversationService as never,
       contextManager: { build: buildContext } as never,
       conversationHistoryRetriever: { indexConversation: vi.fn(async () => ({ indexed: 0, pending: 0 })) } as never,
-      currencyWarStateService: { getAgentContext } as never,
     });
     await registerChatIpc(deps);
 
@@ -285,9 +283,8 @@ describe("registerChatIpc", () => {
     expect(appendPendingUserMessage.mock.invocationCallOrder[0]).toBeLessThan(runAgent.mock.invocationCallOrder[0]);
     expect(completeRun).toHaveBeenCalledWith("conv_1", "request_1", [{ role: "assistant", content: "persistent reply" }]);
     expect(result).toMatchObject({ conversationId: "conv_1", requestId: "request_1", reply: "persistent reply" });
-    expect(getAgentContext).toHaveBeenCalledWith("conv_1");
     expect(buildContext).toHaveBeenCalledWith(expect.objectContaining({
-      systemPrompt: expect.stringContaining("节点：1-3（战斗）"),
+      systemPrompt: expect.not.stringContaining("当前货币战争对局"),
     }));
   });
 

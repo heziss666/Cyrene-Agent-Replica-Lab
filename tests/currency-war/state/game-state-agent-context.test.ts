@@ -7,7 +7,7 @@ describe("buildCurrencyWarAgentContext", () => {
     const state = createDefaultGameState("conversation-1");
     state.nodeId = "1-3";
     state.gold = 20;
-    state.board = [{ instanceId: "u1", characterName: "黑塔", star: 2, position: "back" }];
+    state.board = [{ instanceId: "u1", characterName: "黑塔", cost: 4, star: 2, position: "back" }];
 
     const context = buildCurrencyWarAgentContext(state, []);
 

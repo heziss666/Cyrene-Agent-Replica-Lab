@@ -48,9 +48,6 @@ export function validateGameState(
 
   const board = arrayValue(input.board);
   const bench = arrayValue(input.bench);
-  if (isNonNegativeInteger(input.level) && board.length > input.level) {
-    issues.push(issue("BOARD_EXCEEDS_LEVEL", "board", "上阵角色数量不能超过当前等级"));
-  }
   validateCharacters([
     ...board.map((item, index) => ({ item, path: `board.${index}` })),
     ...bench.map((item, index) => ({ item, path: `bench.${index}` })),
@@ -83,8 +80,12 @@ function validateCharacters(
     if (typeof item.characterName !== "string" || !entityExists(catalog, "characters", item.characterName)) {
       issues.push(issue("ENTITY_UNKNOWN", `${path}.characterName`, "角色不在 4.4 数据中"));
     }
-    if (!Number.isInteger(item.star) || (item.star as number) < 1) {
-      issues.push(issue("VALUE_INVALID", `${path}.star`, "角色星级必须是正整数"));
+    if (!isPositiveInteger(item.cost)
+      || (typeof item.characterName === "string" && !characterAllowsCost(catalog, item.characterName, item.cost))) {
+      issues.push(issue("CHARACTER_COST_INVALID", `${path}.cost`, "角色费用与 4.4 数据不匹配"));
+    }
+    if (!isPositiveInteger(item.star) || item.star > 3) {
+      issues.push(issue("VALUE_INVALID", `${path}.star`, "阵容角色星级必须是 1 至 3"));
     }
   });
 }
@@ -99,9 +100,19 @@ function validateShop(
     return;
   }
   value.slots.forEach((slot, index) => {
-    if (!isRecord(slot)) return;
+    if (!isRecord(slot)) {
+      issues.push(issue("SHOP_SLOT_INVALID", `shop.slots.${index}`, "商店栏位格式无效"));
+      return;
+    }
     if (typeof slot.characterName === "string" && !entityExists(catalog, "characters", slot.characterName)) {
       issues.push(issue("ENTITY_UNKNOWN", `shop.slots.${index}.characterName`, "商店角色不在 4.4 数据中"));
+    }
+    if (typeof slot.characterName === "string"
+      && (!isPositiveInteger(slot.cost) || !characterAllowsCost(catalog, slot.characterName, slot.cost))) {
+      issues.push(issue("CHARACTER_COST_INVALID", `shop.slots.${index}.cost`, "商店角色费用与 4.4 数据不匹配"));
+    }
+    if (!isPositiveInteger(slot.star) || slot.star > 2) {
+      issues.push(issue("SHOP_STAR_INVALID", `shop.slots.${index}.star`, "商店角色星级必须是 1 或 2"));
     }
   });
 }
@@ -112,12 +123,17 @@ function validateInventoryAndAssignments(
   issues: CurrencyWarValidationIssue[],
 ): void {
   const inventory = arrayValue(state.inventory);
-  const inventoryIds = new Set<string>();
+  const inventoryQuantities = new Map<string, number>();
   inventory.forEach((item, index) => {
     if (!isRecord(item)) return;
-    if (typeof item.instanceId === "string") inventoryIds.add(item.instanceId);
+    if (typeof item.instanceId === "string" && item.instanceId) {
+      inventoryQuantities.set(item.instanceId, isPositiveInteger(item.quantity) ? item.quantity : 0);
+    }
     if (typeof item.equipmentName !== "string" || !entityExists(catalog, "equipment", item.equipmentName)) {
       issues.push(issue("ENTITY_UNKNOWN", `inventory.${index}.equipmentName`, "装备不在 4.4 数据中"));
+    }
+    if (!isPositiveInteger(item.quantity)) {
+      issues.push(issue("VALUE_INVALID", `inventory.${index}.quantity`, "装备库存数量必须是正整数"));
     }
   });
   const characterIds = new Set(
@@ -127,24 +143,29 @@ function validateInventoryAndAssignments(
       .filter((id): id is string => typeof id === "string"),
   );
   const assignmentCounts = new Map<string, number>();
-  const assignedEquipment = new Set<string>();
+  const assignedQuantities = new Map<string, number>();
   arrayValue(state.equipmentAssignments).forEach((assignment, index) => {
     if (!isRecord(assignment)) return;
     const equipmentId = assignment.equipmentInstanceId;
     const characterId = assignment.characterInstanceId;
-    if (typeof equipmentId !== "string" || !inventoryIds.has(equipmentId)) {
+    const quantity = isPositiveInteger(assignment.quantity) ? assignment.quantity : 0;
+    if (!isPositiveInteger(assignment.quantity)) {
+      issues.push(issue("VALUE_INVALID", `equipmentAssignments.${index}.quantity`, "装备分配数量必须是正整数"));
+    }
+    if (typeof equipmentId !== "string" || !inventoryQuantities.has(equipmentId)) {
       issues.push(issue("EQUIPMENT_INSTANCE_UNKNOWN", `equipmentAssignments.${index}.equipmentInstanceId`, "分配的装备不在库存中"));
-    } else if (assignedEquipment.has(equipmentId)) {
-      issues.push(issue("EQUIPMENT_ASSIGNED_TWICE", `equipmentAssignments.${index}.equipmentInstanceId`, "同一装备不能重复分配"));
     } else {
-      assignedEquipment.add(equipmentId);
+      assignedQuantities.set(equipmentId, (assignedQuantities.get(equipmentId) ?? 0) + quantity);
     }
     if (typeof characterId !== "string" || !characterIds.has(characterId)) {
       issues.push(issue("CHARACTER_INSTANCE_UNKNOWN", `equipmentAssignments.${index}.characterInstanceId`, "装备目标角色不存在"));
     } else {
-      assignmentCounts.set(characterId, (assignmentCounts.get(characterId) ?? 0) + 1);
+      assignmentCounts.set(characterId, (assignmentCounts.get(characterId) ?? 0) + quantity);
     }
   });
+  if ([...assignedQuantities].some(([id, quantity]) => quantity > (inventoryQuantities.get(id) ?? 0))) {
+    issues.push(issue("EQUIPMENT_QUANTITY_EXCEEDED", "equipmentAssignments", "装备分配总数不能超过库存数量"));
+  }
   if ([...assignmentCounts.values()].some((count) => count > 3)) {
     issues.push(issue("EQUIPMENT_LIMIT_EXCEEDED", "equipmentAssignments", "每个角色最多装备 3 件装备"));
   }
@@ -182,6 +203,14 @@ function entityExists(catalog: CurrencyWarCatalog | undefined, type: CurrencyWar
   return !catalog || catalog.list(type).some((entity) => entity.name === name) || catalog.getByName(name)?.name === name;
 }
 
+function characterAllowsCost(catalog: CurrencyWarCatalog | undefined, name: string, cost: number): boolean {
+  if (!catalog) return true;
+  const entity = catalog.list("characters").find((item) => item.name === name) ?? catalog.getByName(name);
+  if (!entity || !("cost" in entity)) return false;
+  const costs = Array.isArray(entity.cost) ? entity.cost : [entity.cost];
+  return costs.includes(cost);
+}
+
 function checkExact(
   actual: unknown,
   expected: string,
@@ -207,6 +236,10 @@ function arrayValue(value: unknown): unknown[] {
 
 function isNonNegativeInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
 export function isCurrencyWarGameState(value: unknown): value is CurrencyWarGameState {

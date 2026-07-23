@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type {
-  CurrencyWarStateApi,
+  CurrencyWarGamesApi,
   CurrencyWarStatePatch,
   CurrencyWarStateUpdateResult,
 } from "../../src/shared/currency-war-api-types.js";
@@ -8,7 +8,7 @@ import { createDefaultGameState } from "../../src/main/currency-war/state/game-s
 import { createCurrencyWarStateViewModel } from "../../src/renderer/chat/currency-war-state-view-model.js";
 
 function setup() {
-  const state = createDefaultGameState("conv_1");
+  const state = createDefaultGameState("game-1");
   const update = vi.fn(async (_id: string, patch: CurrencyWarStatePatch): Promise<CurrencyWarStateUpdateResult> => ({
     state: { ...state, ...patch },
     saved: true,
@@ -16,13 +16,10 @@ function setup() {
     issues: [],
   }));
   const api = {
-    get: vi.fn(async (id) => ({ ...state, conversationId: id })),
-    create: vi.fn(async () => state),
+    get: vi.fn(async (id) => ({ ...state, gameId: id })),
     update,
     reset: vi.fn(async () => state),
-    validate: vi.fn(async () => ({ valid: true, issues: [] })),
-    getEditorOptions: vi.fn(async () => ({ characters: [], equipment: [] })),
-  } satisfies CurrencyWarStateApi;
+  } satisfies Pick<CurrencyWarGamesApi, "get" | "update" | "reset">;
   const model = createCurrencyWarStateViewModel({ api, debounceMs: 100 });
   return { api, model, update };
 }
@@ -89,7 +86,7 @@ describe("CurrencyWarStateViewModel", () => {
     model.edit({ level: -1 });
 
     await expect(model.load("conv_2")).rejects.toThrow("GAME_STATE_SWITCH_SAVE_FAILED");
-    expect(model.snapshot().conversationId).toBe("conv_1");
+    expect(model.snapshot().gameId).toBe("conv_1");
     expect(api.get).not.toHaveBeenCalledWith("conv_2");
   });
 });

@@ -14,7 +14,7 @@ Current milestone:
 - Phase 10: persistent scheduled Agent tasks, Cron/interval/one-time schedules, isolated execution, run history, notifications, and Electron management UI
 - Phase 11: persistent multi-session conversations, context budgeting, summaries, and old-message retrieval
 - Phase 12: streaming replies, controlled concurrency, cancellation, persistent sanitized traces, shared Chat/Scheduler runs, and Runs diagnostics UI
-- Currency War: per-conversation GameState, validation, autosave workspace, and read-only Agent context
+- Currency War: up to 10 independent persisted games, structured validation, autosave editing, and copyable deterministic summaries
 
 The Currency War workspace currently targets game version 4.4, standard mode, and the highest difficulty. See `docs/learning/13-currency-war-game-state.md` for its data flow and manual test steps.
 

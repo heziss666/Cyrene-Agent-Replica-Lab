@@ -25,6 +25,7 @@ describe("currency war character editor", () => {
     expect(unit).toEqual({
       instanceId: "unit-1",
       characterName: "一费角色",
+      cost: 1,
       star: 1,
       position: "front",
     });
@@ -37,8 +38,8 @@ describe("currency war character editor", () => {
 
   it("numbers board before bench without changing instance ids", () => {
     expect(numberCharacterInstances(
-      [{ instanceId: "board-a", characterName: "A", star: 2, position: "front" }],
-      [{ instanceId: "bench-a", characterName: "B", star: 1, position: "bench" }],
+      [{ instanceId: "board-a", characterName: "A", cost: 1, star: 2, position: "front" }],
+      [{ instanceId: "bench-a", characterName: "B", cost: 1, star: 1, position: "bench" }],
     ).map(({ number, instanceId }) => ({ number, instanceId }))).toEqual([
       { number: 1, instanceId: "board-a" },
       { number: 2, instanceId: "bench-a" },
@@ -49,6 +50,7 @@ describe("currency war character editor", () => {
     expect(createShopSlot(3, options, 2)).toEqual({
       slot: 3,
       characterName: "多费角色",
+      cost: 2,
       star: 1,
     });
   });

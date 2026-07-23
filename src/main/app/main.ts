@@ -83,9 +83,9 @@ import { registerRunsIpc } from "./register-runs-ipc.js";
 import type { AgentRunEventEnvelope } from "../runs/agent-run-types.js";
 import { loadCurrencyWarRuntime } from "../currency-war/data/currency-war-runtime-loader.js";
 import { createCurrencyWarRuntime } from "../currency-war/currency-war-runtime.js";
-import { createCurrencyWarGameStateStore } from "../currency-war/state/game-state-store.js";
-import { createCurrencyWarGameStateService } from "../currency-war/state/game-state-service.js";
-import { registerCurrencyWarStateIpc } from "./register-currency-war-state-ipc.js";
+import { createCurrencyWarGameStore } from "../currency-war/games/currency-war-game-store.js";
+import { createCurrencyWarGameService } from "../currency-war/games/currency-war-game-service.js";
+import { registerCurrencyWarGamesIpc } from "./register-currency-war-games-ipc.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
@@ -173,19 +173,16 @@ async function boot(): Promise<void> {
   const memoryRecall = createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex });
   const conversationConfig = loadConversationConfig(process.env, userData);
   const currencyWarRuntime = createCurrencyWarRuntime(await loadCurrencyWarRuntime());
-  const currencyWarStateStore = createCurrencyWarGameStateStore({
-    rootDir: join(userData, "currency-war", "game-states"),
+  const currencyWarGameStore = createCurrencyWarGameStore({
+    rootDir: join(userData, "currency-war", "games"),
   });
-  await currencyWarStateStore.initialize();
-  const currencyWarStateService = createCurrencyWarGameStateService({
-    store: currencyWarStateStore,
+  const currencyWarGameService = createCurrencyWarGameService({
+    store: currencyWarGameStore,
     catalog: currencyWarRuntime.catalog,
   });
+  await currencyWarGameService.initialize();
   const conversationStore = createConversationStore({ rootDir: conversationConfig.rootDir });
-  const conversationService = createConversationService({
-    store: conversationStore,
-    onRemoved: (conversationId) => currencyWarStateService.remove(conversationId),
-  });
+  const conversationService = createConversationService({ store: conversationStore });
   const defaultPersona = await loadPersonaConfig();
   await conversationService.initialize(defaultPersona.styleId);
   const conversationVectorIndex = createConversationVectorIndex({
@@ -220,9 +217,9 @@ async function boot(): Promise<void> {
     service: conversationService,
     getDefaultStyle: () => defaultPersona.styleId,
   });
-  const currencyWarStateIpcRuntime = registerCurrencyWarStateIpc({
+  const currencyWarGamesIpcRuntime = registerCurrencyWarGamesIpc({
     ipcMain,
-    service: currencyWarStateService,
+    service: currencyWarGameService,
   });
   const chatRuntime = await registerChatIpc({
     ipcMain,
@@ -237,7 +234,6 @@ async function boot(): Promise<void> {
     conversationSummarizer,
     conversationHistoryRetriever,
     agentRunManager,
-    currencyWarStateService,
   });
   const memoryRuntime = registerMemoryIpc({
     ipcMain,
@@ -296,7 +292,7 @@ async function boot(): Promise<void> {
   app.once("will-quit", () => mcpIpcRuntime.dispose());
   app.once("will-quit", () => schedulerIpcRuntime.dispose());
   app.once("will-quit", () => conversationIpcRuntime.dispose());
-  app.once("will-quit", () => currencyWarStateIpcRuntime.dispose());
+  app.once("will-quit", () => currencyWarGamesIpcRuntime.dispose());
   app.once("will-quit", () => runsIpcRuntime.dispose());
   const backgroundRuntime = combineIpcShutdownRuntimes(chatRuntime, memoryRuntime, mcpRuntime, schedulerRuntime);
   const runtime = {
@@ -304,13 +300,13 @@ async function boot(): Promise<void> {
       await backgroundRuntime.beginShutdown();
       await agentRunManager.beginShutdown();
       await conversationService.flush();
-      await currencyWarStateService.flush();
+      await currencyWarGameService.flush();
     },
     flushBackgroundTasks: async () => {
       await backgroundRuntime.flushBackgroundTasks();
       await agentRunManager.flush();
       await conversationService.flush();
-      await currencyWarStateService.flush();
+      await currencyWarGameService.flush();
     },
     pendingBackgroundTaskCount: () =>
       backgroundRuntime.pendingBackgroundTaskCount() + agentRunManager.pendingCount(),

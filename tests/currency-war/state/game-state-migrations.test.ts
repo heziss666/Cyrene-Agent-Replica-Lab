@@ -18,21 +18,22 @@ describe("migrateGameState", () => {
       investmentEnvironment: null,
       investmentStrategies: [],
       advisorUnlocked: false,
-    }, "conversation-1", "2026-07-23T00:00:00.000Z");
+    }, "game-1", "2026-07-23T00:00:00.000Z");
 
     expect(migrated).toMatchObject({
       schemaVersion: 1,
-      conversationId: "conversation-1",
+      gameId: "game-1",
+      name: "旧对局",
       nodeId: "2-4",
       teamHealth: 72,
-      board: [{ characterName: "黑塔", star: 2, position: "back" }],
-      shop: { locked: false, slots: [{ slot: 1, characterName: "翡翠", star: 1 }] },
-      inventory: [{ instanceId: "legacy-equipment-1", equipmentName: "某装备" }],
+      board: [{ characterName: "黑塔", cost: 1, star: 2, position: "back" }],
+      shop: { locked: false, slots: [{ slot: 1, characterName: "翡翠", cost: 1, star: 1 }] },
+      inventory: [{ instanceId: "legacy-equipment-1", equipmentName: "某装备", quantity: 1 }],
     });
   });
 
   it("rejects unknown future schema versions", () => {
-    expect(() => migrateGameState({ schemaVersion: 99 }, "conversation-1", "now"))
+    expect(() => migrateGameState({ schemaVersion: 99 }, "game-1", "now"))
       .toThrow("GAME_STATE_SCHEMA_UNSUPPORTED");
   });
 });

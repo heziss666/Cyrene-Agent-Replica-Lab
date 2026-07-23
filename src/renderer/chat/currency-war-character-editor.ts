@@ -33,6 +33,7 @@ export function createCharacterInstance(
   return {
     instanceId: idFactory(),
     characterName: getCharactersForCost(options, cost)[0]?.name ?? "",
+    cost,
     star: 1,
     position: group === "board" ? "front" : "bench",
   };
@@ -46,6 +47,7 @@ export function replaceCharacterForCost(
   const candidates = getCharactersForCost(options, cost);
   return {
     ...unit,
+    cost,
     characterName: candidates.some(({ name }) => name === unit.characterName)
       ? unit.characterName
       : candidates[0]?.name ?? "",
@@ -67,6 +69,7 @@ export function createShopSlot(
   return {
     slot,
     characterName: getCharactersForCost(options, cost)[0]?.name ?? null,
+    cost,
     star: 1,
   };
 }

@@ -7,7 +7,7 @@ import { createDefaultGameState } from "./game-state-factory.js";
 
 export function migrateGameState(
   input: unknown,
-  conversationId: string,
+  gameId: string,
   now = new Date().toISOString(),
 ): CurrencyWarGameState {
   if (!isRecord(input)) throw new Error("GAME_STATE_INVALID");
@@ -15,6 +15,7 @@ export function migrateGameState(
     const cloned = structuredClone(input) as unknown as CurrencyWarGameState;
     cloned.shop.slots = cloned.shop.slots.map((slot) => ({
       ...slot,
+      cost: Number.isInteger(slot.cost) && slot.cost > 0 ? slot.cost : 1,
       star: Number.isInteger(slot.star) && slot.star > 0 ? slot.star : 1,
     }));
     return cloned;
@@ -23,7 +24,7 @@ export function migrateGameState(
     throw new Error("GAME_STATE_SCHEMA_UNSUPPORTED");
   }
 
-  const base = createDefaultGameState(conversationId, now);
+  const base = createDefaultGameState(gameId, "旧对局", now);
   const board = migrateUnits(input.board, "board");
   const bench = migrateUnits(input.bench, "bench");
   const shopNames = stringArray(input.shop);
@@ -41,11 +42,12 @@ export function migrateGameState(
     bench,
     shop: {
       locked: false,
-      slots: shopNames.map((characterName, index) => ({ slot: index + 1, characterName, star: 1 })),
+      slots: shopNames.map((characterName, index) => ({ slot: index + 1, characterName, cost: 1, star: 1 })),
     },
     inventory: equipmentNames.map((equipmentName, index): CurrencyWarInventoryItem => ({
       instanceId: `legacy-equipment-${index + 1}`,
       equipmentName,
+      quantity: 1,
     })),
     investmentEnvironment: stringValue(input.investmentEnvironment),
     investmentStrategies: stringArray(input.investmentStrategies).map((strategyName, index) => ({
@@ -71,6 +73,7 @@ function migrateUnits(value: unknown, fallbackPosition: "board" | "bench"): Curr
     return [{
       instanceId: stringValue(item.instanceId) ?? `legacy-${fallbackPosition}-${index + 1}`,
       characterName,
+      cost: numberValue(item.cost) ?? 1,
       star: numberValue(item.star) ?? 1,
       position,
     }];

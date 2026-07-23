@@ -2,7 +2,7 @@ import type {
   CurrencyWarCharacterInstance,
   CurrencyWarEditorOptions,
   CurrencyWarGameState,
-  CurrencyWarStateApi,
+  CurrencyWarGamesApi,
   CurrencyWarStatePatch,
 } from "../../shared/currency-war-api-types.js";
 import {
@@ -10,7 +10,6 @@ import {
   createShopSlot,
   getCharacterCosts,
   getCharactersForCost,
-  getPrimaryCost,
   numberCharacterInstances,
   replaceCharacterForCost,
 } from "./currency-war-character-editor.js";
@@ -26,20 +25,18 @@ import {
 } from "./currency-war-state-view-model.js";
 
 export interface CurrencyWarStateViewController {
-  load(conversationId: string, conversationTitle?: string): Promise<void>;
-  setConversationTitle(title: string): void;
+  load(gameId: string): Promise<void>;
   flush(): Promise<void>;
   reset(): Promise<void>;
 }
 
 export function mountCurrencyWarStateView(options: {
   root: HTMLElement;
-  api: CurrencyWarStateApi;
+  api: Pick<CurrencyWarGamesApi, "get" | "update" | "reset" | "getEditorOptions">;
   confirm?: (message: string) => boolean | Promise<boolean>;
 }): CurrencyWarStateViewController {
   const confirm = options.confirm ?? ((message: string) => window.confirm(message));
   let editorOptions: CurrencyWarEditorOptions | undefined;
-  let conversationTitle = "";
   const model = createCurrencyWarStateViewModel({
     api: options.api,
     onChange: updateFeedback,
@@ -72,7 +69,7 @@ export function mountCurrencyWarStateView(options: {
     const numbered = numberCharacterInstances(state.board, state.bench);
     options.root.innerHTML = `
       <div class="game-state-toolbar">
-        <div><h2>对局 · ${escapeHtml(conversationTitle || "当前会话")}</h2><p>标准博弈 · 最高难度 · 4.4</p></div>
+        <div><h2>${escapeHtml(state.name)}</h2><p>标准博弈 · 最高难度 · 4.4</p></div>
         <div class="game-state-toolbar-actions"><span data-save-status>${saveLabel(model.snapshot().saveStatus)}</span><button type="button" data-action="reset">重置对局</button></div>
       </div>
       <div class="game-state-grid">
@@ -94,7 +91,6 @@ export function mountCurrencyWarStateView(options: {
           ${textField("投资环境", "investmentEnvironment", state.investmentEnvironment ?? "")}
           ${textAreaField("投资策略：位面 | 策略名", "investmentStrategies", state.investmentStrategies.map((item) => `${item.plane} | ${item.strategyName}`).join("\n"))}
           ${selectField("已解锁顾问", "advisorName", `<option value="">未解锁</option>${optionList(getAdvisorOptions(editorOptions.characters).map(({ name }) => name), state.advisorState.name ?? "")}`)}
-          ${textAreaField("特殊资源：名称 = 数量", "specialResources", Object.entries(state.specialResources).map(([key, value]) => `${key} = ${value}`).join("\n"))}
         `)}
         ${section("备注与问题", `
           ${textAreaField("本局备注", "notes", state.notes)}
@@ -111,7 +107,7 @@ export function mountCurrencyWarStateView(options: {
       element.addEventListener("click", async () => {
         const action = element.dataset.action;
         if (action === "reset") {
-          if (await confirm("重置当前会话的对局状态？")) {
+          if (await confirm("重置当前对局状态？")) {
             const snapshot = await model.reset();
             if (snapshot.state) render(snapshot.state);
           }
@@ -155,7 +151,7 @@ export function mountCurrencyWarStateView(options: {
     } else if (action === "add-equipment") {
       const equipmentName = available.equipment[0];
       if (!equipmentName) return;
-      edit({ inventory: [...state.inventory, { instanceId: crypto.randomUUID(), equipmentName }] });
+      edit({ inventory: [...state.inventory, { instanceId: crypto.randomUUID(), equipmentName, quantity: 1 }] });
     } else if (action === "remove-equipment") {
       const removed = state.inventory[index];
       if (!removed) return;
@@ -165,10 +161,9 @@ export function mountCurrencyWarStateView(options: {
       });
     } else if (action === "add-assignment") {
       const units = numberCharacterInstances(state.board, state.bench);
-      const assigned = new Set(state.equipmentAssignments.map(({ equipmentInstanceId }) => equipmentInstanceId));
-      const equipment = state.inventory.find(({ instanceId }) => !assigned.has(instanceId));
+      const equipment = state.inventory[0];
       if (!units[0] || !equipment) return;
-      edit({ equipmentAssignments: [...state.equipmentAssignments, { characterInstanceId: units[0].instanceId, equipmentInstanceId: equipment.instanceId }] });
+      edit({ equipmentAssignments: [...state.equipmentAssignments, { characterInstanceId: units[0].instanceId, equipmentInstanceId: equipment.instanceId, quantity: 1 }] });
     } else if (action === "remove-assignment") {
       edit({ equipmentAssignments: state.equipmentAssignments.filter((_, itemIndex) => itemIndex !== index) });
     }
@@ -198,7 +193,9 @@ export function mountCurrencyWarStateView(options: {
       const slot = slots[index];
       if (!slot) return;
       if (field === "shop-cost") {
-        const candidates = getCharactersForCost(available.characters, Number(element.value));
+        const cost = Number(element.value);
+        const candidates = getCharactersForCost(available.characters, cost);
+        slot.cost = cost;
         slot.characterName = candidates.some(({ name }) => name === slot.characterName) ? slot.characterName : candidates[0]?.name ?? null;
       }
       if (field === "shop-character") slot.characterName = element.value || null;
@@ -206,17 +203,19 @@ export function mountCurrencyWarStateView(options: {
       edit({ shop: { locked: false, slots } });
       return;
     }
-    if (field === "inventory-equipment") {
+    if (field === "inventory-equipment" || field === "inventory-quantity") {
       const inventory = state.inventory.map((item) => ({ ...item }));
-      if (inventory[index]) inventory[index].equipmentName = element.value;
+      if (inventory[index] && field === "inventory-equipment") inventory[index].equipmentName = element.value;
+      if (inventory[index] && field === "inventory-quantity") inventory[index].quantity = Number(element.value);
       edit({ inventory });
       return;
     }
-    if (field === "assignment-character" || field === "assignment-equipment") {
+    if (field === "assignment-character" || field === "assignment-equipment" || field === "assignment-quantity") {
       const assignments = state.equipmentAssignments.map((item) => ({ ...item }));
       if (!assignments[index]) return;
       if (field === "assignment-character") assignments[index].characterInstanceId = element.value;
-      else assignments[index].equipmentInstanceId = element.value;
+      if (field === "assignment-equipment") assignments[index].equipmentInstanceId = element.value;
+      if (field === "assignment-quantity") assignments[index].quantity = Number(element.value);
       edit({ equipmentAssignments: assignments });
       return;
     }
@@ -224,8 +223,7 @@ export function mountCurrencyWarStateView(options: {
   }
 
   return {
-    async load(conversationId, title = "") {
-      conversationTitle = title;
+    async load(gameId) {
       if (!editorOptions) {
         try {
           editorOptions = await options.api.getEditorOptions();
@@ -233,13 +231,8 @@ export function mountCurrencyWarStateView(options: {
           editorOptions = { characters: [], equipment: [] };
         }
       }
-      const snapshot = await model.load(conversationId);
+      const snapshot = await model.load(gameId);
       if (snapshot.state) render(snapshot.state);
-    },
-    setConversationTitle(title) {
-      conversationTitle = title;
-      const state = model.snapshot().state;
-      if (state) render(state);
     },
     async flush() {
       await model.flush();
@@ -261,7 +254,7 @@ function characterRows(
   offset: number,
 ): string {
   return units.map((unit, index) => {
-    const cost = getPrimaryCost(options.characters, unit.characterName);
+    const cost = unit.cost;
     const characters = getCharactersForCost(options.characters, cost).map(({ name }) => name);
     return `<div class="game-editor-row character-editor-row ${group === "bench" ? "is-bench" : ""}">
       <span class="game-row-number">${offset + index + 1}号</span>
@@ -276,13 +269,13 @@ function characterRows(
 
 function shopRows(state: CurrencyWarGameState, options: CurrencyWarEditorOptions): string {
   return state.shop.slots.map((slot, index) => {
-    const cost = getPrimaryCost(options.characters, slot.characterName);
+    const cost = slot.cost;
     const characters = getCharactersForCost(options.characters, cost).map(({ name }) => name);
     return `<div class="game-editor-row shop-editor-row">
       <span class="game-row-number">${index + 1}号</span>
       ${rowSelect("费用", "shop-cost", optionList(getCharacterCosts(options.characters).map(String), String(cost)), "shop", index)}
       ${rowSelect("角色", "shop-character", optionListWithUnknown(characters, slot.characterName ?? ""), "shop", index)}
-      ${rowSelect("星级", "shop-star", optionList(["1", "2", "3"], String(slot.star)), "shop", index)}
+      ${rowSelect("星级", "shop-star", optionList(["1", "2"], String(slot.star)), "shop", index)}
       ${removeButton("remove-shop", "shop", index)}
     </div>`;
   }).join("") || emptyText("尚未添加商店角色");
@@ -292,6 +285,7 @@ function inventoryRows(state: CurrencyWarGameState, options: CurrencyWarEditorOp
   return state.inventory.map((item, index) => `<div class="game-editor-row inventory-editor-row">
     <span class="game-row-number">${index + 1}号</span>
     ${rowSelect("装备", "inventory-equipment", optionListWithUnknown(options.equipment, item.equipmentName), "inventory", index)}
+    ${rowNumber("数量", "inventory-quantity", item.quantity, "inventory", index)}
     ${removeButton("remove-equipment", "inventory", index)}
   </div>`).join("") || emptyText("尚未添加装备");
 }
@@ -303,6 +297,7 @@ function assignmentRows(
   return state.equipmentAssignments.map((assignment, index) => `<div class="game-editor-row assignment-editor-row">
     ${rowSelect("角色", "assignment-character", units.map((unit) => `<option value="${escapeHtml(unit.instanceId)}" ${unit.instanceId === assignment.characterInstanceId ? "selected" : ""}>${escapeHtml(formatNumberedCharacter(unit))}</option>`).join(""), "assignment", index)}
     ${rowSelect("装备", "assignment-equipment", state.inventory.map((item, itemIndex) => `<option value="${escapeHtml(item.instanceId)}" ${item.instanceId === assignment.equipmentInstanceId ? "selected" : ""}>${itemIndex + 1}号 ${escapeHtml(item.equipmentName)}</option>`).join(""), "assignment", index)}
+    ${rowNumber("数量", "assignment-quantity", assignment.quantity, "assignment", index)}
     ${removeButton("remove-assignment", "assignment", index)}
   </div>`).join("") || emptyText("尚未分配装备");
 }
@@ -325,7 +320,6 @@ function readSimplePatch(
     case "investmentEnvironment": return { investmentEnvironment: value.trim() || null };
     case "investmentStrategies": return { investmentStrategies: parseStrategies(value) };
     case "advisorName": return { advisorState: value ? { unlocked: true, name: value } : { unlocked: false, name: null } };
-    case "specialResources": return { specialResources: parseResources(value) };
     case "notes": return { notes: value };
     default: return { notes: state.notes };
   }
@@ -337,14 +331,6 @@ function parseStrategies(text: string): CurrencyWarGameState["investmentStrategi
     const plane = Number.parseInt(planeText, 10);
     return plane >= 1 && plane <= 3 && strategyName ? [{ plane: plane as 1 | 2 | 3, strategyName }] : [];
   });
-}
-
-function parseResources(text: string): Record<string, number> {
-  return Object.fromEntries(nonEmptyLines(text).flatMap((line) => {
-    const [name = "", countText = ""] = line.split("=").map((part) => part.trim());
-    const count = Number.parseInt(countText, 10);
-    return name && Number.isFinite(count) ? [[name, count]] : [];
-  }));
 }
 
 function nonEmptyLines(text: string): string[] {
@@ -365,6 +351,10 @@ function removeButton(action: string, group: string, index: number): string {
 
 function rowSelect(label: string, field: string, options: string, group: string, index: number): string {
   return `<label class="game-row-field"><span>${label}</span><select data-field="${field}" data-group="${group}" data-index="${index}">${options}</select></label>`;
+}
+
+function rowNumber(label: string, field: string, value: number, group: string, index: number): string {
+  return `<label class="game-row-field game-row-number-input"><span>${label}</span><input type="number" min="1" step="1" data-field="${field}" data-group="${group}" data-index="${index}" value="${value}"/></label>`;
 }
 
 function textField(label: string, field: string, value: string): string {

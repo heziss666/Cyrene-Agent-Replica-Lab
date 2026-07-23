@@ -4,6 +4,7 @@ export type CurrencyWarPosition = "front" | "back" | "bench";
 export interface CurrencyWarCharacterInstance {
   instanceId: string;
   characterName: string;
+  cost: number;
   star: number;
   position: CurrencyWarPosition;
 }
@@ -11,6 +12,7 @@ export interface CurrencyWarCharacterInstance {
 export interface CurrencyWarShopSlot {
   slot: number;
   characterName: string | null;
+  cost: number;
   star: number;
 }
 
@@ -22,11 +24,13 @@ export interface CurrencyWarShopState {
 export interface CurrencyWarInventoryItem {
   instanceId: string;
   equipmentName: string;
+  quantity: number;
 }
 
 export interface CurrencyWarEquipmentAssignment {
   equipmentInstanceId: string;
   characterInstanceId: string;
+  quantity: number;
 }
 
 export interface CurrencyWarInvestmentStrategySelection {
@@ -42,7 +46,8 @@ export interface CurrencyWarAdvisorState {
 export interface CurrencyWarGameState {
   schemaVersion: 1;
   gameVersion: "4.4";
-  conversationId: string;
+  gameId: string;
+  name: string;
   status: CurrencyWarGameStatus;
   mode: "standard";
   difficulty: "highest";
@@ -60,7 +65,6 @@ export interface CurrencyWarGameState {
   investmentEnvironment: string | null;
   investmentStrategies: CurrencyWarInvestmentStrategySelection[];
   advisorState: CurrencyWarAdvisorState;
-  specialResources: Record<string, number>;
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -69,7 +73,7 @@ export interface CurrencyWarGameState {
 type ImmutableStateKeys =
   | "schemaVersion"
   | "gameVersion"
-  | "conversationId"
+  | "gameId"
   | "mode"
   | "difficulty"
   | "createdAt"
@@ -94,13 +98,18 @@ export interface CurrencyWarStateUpdateResult extends CurrencyWarStateValidation
   saved: boolean;
 }
 
-export interface CurrencyWarStateApi {
-  get(conversationId: string): Promise<CurrencyWarGameState>;
-  create(conversationId: string): Promise<CurrencyWarGameState>;
-  update(conversationId: string, patch: CurrencyWarStatePatch): Promise<CurrencyWarStateUpdateResult>;
-  reset(conversationId: string): Promise<CurrencyWarGameState>;
-  validate(conversationId: string): Promise<CurrencyWarStateValidationResult>;
+export interface CurrencyWarGamesApi {
+  list(): Promise<CurrencyWarGameListResult>;
+  get(gameId: string): Promise<CurrencyWarGameState>;
+  create(name?: string): Promise<CurrencyWarGameState>;
+  setActive(gameId: string): Promise<CurrencyWarGameState>;
+  rename(gameId: string, name: string): Promise<CurrencyWarGameState>;
+  update(gameId: string, patch: CurrencyWarStatePatch): Promise<CurrencyWarStateUpdateResult>;
+  reset(gameId: string): Promise<CurrencyWarGameState>;
+  remove(gameId: string): Promise<CurrencyWarGameListResult>;
+  validate(gameId: string): Promise<CurrencyWarStateValidationResult>;
   getEditorOptions(): Promise<CurrencyWarEditorOptions>;
+  summarize(gameId: string): Promise<string>;
 }
 
 export interface CurrencyWarCharacterOption {
@@ -112,4 +121,19 @@ export interface CurrencyWarCharacterOption {
 export interface CurrencyWarEditorOptions {
   characters: CurrencyWarCharacterOption[];
   equipment: string[];
+}
+
+export interface CurrencyWarGameIndexEntry {
+  gameId: string;
+  name: string;
+  nodeId: string;
+  status: CurrencyWarGameStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CurrencyWarGameListResult {
+  activeGameId: string;
+  games: CurrencyWarGameIndexEntry[];
+  maxGames: number;
 }

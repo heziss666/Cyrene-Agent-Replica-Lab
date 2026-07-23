@@ -1,13 +1,15 @@
 import type { CurrencyWarGameState } from "../../../shared/currency-war-api-types.js";
 
 export function createDefaultGameState(
-  conversationId: string,
+  gameId: string,
+  name = "新对局",
   now = new Date().toISOString(),
 ): CurrencyWarGameState {
   return {
     schemaVersion: 1,
     gameVersion: "4.4",
-    conversationId,
+    gameId,
+    name,
     status: "active",
     mode: "standard",
     difficulty: "highest",
@@ -25,7 +27,6 @@ export function createDefaultGameState(
     investmentEnvironment: null,
     investmentStrategies: [],
     advisorState: { unlocked: false, name: null },
-    specialResources: {},
     notes: "",
     createdAt: now,
     updatedAt: now,

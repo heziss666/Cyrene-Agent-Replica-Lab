@@ -21,30 +21,26 @@ const api: CyreneApi = {
       return () => ipcRenderer.removeListener(IPC_CHANNELS.conversations.changed, handler);
     },
   },
-  currencyWarState: {
-    get: async (conversationId) => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.get,
-      { conversationId },
+  currencyWarGames: {
+    list: async () => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.list),
+    get: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.get, { gameId }),
+    create: async (name) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarGames.create,
+      name === undefined ? undefined : { name },
     ),
-    create: async (conversationId) => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.create,
-      { conversationId },
+    setActive: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.setActive, { gameId }),
+    rename: async (gameId, name) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.rename, { gameId, name }),
+    update: async (gameId, patch) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarGames.update,
+      { gameId, patch },
     ),
-    update: async (conversationId, patch) => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.update,
-      { conversationId, patch },
-    ),
-    reset: async (conversationId) => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.reset,
-      { conversationId },
-    ),
-    validate: async (conversationId) => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.validate,
-      { conversationId },
-    ),
+    reset: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.reset, { gameId }),
+    remove: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.remove, { gameId }),
+    validate: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.validate, { gameId }),
     getEditorOptions: async () => ipcRenderer.invoke(
-      IPC_CHANNELS.currencyWarState.getEditorOptions,
+      IPC_CHANNELS.currencyWarGames.getEditorOptions,
     ),
+    summarize: async (gameId) => ipcRenderer.invoke(IPC_CHANNELS.currencyWarGames.summarize, { gameId }),
   },
   chat: {
     sendMessage: async (input) => {

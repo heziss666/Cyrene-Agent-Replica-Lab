@@ -8,6 +8,7 @@ describe("currency war structured state view", () => {
       number: 2,
       instanceId: "unit-2",
       characterName: "黑塔",
+      cost: 4,
       star: 2,
       position: "back",
     })).toBe("2号 黑塔（2星）");

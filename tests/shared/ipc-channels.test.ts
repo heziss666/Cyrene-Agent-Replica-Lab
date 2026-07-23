@@ -79,14 +79,19 @@ describe("IPC_CHANNELS", () => {
     });
   });
 
-  it("defines stable currency war state channels", () => {
-    expect(IPC_CHANNELS.currencyWarState).toEqual({
-      get: "currency-war:state:get",
-      create: "currency-war:state:create",
-      update: "currency-war:state:update",
-      reset: "currency-war:state:reset",
-      validate: "currency-war:state:validate",
-      getEditorOptions: "currency-war:state:get-editor-options",
+  it("defines stable independent currency war game channels", () => {
+    expect(IPC_CHANNELS.currencyWarGames).toEqual({
+      list: "currency-war:games:list",
+      get: "currency-war:games:get",
+      create: "currency-war:games:create",
+      setActive: "currency-war:games:set-active",
+      rename: "currency-war:games:rename",
+      update: "currency-war:games:update",
+      reset: "currency-war:games:reset",
+      remove: "currency-war:games:remove",
+      validate: "currency-war:games:validate",
+      getEditorOptions: "currency-war:games:get-editor-options",
+      summarize: "currency-war:games:summarize",
     });
   });
 });

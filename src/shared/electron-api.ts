@@ -6,7 +6,7 @@ import type { McpApi } from "./mcp-api-types.js";
 import type { SchedulerApi } from "./scheduler-api-types.js";
 import type { ConversationsApi } from "./conversation-types.js";
 import type { RunsApi } from "./run-api-types.js";
-import type { CurrencyWarStateApi } from "./currency-war-api-types.js";
+import type { CurrencyWarGamesApi } from "./currency-war-api-types.js";
 
 export interface ChatSendResult {
   reply: string;
@@ -46,7 +46,7 @@ export interface MemoryMaintenanceRunResult {
 
 export interface CyreneApi {
   conversations: ConversationsApi;
-  currencyWarState: CurrencyWarStateApi;
+  currencyWarGames: CurrencyWarGamesApi;
   chat: {
     sendMessage: (input: import("./conversation-types.js").ConversationSendInput) => Promise<ChatSendResult | ChatRunAcceptedResult>;
     clearSession: () => Promise<ChatClearResult>;

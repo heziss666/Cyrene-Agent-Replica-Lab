@@ -21,7 +21,7 @@ import { mountConversationView } from "./conversation-view.js";
 import { mountRunsView } from "./runs-view.js";
 import { createConversationViewModel } from "./conversation-view-model.js";
 import { createActivityDrawer } from "./activity-drawer.js";
-import { mountCurrencyWarStateView } from "./currency-war-state-view.js";
+import { mountCurrencyWarGamesView } from "./currency-war-games-view.js";
 import type {
   ConversationChangedPayload,
   ConversationDetail,
@@ -111,9 +111,9 @@ const memoryPanel = mountMemoryView({
   root: memoryView,
   api: window.cyrene.memory,
 });
-const currencyWarPanel = mountCurrencyWarStateView({
+const currencyWarPanel = mountCurrencyWarGamesView({
   root: currencyWarView,
-  api: window.cyrene.currencyWarState,
+  api: window.cyrene.currencyWarGames,
 });
 const skillsPanel = mountSkillsView({
   root: skillsView,
@@ -162,7 +162,7 @@ function setActiveView(view: "chat" | "currency-war" | "memory" | "skills" | "mc
   runsViewButton.setAttribute("aria-pressed", String(isRuns));
   const pages = {
     chat: ["Chat", "Conversation workspace"],
-    "currency-war": ["货币战争", "当前会话的标准博弈对局状态"],
+    "currency-war": ["货币战争", "独立对局管理与状态总结"],
     memory: ["Memory", "Long-term context and profile"],
     skills: ["Skills", "Reusable agent capabilities"],
     mcp: ["MCP", "External tools and connections"],
@@ -238,9 +238,6 @@ function renderConversationList(snapshot: ConversationChangedPayload): void {
 }
 
 async function openConversation(id: string, persistActive = true): Promise<void> {
-  if (persistActive && activeConversationId && activeConversationId !== id) {
-    await currencyWarPanel.flush();
-  }
   const detail = persistActive
     ? await window.cyrene.conversations.setActive(id)
     : await window.cyrene.conversations.get(id);
@@ -249,7 +246,6 @@ async function openConversation(id: string, persistActive = true): Promise<void>
   renderConversation(detail);
   setBusy(conversationModel?.snapshot().busy ?? false);
   await loadConversationStyle();
-  await currencyWarPanel.load(id, detail.title);
   renderConversationList(await window.cyrene.conversations.list());
 }
 
@@ -261,7 +257,6 @@ async function createConversation(): Promise<void> {
     messageInput.focus();
     return;
   }
-  await currencyWarPanel.flush();
   const result = await window.cyrene.conversations.create();
   if (!conversationModel) conversationModel = createConversationViewModel(result.conversation.id);
   await openConversation(result.conversation.id, false);
@@ -270,7 +265,6 @@ async function createConversation(): Promise<void> {
 
 async function renameConversation(id: string, title: string): Promise<void> {
   await window.cyrene.conversations.rename(id, title);
-  if (id === activeConversationId) currencyWarPanel.setConversationTitle(title);
   renderConversationList(await window.cyrene.conversations.list());
 }
 
@@ -341,8 +335,9 @@ chatViewButton.addEventListener("click", () => {
   messageInput.focus();
 });
 
-currencyWarViewButton.addEventListener("click", () => {
+currencyWarViewButton.addEventListener("click", async () => {
   setActiveView("currency-war");
+  await currencyWarPanel.show();
 });
 
 memoryViewButton.addEventListener("click", async () => {

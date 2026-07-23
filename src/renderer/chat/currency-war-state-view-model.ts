@@ -1,6 +1,6 @@
 import type {
   CurrencyWarGameState,
-  CurrencyWarStateApi,
+  CurrencyWarGamesApi,
   CurrencyWarStatePatch,
   CurrencyWarValidationIssue,
 } from "../../shared/currency-war-api-types.js";
@@ -8,19 +8,19 @@ import type {
 export type CurrencyWarSaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
 
 export interface CurrencyWarStateViewSnapshot {
-  conversationId: string;
+  gameId: string;
   state?: CurrencyWarGameState;
   saveStatus: CurrencyWarSaveStatus;
   issues: CurrencyWarValidationIssue[];
 }
 
 export function createCurrencyWarStateViewModel(options: {
-  api: CurrencyWarStateApi;
+  api: Pick<CurrencyWarGamesApi, "get" | "update" | "reset">;
   debounceMs?: number;
   onChange?: (snapshot: CurrencyWarStateViewSnapshot) => void;
 }) {
   const debounceMs = options.debounceMs ?? 600;
-  let conversationId = "";
+  let gameId = "";
   let state: CurrencyWarGameState | undefined;
   let saveStatus: CurrencyWarSaveStatus = "idle";
   let issues: CurrencyWarValidationIssue[] = [];
@@ -31,7 +31,7 @@ export function createCurrencyWarStateViewModel(options: {
 
   function snapshot(): CurrencyWarStateViewSnapshot {
     return {
-      conversationId,
+      gameId,
       state: state ? structuredClone(state) : undefined,
       saveStatus,
       issues: structuredClone(issues),
@@ -51,12 +51,12 @@ export function createCurrencyWarStateViewModel(options: {
   }
 
   async function saveCurrent(): Promise<void> {
-    if (!state || !conversationId || savedRevision >= revision) return;
+    if (!state || !gameId || savedRevision >= revision) return;
     const targetRevision = revision;
     const localState = structuredClone(state);
     saveStatus = "saving";
     notify();
-    const result = await options.api.update(conversationId, toPatch(localState));
+    const result = await options.api.update(gameId, toPatch(localState));
     issues = result.issues;
     if (!result.saved) {
       saveStatus = "error";
@@ -85,13 +85,13 @@ export function createCurrencyWarStateViewModel(options: {
   return {
     snapshot,
 
-    async load(nextConversationId: string) {
-      if (conversationId && conversationId !== nextConversationId) {
+    async load(nextGameId: string) {
+      if (gameId && gameId !== nextGameId) {
         await flush();
         if (saveStatus === "error") throw new Error("GAME_STATE_SWITCH_SAVE_FAILED");
       }
-      conversationId = nextConversationId;
-      state = await options.api.get(nextConversationId);
+      gameId = nextGameId;
+      state = await options.api.get(nextGameId);
       revision = 0;
       savedRevision = 0;
       issues = [];
@@ -113,10 +113,10 @@ export function createCurrencyWarStateViewModel(options: {
     flush,
 
     async reset() {
-      if (!conversationId) throw new Error("GAME_STATE_NOT_LOADED");
+      if (!gameId) throw new Error("GAME_STATE_NOT_LOADED");
       if (timer) clearTimeout(timer);
       timer = undefined;
-      state = await options.api.reset(conversationId);
+      state = await options.api.reset(gameId);
       revision = 0;
       savedRevision = 0;
       issues = [];
@@ -131,7 +131,8 @@ function toPatch(state: CurrencyWarGameState): CurrencyWarStatePatch {
   const {
     schemaVersion: _schemaVersion,
     gameVersion: _gameVersion,
-    conversationId: _conversationId,
+    gameId: _gameId,
+    name: _name,
     mode: _mode,
     difficulty: _difficulty,
     createdAt: _createdAt,

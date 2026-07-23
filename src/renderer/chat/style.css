@@ -33,9 +33,43 @@ textarea {
   background: #f4f6f8;
 }
 
+.currency-war-games-toolbar {
+  position: sticky;
+  top: -20px;
+  z-index: 6;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  margin: -20px -20px 20px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  background: #f8faf8;
+}
+
+.currency-war-games-toolbar label {
+  display: grid;
+  gap: 4px;
+  min-width: min(320px, 40vw);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.currency-war-games-toolbar select,
+.currency-war-games-toolbar button {
+  height: 34px;
+  border: 1px solid #c6d0d8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.currency-war-games-toolbar select { padding: 0 9px; }
+.currency-war-games-toolbar button { padding: 0 10px; cursor: pointer; }
+.currency-war-games-toolbar button:disabled { cursor: not-allowed; opacity: 0.5; }
+.currency-war-games-toolbar > span { margin-left: auto; padding-bottom: 8px; color: var(--muted); font-size: 12px; }
+
 .game-state-toolbar {
   position: sticky;
-  top: 0;
+  top: 38px;
   z-index: 4;
   display: flex;
   align-items: center;
@@ -181,11 +215,11 @@ textarea {
 }
 
 .inventory-editor-row {
-  grid-template-columns: 42px minmax(150px, 1fr) auto;
+  grid-template-columns: 42px minmax(150px, 1fr) minmax(70px, 0.35fr) auto;
 }
 
 .assignment-editor-row {
-  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(70px, 0.35fr) auto;
 }
 
 .game-row-number {
@@ -204,7 +238,8 @@ textarea {
   font-size: 11px;
 }
 
-.game-row-field select {
+.game-row-field select,
+.game-row-field input {
   width: 100%;
   min-width: 0;
   height: 34px;
@@ -214,6 +249,19 @@ textarea {
   color: #1d252c;
   background: #ffffff;
 }
+
+.currency-war-summary {
+  max-width: 1180px;
+  margin: 16px auto 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.currency-war-summary > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.currency-war-summary h3 { margin: 0; font-size: 15px; }
+.currency-war-summary textarea { width: 100%; margin-top: 12px; padding: 10px; resize: vertical; border: 1px solid var(--line); border-radius: 6px; line-height: 1.55; }
 
 .game-add-button,
 .game-row-remove {
@@ -240,6 +288,10 @@ textarea {
 }
 
 @media (max-width: 980px) {
+  .currency-war-games-toolbar { align-items: stretch; flex-wrap: wrap; }
+  .currency-war-games-toolbar label { min-width: 100%; }
+  .currency-war-games-toolbar > span { margin-left: 0; }
+
   .game-state-grid {
     grid-template-columns: 1fr;
   }

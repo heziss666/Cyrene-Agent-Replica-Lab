@@ -9,7 +9,8 @@ describe("currency war shared types", () => {
     const state: CurrencyWarGameState = {
       schemaVersion: 1,
       gameVersion: "4.4",
-      conversationId: "conversation-1",
+      gameId: "game-1",
+      name: "测试对局",
       status: "active",
       mode: "standard",
       difficulty: "highest",
@@ -27,7 +28,6 @@ describe("currency war shared types", () => {
       investmentEnvironment: null,
       investmentStrategies: [],
       advisorState: { unlocked: false, name: null },
-      specialResources: {},
       notes: "",
       createdAt: "2026-07-23T00:00:00.000Z",
       updatedAt: "2026-07-23T00:00:00.000Z",
