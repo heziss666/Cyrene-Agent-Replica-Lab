@@ -162,15 +162,18 @@ try {
     goldInput.value = "25";
     goldInput.dispatchEvent(new Event("change", { bubbles: true }));
     window.confirm = () => true;
+    const deleteStartedAt = performance.now();
     document.querySelector('[data-game-action="remove"]').click();
     for (let attempt = 0; attempt < 50; attempt += 1) {
       if (document.querySelectorAll("[data-game-select] option").length === 1) break;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    const deleteDurationMs = performance.now() - deleteStartedAt;
     const currencyWarResult = {
       gameCount: document.querySelectorAll("[data-game-select] option").length,
       renamedBeforeDelete,
       editorVisible: Boolean(document.querySelector('[data-field="gold"]')),
+      deleteDurationMs,
     };
     skillsButton.click();
     for (let attempt = 0; attempt < 50; attempt += 1) {
@@ -268,7 +271,8 @@ try {
   }
   if (result.currencyWar.gameCount !== 1
     || !result.currencyWar.renamedBeforeDelete
-    || !result.currencyWar.editorVisible) {
+    || !result.currencyWar.editorVisible
+    || result.currencyWar.deleteDurationMs > 3000) {
     throw new Error(`Unexpected Currency War lifecycle: ${JSON.stringify(result.currencyWar)}`);
   }
   if (!result.mcp.visible

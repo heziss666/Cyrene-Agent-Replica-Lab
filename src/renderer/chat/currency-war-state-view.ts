@@ -27,6 +27,7 @@ import {
 export interface CurrencyWarStateViewController {
   load(gameId: string): Promise<void>;
   flush(): Promise<void>;
+  discard(): Promise<void>;
   reset(): Promise<void>;
 }
 
@@ -240,6 +241,7 @@ export function mountCurrencyWarStateView(options: {
         throw new Error("GAME_STATE_SAVE_FAILED");
       }
     },
+    discard: () => model.discard(),
     async reset() {
       const snapshot = await model.reset();
       if (snapshot.state) render(snapshot.state);

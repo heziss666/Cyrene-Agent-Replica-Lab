@@ -8,7 +8,10 @@ export function createCurrencyWarGamesOperations(options: {
     rename(gameId: string, name: string): Promise<CurrencyWarGameState>;
     remove(gameId: string): Promise<CurrencyWarGameListResult>;
   };
-  editor: { flush(): Promise<void> };
+  editor: {
+    flush(): Promise<void>;
+    discard(): Promise<void>;
+  };
 }) {
   return {
     async rename(gameId: string, name: string): Promise<CurrencyWarGameState> {
@@ -16,7 +19,7 @@ export function createCurrencyWarGamesOperations(options: {
       return options.api.rename(gameId, name);
     },
     async remove(gameId: string): Promise<string> {
-      await options.editor.flush();
+      await options.editor.discard();
       return (await options.api.remove(gameId)).activeGameId;
     },
   };

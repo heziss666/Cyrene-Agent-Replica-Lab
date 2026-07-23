@@ -112,6 +112,22 @@ export function createCurrencyWarStateViewModel(options: {
 
     flush,
 
+    async discard() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      await saveTail.catch(() => undefined);
+      gameId = "";
+      state = undefined;
+      revision = 0;
+      savedRevision = 0;
+      issues = [];
+      saveStatus = "idle";
+      saveTail = Promise.resolve();
+      notify();
+    },
+
     async reset() {
       if (!gameId) throw new Error("GAME_STATE_NOT_LOADED");
       if (timer) clearTimeout(timer);

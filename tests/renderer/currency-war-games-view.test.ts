@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createCurrencyWarGamesOperations } from "../../src/renderer/chat/currency-war-games-operations.js";
 
 describe("currency war games operations", () => {
-  it("flushes the editor before deleting the active game", async () => {
+  it("discards the editor before deleting the active game", async () => {
     const order: string[] = [];
     const operations = createCurrencyWarGamesOperations({
       api: {
@@ -14,12 +14,13 @@ describe("currency war games operations", () => {
         rename: vi.fn(),
       },
       editor: {
-        flush: vi.fn(async () => { order.push("flush"); }),
+        flush: vi.fn(),
+        discard: vi.fn(async () => { order.push("discard"); }),
       },
     });
 
     await expect(operations.remove("game-1")).resolves.toBe("game-2");
-    expect(order).toEqual(["flush", "remove"]);
+    expect(order).toEqual(["discard", "remove"]);
   });
 
   it("uses an inline rename editor instead of unsupported window.prompt", async () => {

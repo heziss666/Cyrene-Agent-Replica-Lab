@@ -89,4 +89,23 @@ describe("CurrencyWarStateViewModel", () => {
     expect(model.snapshot().gameId).toBe("conv_1");
     expect(api.get).not.toHaveBeenCalledWith("conv_2");
   });
+
+  it("discards an invalid deleted game so another game can load immediately", async () => {
+    const { api, model } = setup();
+    vi.mocked(api.update).mockResolvedValueOnce({
+      state: createDefaultGameState("conv_1"),
+      saved: false,
+      valid: false,
+      issues: [{ code: "VALUE_INVALID", path: "level", severity: "error", message: "等级无效" }],
+    });
+    await model.load("conv_1");
+    model.edit({ level: -1 });
+    await model.flush();
+
+    await model.discard();
+    await expect(model.load("conv_2")).resolves.toMatchObject({
+      gameId: "conv_2",
+      saveStatus: "idle",
+    });
+  });
 });
