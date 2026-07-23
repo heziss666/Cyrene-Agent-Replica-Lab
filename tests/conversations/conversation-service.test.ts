@@ -26,6 +26,24 @@ afterEach(async () => {
 });
 
 describe("conversation service", () => {
+  it("runs the linked-resource cleanup when a conversation is removed", async () => {
+    const removed: string[] = [];
+    const rootDir = await mkdtemp(join(tmpdir(), "cyrene-service-cleanup-"));
+    roots.push(rootDir);
+    let id = 0;
+    const service = createConversationService({
+      store: createConversationStore({ rootDir }),
+      idFactory: (prefix) => `${prefix}_${++id}`,
+      onRemoved: async (conversationId) => { removed.push(conversationId); },
+    });
+    await service.initialize("default");
+    const target = (await service.list()).activeConversationId;
+
+    await service.remove(target, "default");
+
+    expect(removed).toEqual([target]);
+  });
+
   it("creates a default conversation on first initialization", async () => {
     const service = await setup();
     const list = await service.list();

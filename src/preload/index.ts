@@ -21,6 +21,28 @@ const api: CyreneApi = {
       return () => ipcRenderer.removeListener(IPC_CHANNELS.conversations.changed, handler);
     },
   },
+  currencyWarState: {
+    get: async (conversationId) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.get,
+      { conversationId },
+    ),
+    create: async (conversationId) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.create,
+      { conversationId },
+    ),
+    update: async (conversationId, patch) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.update,
+      { conversationId, patch },
+    ),
+    reset: async (conversationId) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.reset,
+      { conversationId },
+    ),
+    validate: async (conversationId) => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.validate,
+      { conversationId },
+    ),
+  },
   chat: {
     sendMessage: async (input) => {
       return ipcRenderer.invoke(IPC_CHANNELS.chat.sendMessage, input);

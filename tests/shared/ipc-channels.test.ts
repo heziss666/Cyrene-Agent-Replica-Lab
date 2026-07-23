@@ -78,4 +78,14 @@ describe("IPC_CHANNELS", () => {
       changed: "cyrene:scheduler:changed",
     });
   });
+
+  it("defines stable currency war state channels", () => {
+    expect(IPC_CHANNELS.currencyWarState).toEqual({
+      get: "currency-war:state:get",
+      create: "currency-war:state:create",
+      update: "currency-war:state:update",
+      reset: "currency-war:state:reset",
+      validate: "currency-war:state:validate",
+    });
+  });
 });

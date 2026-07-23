@@ -31,6 +31,13 @@ export const IPC_CHANNELS = {
     agentEvent: "cyrene:chat:agent-event",
     clearSession: "cyrene:chat:clear-session",
   },
+  currencyWarState: {
+    get: "currency-war:state:get",
+    create: "currency-war:state:create",
+    update: "currency-war:state:update",
+    reset: "currency-war:state:reset",
+    validate: "currency-war:state:validate",
+  },
   runs: {
     list: "cyrene:runs:list",
     get: "cyrene:runs:get",

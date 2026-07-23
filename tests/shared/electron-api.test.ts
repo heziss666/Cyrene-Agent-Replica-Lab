@@ -40,6 +40,21 @@ describe("CyreneApi conversations contract", () => {
   });
 });
 
+describe("CyreneApi currency war contract", () => {
+  it("exposes state operations without filesystem access", async () => {
+    const currencyWarState: CyreneApi["currencyWarState"] = {
+      get: async () => ({} as never),
+      create: async () => ({} as never),
+      update: async () => ({ state: {} as never, saved: true, valid: true, issues: [] }),
+      reset: async () => ({} as never),
+      validate: async () => ({ valid: true, issues: [] }),
+    };
+
+    await expect(currencyWarState.validate("conv_1")).resolves.toEqual({ valid: true, issues: [] });
+    expect(Object.keys(currencyWarState)).not.toContain("writeFile");
+  });
+});
+
 describe("CyreneApi memory contract", () => {
   it("requires the Phase 7C maintenance method with the governance methods", async () => {
     const snapshot = { l2: [] } as unknown as MemorySnapshot;

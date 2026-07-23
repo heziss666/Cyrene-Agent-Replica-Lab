@@ -50,6 +50,7 @@ export function createConversationService(options: {
   store: ConversationStore;
   idFactory?: (prefix: "conv" | "msg") => string;
   now?: () => string;
+  onRemoved?: (conversationId: string) => Promise<void>;
 }): ConversationService {
   const idFactory = options.idFactory ?? ((prefix) => `${prefix}_${randomUUID()}`);
   const now = options.now ?? (() => new Date().toISOString());
@@ -140,6 +141,7 @@ export function createConversationService(options: {
 
     async remove(id, fallbackStyleId) {
       await requireRecord(id);
+      await options.onRemoved?.(id);
       await options.store.remove(id);
       if ((await options.store.list()).length === 0) await create(fallbackStyleId);
       return list();
