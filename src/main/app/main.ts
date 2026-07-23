@@ -237,6 +237,7 @@ async function boot(): Promise<void> {
     conversationSummarizer,
     conversationHistoryRetriever,
     agentRunManager,
+    currencyWarStateService,
   });
   const memoryRuntime = registerMemoryIpc({
     ipcMain,

@@ -116,6 +116,7 @@ import type { VendorAdapter } from "../vendors/types.js";
 import { buildSkillCatalog } from "../skills/skill-catalog.js";
 import { parseSkillCommand } from "../skills/skill-command.js";
 import type { SkillRegistry } from "../skills/skill-registry.js";
+import type { CurrencyWarGameStateService } from "../currency-war/state/game-state-service.js";
 
 export interface IpcSenderLike {
   send: (channel: string, payload: ChatAgentEventPayload) => void;
@@ -161,6 +162,7 @@ export interface RegisterChatIpcDeps {
   conversationSummarizer?: ConversationSummarizer;
   conversationHistoryRetriever?: ConversationHistoryRetriever;
   agentRunManager?: AgentRunManager;
+  currencyWarStateService?: Pick<CurrencyWarGameStateService, "getAgentContext">;
 }
 
 export interface ChatIpcRuntime {
@@ -541,6 +543,7 @@ export async function registerChatIpc(
         const styleId = persistentRecord?.styleId ?? session.getStyle();
         const transition = persistentRecord?.pendingStyleTransition ?? session.getPendingStyleTransition();
         let memoryContext = "";
+        let gameStateContext = "";
         let injectedL2Ids: string[] | undefined;
         sendAgentEvent(event.sender, runId, { type: "memory_recall_started" });
         try {
@@ -563,6 +566,15 @@ export async function registerChatIpc(
             createMemoryWriteFailedEvent("recall", error),
           );
         }
+        if (persistentInput && deps.currencyWarStateService) {
+          try {
+            gameStateContext = await deps.currencyWarStateService.getAgentContext(
+              persistentInput.conversationId,
+            );
+          } catch {
+            // Game-state context is helpful but must never prevent chat.
+          }
+        }
         const personaPrompt = promptComposer.composeSystemPrompt({
           styleId,
           transition,
@@ -575,6 +587,7 @@ export async function registerChatIpc(
           skillCatalog,
           manualSkillPrompt,
           memoryContext,
+          gameStateContext,
         ].filter((part) => part.trim().length > 0);
         const systemMessage: ChatMessage = {
           role: "system",
