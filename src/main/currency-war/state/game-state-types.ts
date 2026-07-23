@@ -1,31 +1,18 @@
-export type CurrencyWarMode = "standard" | "overclock";
-export type CurrencyWarDifficulty = "highest" | "other";
-export type BoardPosition = "front" | "back";
+export type {
+  CurrencyWarAdvisorState,
+  CurrencyWarCharacterInstance,
+  CurrencyWarEquipmentAssignment,
+  CurrencyWarGameState,
+  CurrencyWarGameStatus,
+  CurrencyWarInventoryItem,
+  CurrencyWarInvestmentStrategySelection,
+  CurrencyWarPosition,
+  CurrencyWarShopSlot,
+  CurrencyWarShopState,
+  CurrencyWarStatePatch,
+  CurrencyWarStateUpdateResult,
+  CurrencyWarStateValidationResult,
+  CurrencyWarValidationIssue,
+} from "../../../shared/currency-war-api-types.js";
 
-export interface CurrencyWarUnitState {
-  name: string;
-  star: number;
-  position?: BoardPosition;
-}
-
-export interface CurrencyWarGameState {
-  mode: CurrencyWarMode;
-  difficulty: CurrencyWarDifficulty;
-  nodeId: string;
-  teamHealth: number;
-  gold: number;
-  level: number;
-  experience: number;
-  board: CurrencyWarUnitState[];
-  bench: CurrencyWarUnitState[];
-  shop: string[];
-  equipment: string[];
-  investmentEnvironment: string | null;
-  investmentStrategies: string[];
-  advisorUnlocked: boolean;
-}
-
-export interface CurrencyWarGameStateInput extends Omit<CurrencyWarGameState, "mode" | "difficulty"> {
-  mode: string;
-  difficulty: string;
-}
+export type CurrencyWarGameStateInput = import("../../../shared/currency-war-api-types.js").CurrencyWarGameState;
