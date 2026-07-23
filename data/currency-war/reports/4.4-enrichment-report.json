@@ -1,0 +1,30 @@
+{
+  "game_version": "4.4",
+  "captured_at": "2026-07-23T19:33:34.306Z",
+  "dry_run": false,
+  "metrics": {
+    "characters": 72,
+    "bonds": 33,
+    "equipment": 158,
+    "environments": 83,
+    "strategies": 334
+  },
+  "warnings": [
+    "EQUIPMENT_NOT_IN_CATALOG:星徽秘典",
+    "EQUIPMENT_NOT_IN_CATALOG:财富（狸财经理教材）"
+  ],
+  "source_pages": {
+    "characters": 72,
+    "bonds": 33,
+    "equipment": 159,
+    "investment_environments": 83
+  },
+  "completeness": {
+    "character_front_groups": 50,
+    "character_back_groups": 43,
+    "character_star_tables": 72,
+    "bond_effect_tables": 33,
+    "equipment_stats": 143,
+    "environment_effects": 83
+  }
+}

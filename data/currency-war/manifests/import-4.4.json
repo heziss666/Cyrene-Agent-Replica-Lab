@@ -35,5 +35,6 @@
     "runtime/4.4/equipment.json": "971268084337c06178830d433bf8af49fa287cdf668bc68d97b4ecb4800e38bf",
     "runtime/4.4/investment_environments.json": "130e2e9d96f2daa670c46d143409c75513309ea068a126dd24e1d98d788dded2",
     "runtime/4.4/investment_strategies.json": "26e91f829ea8c1a71df14355cb0bc50c05d61ed21f7e808fc30b7cc9b007b580"
-  }
+  },
+  "imported_at": "2026-07-23T19:33:34.306Z"
 }

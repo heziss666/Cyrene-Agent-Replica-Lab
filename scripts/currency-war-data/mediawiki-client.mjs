@@ -44,7 +44,13 @@ async function request(parameters, options) {
     const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 20_000);
     try {
       const response = await fetchImpl(url, {
-        headers: { "user-agent": "Cyrene-Agent-Replica-Lab/0.1 currency-war-data" },
+        headers: {
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/138.0 Safari/537.36",
+          accept: "application/json,text/plain,*/*",
+          "accept-language": "zh-CN,zh;q=0.9",
+          referer: "https://wiki.biligame.com/sr/",
+          "x-client-name": "Cyrene-Agent-Replica-Lab currency-war-data",
+        },
         signal: controller.signal,
       });
       if (response.ok) return await response.json();

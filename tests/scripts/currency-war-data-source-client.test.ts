@@ -38,6 +38,20 @@ describe("currency war source client", () => {
     expect(calls).toBe(2);
   });
 
+  it("uses browser-compatible headers required by the source site", async () => {
+    let requestInit: RequestInit | undefined;
+    const fetchImpl = async (_url: URL, init?: RequestInit) => {
+      requestInit = init;
+      return new Response(JSON.stringify({ query: { results: {} } }), { status: 200 });
+    };
+
+    await askSemantic("[[分类:投资环境]]", { fetchImpl });
+
+    const headers = new Headers(requestInit?.headers);
+    expect(headers.get("user-agent")).toMatch(/^Mozilla\/5\.0/);
+    expect(headers.get("referer")).toBe("https://wiki.biligame.com/sr/");
+  });
+
   it("normalizes equipment semantic fields", () => {
     const result = parseEquipmentResult({
       printouts: {

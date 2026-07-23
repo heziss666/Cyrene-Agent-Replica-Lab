@@ -1,8 +1,8 @@
 {
   "schema_version": "3.0.0",
-  "dataset_version": "cw-4.4-2026-07-21",
+  "dataset_version": "cw-4.4-2026-07-23",
   "game_version_target": "4.4",
-  "generated_at": "2026-07-21T18:00:00+08:00",
+  "generated_at": "2026-07-23T19:33:34.306Z",
   "files": {
     "sources.json": {
       "description": "Unified source registry",

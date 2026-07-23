@@ -3,8 +3,34 @@ import { describe, expect, it } from "vitest";
 import { parseCharacterPage } from "../../scripts/currency-war-data/character-parser.mjs";
 // @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
 import { parseBondPage } from "../../scripts/currency-war-data/bond-parser.mjs";
+// @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
+import { stripWikiMarkup } from "../../scripts/currency-war-data/wiki-normalize.mjs";
 
 describe("currency war wiki parsers", () => {
+  it("preserves stat names represented by inline image files", () => {
+    expect(stripWikiMarkup(
+      "提供16%[[文件:货币战争-伤害增幅.png|class=inline-icon|link=]]和16%[[文件:货币战争-速度增幅.png]]。",
+    )).toBe("提供16%伤害增幅和16%速度增幅。");
+    expect(stripWikiMarkup(
+      "[[文件:货币战争-伤害增幅.png]]伤害增幅",
+    )).toBe("伤害增幅");
+    expect(stripWikiMarkup(
+      "20%[[文件:货币战争-前台强度.png]][[文件:货币战争-后台强度.png]]前/后台强度",
+    )).toBe("20%前/后台强度");
+    expect(stripWikiMarkup(
+      "80%[[文件:货币战争-持续伤害增幅.png]]",
+    )).toBe("80%持续伤害增幅");
+    expect(stripWikiMarkup(
+      "[[文件:货币战争-伤害减免.png]] 伤害减免",
+    )).toBe("伤害减免");
+    expect(stripWikiMarkup(
+      "[[文件:货币战争-伤害增幅.png]]普攻/战技伤害增幅",
+    )).toBe("普攻/战技伤害增幅");
+    expect(stripWikiMarkup(
+      "追加攻击追加攻击伤害增幅、持续持续伤害增幅、击破击破伤害增幅",
+    )).toBe("追加攻击伤害增幅、持续伤害增幅、击破伤害增幅");
+  });
+
   it("parses one character skill group and star stats", () => {
     const page = `
 {{货币战争/角色|白厄|费用=3|站位=前|标签=输出|羁绊=救世主

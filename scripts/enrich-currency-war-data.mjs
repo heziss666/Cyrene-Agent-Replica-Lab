@@ -34,13 +34,21 @@ export async function enrichCurrencyWarData({ dryRun = false } = {}) {
 
   const characterTitles = existing.characters.map((item) => `货币战争/${item.name}`);
   const bondTitles = existing.bonds.map((item) => `货币战争/羁绊/${item.name}`);
-  const characterPages = await fetchPageRevisions(characterTitles);
-  const bondPages = await fetchPageRevisions(bondTitles);
+  const networkOptions = {
+    batchSize: 10,
+    delayMs: 2_000,
+    retryDelayMs: 5_000,
+    maxAttempts: 8,
+  };
+  const characterPages = await fetchPageRevisions(characterTitles, networkOptions);
+  const bondPages = await fetchPageRevisions(bondTitles, networkOptions);
   const equipmentResults = await askSemantic(
     "[[分类:货币战争/装备]]|?名称|?类型|?标签|?基础属性|?描述|?获取方式|?获取途径|?实装版本|?适配角色|limit=1000",
+    networkOptions,
   );
   const environmentResults = await askSemantic(
     "[[分类:投资环境]]|?名称|?效果|?角色|?装备|limit=1000",
+    networkOptions,
   );
 
   const characterDetails = new Map(existing.characters.map((item) => {
