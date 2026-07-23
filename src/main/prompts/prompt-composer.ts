@@ -22,7 +22,14 @@ export interface PromptComposer {
 
 export interface CreatePromptComposerOptions {
   resourceDir?: string;
+  styleResourceDir?: string;
   readPrompt?: PromptReader;
+}
+
+export function defaultCurrencyWarPromptDir(): string {
+  return fileURLToPath(
+    new URL("../../../resources/currency-war/prompts/", import.meta.url),
+  );
 }
 
 export function defaultCyrenePromptDir(): string {
@@ -43,14 +50,16 @@ function buildTransitionPrompt(transition: StyleTransition): string {
 export function createPromptComposer(
   options: CreatePromptComposerOptions = {},
 ): PromptComposer {
-  const resourceDir = options.resourceDir ?? defaultCyrenePromptDir();
-  const readPrompt = options.readPrompt ?? createFilePromptReader(resourceDir);
-  const core = [
-    "runtime-system.md",
-    "identity.md",
-    "soul.md",
-    "tone-rules.md",
-  ].map((path) => loadRequiredPrompt(path, readPrompt));
+  const systemReader = createFilePromptReader(
+    options.resourceDir ?? defaultCurrencyWarPromptDir(),
+  );
+  const styleReader = createFilePromptReader(
+    options.styleResourceDir ?? defaultCyrenePromptDir(),
+  );
+  const readPrompt = options.readPrompt ?? ((path: string) =>
+    path.startsWith("styles/") ? styleReader(path) : systemReader(path)
+  );
+  const core = loadRequiredPrompt("system.md", readPrompt);
   const styles = new Map<StyleId, string>(
     STYLE_OPTIONS.map((option) => [
       option.id,
@@ -60,7 +69,7 @@ export function createPromptComposer(
 
   return {
     composeSystemPrompt({ styleId, transition }) {
-      const parts = [...core, styles.get(styleId)!];
+      const parts = [core, styles.get(styleId)!];
       if (transition) parts.push(buildTransitionPrompt(transition));
       return parts.join(SEPARATOR);
     },

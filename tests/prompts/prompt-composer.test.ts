@@ -7,10 +7,7 @@ import {
 import { createPromptComposer } from "../../src/main/prompts/prompt-composer.js";
 
 const prompts: Record<string, string> = {
-  "runtime-system.md": "SYSTEM",
-  "identity.md": "IDENTITY",
-  "soul.md": "SOUL",
-  "tone-rules.md": "TONE",
+  "system.md": "CURRENCY_WAR_SYSTEM",
   "styles/01_default.md": "DEFAULT",
   "styles/02_lively.md": "LIVELY",
   "styles/03_healing.md": "HEALING",
@@ -38,9 +35,12 @@ describe("createPromptComposer", () => {
     const readPrompt = vi.fn((path: string) => prompts[path] ?? "");
     const composer = createPromptComposer({ readPrompt });
 
-    expect(readPrompt).toHaveBeenCalledTimes(9);
+    expect(readPrompt).toHaveBeenCalledTimes(6);
+    expect(readPrompt).not.toHaveBeenCalledWith("identity.md");
+    expect(readPrompt).not.toHaveBeenCalledWith("soul.md");
+    expect(readPrompt).not.toHaveBeenCalledWith("tone-rules.md");
     expect(composer.composeSystemPrompt({ styleId: "healing" })).toBe(
-      ["SYSTEM", "IDENTITY", "SOUL", "TONE", "HEALING"].join("\n\n---\n\n"),
+      ["CURRENCY_WAR_SYSTEM", "HEALING"].join("\n\n---\n\n"),
     );
   });
 
@@ -62,5 +62,11 @@ describe("createPromptComposer", () => {
     expect(() => createPromptComposer({
       readPrompt: (path) => path === "styles/05_sweet.md" ? "" : (prompts[path] ?? ""),
     })).toThrow("Required prompt file is missing or empty: styles/05_sweet.md");
+  });
+
+  it("fails during construction when the currency war system prompt is missing", () => {
+    expect(() => createPromptComposer({
+      readPrompt: (path) => path === "system.md" ? "" : (prompts[path] ?? ""),
+    })).toThrow("Required prompt file is missing or empty: system.md");
   });
 });
