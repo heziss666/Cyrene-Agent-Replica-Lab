@@ -214,5 +214,13 @@ describe("builtin skill resources", () => {
       .rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(join(projectRoot, "CURRENCY_WAR_GAMEPLAY_RULES_FOR_AGENT.md")))
       .rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(join(
+      projectRoot,
+      "CURRENCY_WAR_4_4_HIMEKO_DEPARTURE_LINEUP_SKILL.md",
+    ))).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(join(
+      projectRoot,
+      "CURRENCY_WAR_4_4_PHAINON_COUNTER_LINEUP_SKILL.md",
+    ))).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
