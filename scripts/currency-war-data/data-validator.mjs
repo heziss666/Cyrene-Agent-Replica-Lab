@@ -48,7 +48,8 @@ export function validateEnrichedData(datasets) {
   }
 
   for (const item of equipment) {
-    for (const material of item.recipe ?? []) {
+    const recipes = item.recipes ?? (item.recipe ? [item.recipe] : []);
+    for (const material of recipes.flat()) {
       if (!equipmentNames.has(material)) warnings.push(`EQUIPMENT_RECIPE_MATERIAL_UNKNOWN:${item.name}:${material}`);
     }
   }

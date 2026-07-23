@@ -61,6 +61,7 @@ export interface CurrencyWarEquipment extends CurrencyWarNamedEntity {
   stats: Record<string, unknown>;
   effect: string | null;
   recipe?: string[];
+  recipes?: string[][];
   tags?: string[];
   recommended_for?: string[];
 }

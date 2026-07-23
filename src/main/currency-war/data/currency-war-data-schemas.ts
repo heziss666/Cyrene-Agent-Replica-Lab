@@ -54,6 +54,7 @@ const equipmentSchema = namedEntitySchema.extend({
   stats: z.record(z.string(), z.unknown()),
   effect: z.string().nullable(),
   recipe: z.array(z.string()).optional(),
+  recipes: z.array(z.array(z.string()).min(2)).optional(),
   tags: z.array(z.string()).optional(),
   recommended_for: z.array(z.string()).optional(),
 }).passthrough();

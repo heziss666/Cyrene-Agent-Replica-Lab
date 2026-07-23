@@ -67,4 +67,21 @@ describe("currency war source client", () => {
       printouts: { 名称: ["长线利好"], 效果: ["刷新30次后获得20金币。"] },
     })).toEqual({ name: "长线利好", effect: "刷新30次后获得20金币。" });
   });
+
+  it("preserves alternative equipment recipes", () => {
+    const result = parseEquipmentResult({
+      printouts: {
+        名称: ["欢愉星徽"],
+        类型: ["流派星徽"],
+        标签: [],
+        基础属性: ["伤害增幅10%"],
+        描述: ["效果"],
+        获取途径: ["蓝钻+垃圾袋、红钻+垃圾袋"],
+        适配角色: [],
+      },
+    });
+
+    expect(result.recipes).toEqual([["蓝钻", "垃圾袋"], ["红钻", "垃圾袋"]]);
+    expect(result).not.toHaveProperty("recipe");
+  });
 });

@@ -11,8 +11,20 @@ export function parseCharacterPage(wikitext) {
   const name = stripWikiMarkup(character.positional[0]);
   const field = FIELD_NAMES[stripWikiMarkup(character.params.站位)] ?? stripWikiMarkup(character.params.站位);
   const generic = parseGroup(character.params, "");
-  let front = parseGroup(character.params, "1");
-  let back = parseGroup(character.params, "2");
+  const group1 = parseGroup(character.params, "1");
+  const group2 = parseGroup(character.params, "2");
+  let front = null;
+  let back = null;
+  for (const [group, title, fallback] of [
+    [group1, stripWikiMarkup(character.params.技能组标题1), "front"],
+    [group2, stripWikiMarkup(character.params.技能组标题2), "back"],
+  ]) {
+    if (!group) continue;
+    if (title.includes("后")) back = group;
+    else if (title.includes("前")) front = group;
+    else if (fallback === "front") front = group;
+    else back = group;
+  }
 
   if (generic) {
     if (field === "前台") front = generic;

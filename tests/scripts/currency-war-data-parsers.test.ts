@@ -77,6 +77,21 @@ describe("currency war wiki parsers", () => {
     expect(result.empowerment.back).toEqual(result.empowerment.front);
   });
 
+  it("uses an explicit numbered group title instead of assuming group one is front", () => {
+    const page = `
+{{货币战争/角色|开拓者•欢愉|费用=4|站位=后|标签=输出、辅助|羁绊=欢愉
+|技能组标题1=后台|技能组名称1=喜剧开场|技能组标签1=天赋
+|技能组描述1=后台摘要
+|技能组1={{货币战争/角色/技能|名称=好戏连轴转|标签=天赋|描述=后台效果。}}
+}}
+{{货币战争/角色/详情|生命增幅=45%|基础前台强度=100|基础后台强度=175|速度增幅=30%|基础治疗强度=60|基础护盾强度=60}}`;
+
+    const result = parseCharacterPage(page);
+
+    expect(result.empowerment.front).toBeNull();
+    expect(result.empowerment.back?.name).toBe("喜剧开场");
+  });
+
   it("parses bond base effect, numeric tiers, and special rules", () => {
     const page = `
 {{货币战争/羁绊|巡海游侠|阵营羁绊

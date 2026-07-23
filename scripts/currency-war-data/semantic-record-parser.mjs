@@ -3,6 +3,7 @@ import { stripWikiMarkup } from "./wiki-normalize.mjs";
 export function parseEquipmentResult(result) {
   const values = result.printouts ?? {};
   const acquisition = first(values.获取途径) || first(values.获取方式);
+  const recipes = parseRecipes(acquisition);
   return {
     name: first(values.名称) || result.fulltext || "",
     type: first(values.类型),
@@ -12,7 +13,8 @@ export function parseEquipmentResult(result) {
       .map(parseStat)
       .filter(Boolean)),
     effect: first(values.描述) || null,
-    ...(isRecipe(acquisition) ? { recipe: acquisition.split("+").map((item) => item.trim()).filter(Boolean) } : {}),
+    ...(recipes.length === 1 ? { recipe: recipes[0] } : {}),
+    ...(recipes.length > 1 ? { recipes } : {}),
     recommended_for: cleanList(values.适配角色),
   };
 }
@@ -30,8 +32,11 @@ function parseStat(value) {
   return match ? [match[1].trim(), match[2]] : null;
 }
 
-function isRecipe(value) {
-  return value.includes("+") && !/[，。；]/.test(value);
+function parseRecipes(value) {
+  if (!value.includes("+") || /[，。；]/.test(value)) return [];
+  return value.split("、")
+    .map((recipe) => recipe.split("+").map((item) => item.trim()).filter(Boolean))
+    .filter((recipe) => recipe.length >= 2);
 }
 
 function first(values) {
