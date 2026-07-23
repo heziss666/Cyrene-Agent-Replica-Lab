@@ -94,6 +94,63 @@ describe("builtin skill resources", () => {
     expect(evidence).not.toContain("https://");
   });
 
+  it("loads the Himeko Departure Train skill with focused references", async () => {
+    const userData = await mkdtemp(join(tmpdir(), "currency-war-himeko-skill-"));
+    const runtime = await createSkillRuntime({
+      builtinRoot: defaultBuiltinSkillsRoot(),
+      userRoot: join(userData, "skills"),
+      settingsPath: join(userData, "settings.json"),
+      toolIds: ["search_knowledge"],
+    });
+
+    const entry = runtime.registry.get("currency-war-himeko-departure-train");
+    expect(entry).toMatchObject({
+      name: "Currency War Himeko Departure Train",
+      enabled: true,
+      available: true,
+      requiredTools: [],
+    });
+    expect(entry?.references.map(({ name }) => name)).toEqual([
+      "equipment.md",
+      "evidence.md",
+      "lineup-core.md",
+      "operations.md",
+    ]);
+
+    const body = await runtime.registry.readBody("currency-war-himeko-departure-train");
+    const lineup = await runtime.registry.readReference(
+      "currency-war-himeko-departure-train",
+      "lineup-core.md",
+    );
+    const operations = await runtime.registry.readReference(
+      "currency-war-himeko-departure-train",
+      "operations.md",
+    );
+    const equipment = await runtime.registry.readReference(
+      "currency-war-himeko-departure-train",
+      "equipment.md",
+    );
+    const evidence = await runtime.registry.readReference(
+      "currency-war-himeko-departure-train",
+      "evidence.md",
+    );
+
+    expect(body).toContain("姬子·启行—列车同行");
+    expect(body).toContain("本轮唯一主任务");
+    expect(body).toContain("最多 5 个");
+    expect(body).toContain("停止条件");
+    expect(body).toContain("4.4–4.7");
+    expect(body).not.toContain("https://");
+    expect(lineup).toContain("领航员");
+    expect(lineup).toContain("4 列车同行");
+    expect(lineup).toContain("量子同频");
+    expect(operations).toContain("7 级");
+    expect(operations).toContain("三星姬子");
+    expect(equipment).toContain("复制装备");
+    expect(evidence).toContain("cycle-confirmed");
+    expect(evidence).not.toContain("https://");
+  });
+
   it("does not retain superseded root currency war documents", async () => {
     const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
     await expect(access(join(projectRoot, "CURRENCY_WAR_4_4_DOT_LINEUP_SKILL.md")))
