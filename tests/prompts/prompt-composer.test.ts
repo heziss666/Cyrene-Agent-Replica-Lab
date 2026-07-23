@@ -31,6 +31,13 @@ describe("persona style types", () => {
 });
 
 describe("createPromptComposer", () => {
+  it("uses the 4.4–4.7 currency war content cycle in the real system prompt", () => {
+    const prompt = createPromptComposer().composeSystemPrompt({ styleId: "default" });
+    expect(prompt).toContain("4.4–4.7");
+    expect(prompt).toContain("结构化数据基线来自 4.4");
+    expect(prompt).not.toContain("当前项目资料对应的 4.4 版本");
+  });
+
   it("eagerly loads all prompt assets and composes them in a stable order", () => {
     const readPrompt = vi.fn((path: string) => prompts[path] ?? "");
     const composer = createPromptComposer({ readPrompt });

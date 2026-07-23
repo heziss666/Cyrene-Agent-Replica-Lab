@@ -60,6 +60,8 @@ describe("builtin skill resources", () => {
     expect(body).toContain("本轮唯一主任务");
     expect(body).toContain("最多 5 个");
     expect(body).toContain("停止条件");
+    expect(body).toContain("4.4–4.7");
+    expect(body).not.toContain("只处理 4.4 版本");
     expect(body).not.toContain("https://");
 
     const lineup = await runtime.registry.readReference(
@@ -85,7 +87,9 @@ describe("builtin skill resources", () => {
       "currency-war-kafka-hysilens-dot",
       "evidence.md",
     );
-    expect(evidence).toContain("4.4-confirmed");
+    expect(evidence).toContain("cycle-confirmed");
+    expect(evidence).toContain("lineup-synthesis");
+    expect(evidence).not.toContain("4.4-synthesis");
     expect(evidence).toContain("needs-validation");
     expect(evidence).not.toContain("https://");
   });
