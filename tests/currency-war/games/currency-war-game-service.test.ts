@@ -27,6 +27,35 @@ const catalog = {
 } satisfies CurrencyWarCatalog;
 
 describe("CurrencyWarGameService", () => {
+  it("assigns the smallest unused default game number", async () => {
+    let id = 0;
+    const service = createCurrencyWarGameService({
+      store: memoryStore(),
+      catalog,
+      idFactory: () => `game-${++id}`,
+    });
+
+    const first = (await service.initialize()).games[0];
+    expect(first.name).toBe("对局 1");
+    const second = await service.create();
+    expect(second.name).toBe("对局 2");
+    expect((await service.create()).name).toBe("对局 3");
+
+    await service.remove(second.gameId);
+    expect((await service.create()).name).toBe("对局 2");
+  });
+
+  it("does not reserve automatic numbers for custom names", async () => {
+    const service = createCurrencyWarGameService({
+      store: memoryStore(),
+      catalog,
+    });
+    await service.initialize();
+
+    expect((await service.create("追击队")).name).toBe("追击队");
+    expect((await service.create()).name).toBe("对局 2");
+  });
+
   it("creates one initial game and enforces the ten-game limit", async () => {
     let id = 0;
     const service = createCurrencyWarGameService({

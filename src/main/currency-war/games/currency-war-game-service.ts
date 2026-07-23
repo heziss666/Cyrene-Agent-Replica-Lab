@@ -45,11 +45,15 @@ export function createCurrencyWarGameService(options: {
     if (!state) throw new Error("CURRENCY_WAR_GAME_NOT_FOUND");
     return structuredClone(state);
   };
-  const create = async (name = "新对局") => {
-    if ((await options.store.list()).length >= MAX_CURRENCY_WAR_GAMES) {
+  const create = async (name?: string) => {
+    const games = await options.store.list();
+    if (games.length >= MAX_CURRENCY_WAR_GAMES) {
       throw new Error("CURRENCY_WAR_GAME_LIMIT_REACHED");
     }
-    const state = createDefaultGameState(idFactory(), normalizeName(name), now());
+    const resolvedName = name === undefined
+      ? nextDefaultGameName(games)
+      : normalizeName(name);
+    const state = createDefaultGameState(idFactory(), resolvedName, now());
     await options.store.save(state);
     await options.store.setActive(state.gameId);
     return structuredClone(state);
@@ -133,6 +137,17 @@ function normalizeName(value: string): string {
   const name = value.trim();
   if (name.length < 1 || name.length > 60) throw new Error("CURRENCY_WAR_GAME_NAME_INVALID");
   return name;
+}
+
+function nextDefaultGameName(games: Array<{ name: string }>): string {
+  const used = new Set<number>();
+  for (const game of games) {
+    const match = /^对局 ([1-9]\d*)$/.exec(game.name);
+    if (match) used.add(Number(match[1]));
+  }
+  let number = 1;
+  while (used.has(number)) number += 1;
+  return `对局 ${number}`;
 }
 
 function normalizeCosts(value: unknown): number[] {
