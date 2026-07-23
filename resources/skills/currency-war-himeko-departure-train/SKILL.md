@@ -3,7 +3,8 @@ name: Currency War Himeko Departure Train
 description: 当用户在《货币战争》4.4–4.7 标准博弈最高难度中使用姬子·启行作为前台主输出，或需要围绕列车同行、领航员、量子同频进行购买、站位、升星、升级、刷新、装备、止损或转型决策时使用。
 version: "1.0.0"
 defaultEnabled: true
-tools: []
+tools:
+  - lookup_currency_war_data
 ---
 
 # 姬子·启行—列车同行阵容

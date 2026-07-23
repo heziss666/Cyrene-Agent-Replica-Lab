@@ -15,7 +15,7 @@ describe("builtin skill resources", () => {
       builtinRoot: defaultBuiltinSkillsRoot(),
       userRoot: join(userData, "skills"),
       settingsPath: join(userData, "settings.json"),
-      toolIds: ["search_knowledge"],
+      toolIds: ["search_knowledge", "lookup_currency_war_data"],
     });
 
     expect(runtime.registry.get("agent-learning-tutor")).toMatchObject({
@@ -38,14 +38,14 @@ describe("builtin skill resources", () => {
       builtinRoot: defaultBuiltinSkillsRoot(),
       userRoot: join(userData, "skills"),
       settingsPath: join(userData, "settings.json"),
-      toolIds: ["search_knowledge"],
+      toolIds: ["search_knowledge", "lookup_currency_war_data"],
     });
 
     expect(runtime.registry.get("currency-war-kafka-hysilens-dot")).toMatchObject({
       name: "Currency War Kafka Hysilens DoT",
       enabled: true,
       available: true,
-      requiredTools: [],
+      requiredTools: ["lookup_currency_war_data"],
     });
     expect(runtime.registry.get("currency-war-kafka-hysilens-dot")?.references
       .map((reference) => reference.name)).toEqual([
@@ -100,7 +100,7 @@ describe("builtin skill resources", () => {
       builtinRoot: defaultBuiltinSkillsRoot(),
       userRoot: join(userData, "skills"),
       settingsPath: join(userData, "settings.json"),
-      toolIds: ["search_knowledge"],
+      toolIds: ["search_knowledge", "lookup_currency_war_data"],
     });
 
     const entry = runtime.registry.get("currency-war-himeko-departure-train");
@@ -108,7 +108,7 @@ describe("builtin skill resources", () => {
       name: "Currency War Himeko Departure Train",
       enabled: true,
       available: true,
-      requiredTools: [],
+      requiredTools: ["lookup_currency_war_data"],
     });
     expect(entry?.references.map(({ name }) => name)).toEqual([
       "equipment.md",
@@ -157,7 +157,7 @@ describe("builtin skill resources", () => {
       builtinRoot: defaultBuiltinSkillsRoot(),
       userRoot: join(userData, "skills"),
       settingsPath: join(userData, "settings.json"),
-      toolIds: ["search_knowledge"],
+      toolIds: ["search_knowledge", "lookup_currency_war_data"],
     });
 
     const entry = runtime.registry.get("currency-war-phainon-counter-armor");
@@ -165,7 +165,7 @@ describe("builtin skill resources", () => {
       name: "Currency War Phainon Counter Armor",
       enabled: true,
       available: true,
-      requiredTools: [],
+      requiredTools: ["lookup_currency_war_data"],
     });
     expect(entry?.references.map(({ name }) => name)).toEqual([
       "equipment.md",

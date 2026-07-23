@@ -1279,6 +1279,45 @@ describe("registerChatIpc", () => {
     expect(runAgent.mock.calls[1]?.[0].toolRegistry).toBe(registries[1]);
   });
 
+  it("injects the current currency war evidence pack into the system message", async () => {
+    const runAgent = successfulAgent();
+    const currencyWarGrounding = {
+      build: vi.fn(async () => "GROUNDING PACK: 阿格莱雅=昼之半神/能量"),
+    };
+    const deps = createFakeDeps(runAgent, { currencyWarGrounding });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await send({ sender }, "我想玩白厄反伤");
+
+    expect(currencyWarGrounding.build).toHaveBeenCalledWith("我想玩白厄反伤");
+    expect(runAgent.mock.calls[0]?.[0].messages[0].content)
+      .toContain("GROUNDING PACK: 阿格莱雅=昼之半神/能量");
+  });
+
+  it("forbids concrete game facts when the evidence pack cannot be built", async () => {
+    const runAgent = successfulAgent();
+    const deps = createFakeDeps(runAgent, {
+      currencyWarGrounding: {
+        build: vi.fn(async () => {
+          throw new Error("catalog unavailable");
+        }),
+      },
+    });
+    await registerChatIpc(deps);
+    const { sender } = createSender();
+    const send = deps.ipcMain.handlers.get(IPC_CHANNELS.chat.sendMessage)!;
+
+    await expect(send({ sender }, "我想玩白厄反伤")).resolves.toMatchObject({
+      reply: "reply",
+    });
+    expect(runAgent.mock.calls[0]?.[0].messages[0].content)
+      .toContain("本轮货币战争证据不可用");
+    expect(runAgent.mock.calls[0]?.[0].messages[0].content)
+      .toContain("禁止陈述具体游戏事实");
+  });
+
   it("injects the skill catalog and a manual skill only for its requested turn", async () => {
     const runAgent = successfulAgent();
     const skillRegistry = {

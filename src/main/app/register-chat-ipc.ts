@@ -116,6 +116,7 @@ import type { VendorAdapter } from "../vendors/types.js";
 import { buildSkillCatalog } from "../skills/skill-catalog.js";
 import { parseSkillCommand } from "../skills/skill-command.js";
 import type { SkillRegistry } from "../skills/skill-registry.js";
+import type { CurrencyWarGroundingBuilder } from "../currency-war/grounding/currency-war-grounding.js";
 
 export interface IpcSenderLike {
   send: (channel: string, payload: ChatAgentEventPayload) => void;
@@ -156,6 +157,7 @@ export interface RegisterChatIpcDeps {
     SkillRegistry,
     "list" | "get" | "readBody" | "readReference"
   >;
+  currencyWarGrounding?: CurrencyWarGroundingBuilder;
   conversationService?: ConversationService;
   contextManager?: ContextManager;
   conversationSummarizer?: ConversationSummarizer;
@@ -563,6 +565,18 @@ export async function registerChatIpc(
             createMemoryWriteFailedEvent("recall", error),
           );
         }
+        let currencyWarContext = "";
+        if (deps.currencyWarGrounding) {
+          try {
+            currencyWarContext = await deps.currencyWarGrounding.build(text);
+          } catch {
+            currencyWarContext = [
+              "## 货币战争证据状态",
+              "本轮货币战争证据不可用。",
+              "禁止陈述具体游戏事实；只能说明无法完成可靠查证，并请用户稍后重试。",
+            ].join("\n");
+          }
+        }
         const personaPrompt = promptComposer.composeSystemPrompt({
           styleId,
           transition,
@@ -574,6 +588,7 @@ export async function registerChatIpc(
           personaPrompt,
           skillCatalog,
           manualSkillPrompt,
+          currencyWarContext,
           memoryContext,
         ].filter((part) => part.trim().length > 0);
         const systemMessage: ChatMessage = {

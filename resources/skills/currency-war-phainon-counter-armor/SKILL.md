@@ -3,7 +3,8 @@ name: Currency War Phainon Counter Armor
 description: 当用户在《货币战争》4.4–4.7 标准博弈最高难度中使用白厄作为前台主输出，尤其考虑以牙还牙甲反伤体系，并需要判断能否成型、前排、装备、升星、升级、刷新、止损或转型时使用。
 version: "1.0.0"
 defaultEnabled: true
-tools: []
+tools:
+  - lookup_currency_war_data
 ---
 
 # 白厄—以牙还牙甲反伤阵容

@@ -86,10 +86,16 @@ import { createCurrencyWarRuntime } from "../currency-war/currency-war-runtime.j
 import { createCurrencyWarGameStore } from "../currency-war/games/currency-war-game-store.js";
 import { createCurrencyWarGameService } from "../currency-war/games/currency-war-game-service.js";
 import { registerCurrencyWarGamesIpc } from "./register-currency-war-games-ipc.js";
+import { createCurrencyWarFactService } from "../currency-war/grounding/currency-war-facts.js";
+import { registerCurrencyWarTools } from "../currency-war/grounding/currency-war-tools.js";
+import { createCurrencyWarGroundingBuilder } from "../currency-war/grounding/currency-war-grounding.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
   const baseToolRegistry = createRuntimeToolRegistry();
+  const currencyWarRuntime = createCurrencyWarRuntime(await loadCurrencyWarRuntime());
+  const currencyWarFacts = createCurrencyWarFactService(currencyWarRuntime);
+  registerCurrencyWarTools(baseToolRegistry, currencyWarFacts);
   const userData = app.getPath("userData");
   const runConfig = loadAgentRunConfig();
   const agentRunStore = createAgentRunStore({ rootDir: join(userData, "agent-runs") });
@@ -124,6 +130,10 @@ async function boot(): Promise<void> {
     toolIds: baseToolRegistry.getAllTools().map((tool) => tool.id),
   });
   registerSkillTools(baseToolRegistry, skillRuntime.registry);
+  const currencyWarGrounding = createCurrencyWarGroundingBuilder({
+    facts: currencyWarFacts,
+    skills: skillRuntime.registry,
+  });
   const mcpRuntime = createMcpRuntime({
     configPath: join(userData, "mcp-servers.json"),
     registry: baseToolRegistry,
@@ -172,7 +182,6 @@ async function boot(): Promise<void> {
   });
   const memoryRecall = createMemoryRecallService({ store: memoryStore, embeddingProvider, vectorIndex });
   const conversationConfig = loadConversationConfig(process.env, userData);
-  const currencyWarRuntime = createCurrencyWarRuntime(await loadCurrencyWarRuntime());
   const currencyWarGameStore = createCurrencyWarGameStore({
     rootDir: join(userData, "currency-war", "games"),
   });
@@ -224,6 +233,7 @@ async function boot(): Promise<void> {
   const chatRuntime = await registerChatIpc({
     ipcMain,
     skillRegistry: skillRuntime.registry,
+    currencyWarGrounding,
     createToolRegistry: () => mcpRuntime.manager.createToolRegistrySnapshot(),
     memoryStore,
     memoryRecall,

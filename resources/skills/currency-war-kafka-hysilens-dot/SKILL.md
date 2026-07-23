@@ -3,7 +3,8 @@ name: Currency War Kafka Hysilens DoT
 description: 当用户在《货币战争》4.4–4.7 标准博弈最高难度中考虑、运营或调整以卡芙卡和海瑟音为核心的持续伤害阵容，或围绕黑天鹅、椒丘等成员进行购买、站位、升星、升级、刷新、装备、止损或转型决策时使用。
 version: "1.0.0"
 defaultEnabled: true
-tools: []
+tools:
+  - lookup_currency_war_data
 ---
 
 # 卡芙卡—海瑟音持续伤害阵容
