@@ -1,18 +1,33 @@
 import type {
   CurrencyWarCharacterInstance,
+  CurrencyWarEditorOptions,
   CurrencyWarGameState,
-  CurrencyWarPosition,
-  CurrencyWarShopSlot,
   CurrencyWarStateApi,
   CurrencyWarStatePatch,
 } from "../../shared/currency-war-api-types.js";
+import {
+  createCharacterInstance,
+  createShopSlot,
+  getCharacterCosts,
+  getCharactersForCost,
+  getPrimaryCost,
+  numberCharacterInstances,
+  replaceCharacterForCost,
+} from "./currency-war-character-editor.js";
+import {
+  formatNumberedCharacter,
+  getAdvisorOptions,
+  removeCharacterAssignments,
+  removeInventoryAssignments,
+} from "./currency-war-equipment-editor.js";
 import {
   createCurrencyWarStateViewModel,
   type CurrencyWarStateViewSnapshot,
 } from "./currency-war-state-view-model.js";
 
 export interface CurrencyWarStateViewController {
-  load(conversationId: string): Promise<void>;
+  load(conversationId: string, conversationTitle?: string): Promise<void>;
+  setConversationTitle(title: string): void;
   flush(): Promise<void>;
   reset(): Promise<void>;
 }
@@ -23,6 +38,8 @@ export function mountCurrencyWarStateView(options: {
   confirm?: (message: string) => boolean | Promise<boolean>;
 }): CurrencyWarStateViewController {
   const confirm = options.confirm ?? ((message: string) => window.confirm(message));
+  let editorOptions: CurrencyWarEditorOptions | undefined;
+  let conversationTitle = "";
   const model = createCurrencyWarStateViewModel({
     api: options.api,
     onChange: updateFeedback,
@@ -41,41 +58,42 @@ export function mountCurrencyWarStateView(options: {
     }
   }
 
+  function edit(patch: CurrencyWarStatePatch): void {
+    model.edit(patch);
+    const state = model.snapshot().state;
+    if (state) render(state);
+  }
+
   function render(state: CurrencyWarGameState): void {
+    if (!editorOptions) {
+      options.root.innerHTML = `<p class="game-state-unavailable">角色数据不可用，暂时无法编辑当前对局。</p>`;
+      return;
+    }
+    const numbered = numberCharacterInstances(state.board, state.bench);
     options.root.innerHTML = `
       <div class="game-state-toolbar">
-        <div><h2>当前对局</h2><p>标准博弈 · 最高难度 · 4.4</p></div>
-        <div class="game-state-toolbar-actions"><span data-save-status>未修改</span><button type="button" data-reset>重置对局</button></div>
+        <div><h2>对局 · ${escapeHtml(conversationTitle || "当前会话")}</h2><p>标准博弈 · 最高难度 · 4.4</p></div>
+        <div class="game-state-toolbar-actions"><span data-save-status>${saveLabel(model.snapshot().saveStatus)}</span><button type="button" data-action="reset">重置对局</button></div>
       </div>
       <div class="game-state-grid">
-        ${section("进度与经济", `
-          <div class="game-field-grid">
-            ${selectField("节点", "nodeId", standardNodeOptions(state.nodeId))}
-            ${selectField("状态", "status", optionList(["active", "won", "lost"], state.status))}
-            ${numberField("生命", "teamHealth", state.teamHealth)}
-            ${numberField("金币", "gold", state.gold)}
-            ${numberField("等级", "level", state.level)}
-            ${numberField("经验", "experience", state.experience)}
-            ${numberField("连胜（可空）", "winStreak", state.winStreak ?? "")}
-          </div>
-        `)}
-        ${section("阵容", `
-          ${textAreaField("上阵角色：角色 | 星级 | front/back", "board", formatCharacters(state.board))}
-          ${textAreaField("备战席：角色 | 星级", "bench", formatCharacters(state.bench))}
-        `)}
-        ${section("商店", `
-          <label class="game-check"><input data-field="shopLocked" type="checkbox" ${state.shop.locked ? "checked" : ""}/> 锁定商店</label>
-          ${textAreaField("角色用逗号分隔，空位保留", "shop", state.shop.slots.map((slot) => slot.characterName ?? "").join(", "))}
-        `)}
-        ${section("装备", `
-          ${textAreaField("库存：每行一件装备", "inventory", state.inventory.map((item) => item.equipmentName).join("\n"))}
-          ${textAreaField("分配：装备序号 > 角色名", "assignments", formatAssignments(state))}
-        `)}
+        ${section("进度与经济", `<div class="game-field-grid">
+          ${selectField("节点", "nodeId", standardNodeOptions(state.nodeId))}
+          ${selectField("状态", "status", optionList(["active", "won", "lost"], state.status))}
+          ${numberField("生命", "teamHealth", state.teamHealth)}
+          ${numberField("金币", "gold", state.gold)}
+          ${numberField("等级", "level", state.level)}
+          ${numberField("经验", "experience", state.experience)}
+          ${numberField("连胜（可空）", "winStreak", state.winStreak ?? "")}
+        </div>`)}
+        ${section("上阵角色", characterRows("board", state.board, editorOptions, 0) + addButton("add-board", "添加上阵角色"))}
+        ${section("备战席", characterRows("bench", state.bench, editorOptions, state.board.length) + addButton("add-bench", "添加备战角色"))}
+        ${section("商店", shopRows(state, editorOptions) + addButton("add-shop", "添加商店槽位"))}
+        ${section("装备库存", inventoryRows(state, editorOptions) + addButton("add-equipment", "添加装备"))}
+        ${section("装备分配", assignmentRows(state, numbered) + addButton("add-assignment", "添加分配"))}
         ${section("投资与顾问", `
           ${textField("投资环境", "investmentEnvironment", state.investmentEnvironment ?? "")}
           ${textAreaField("投资策略：位面 | 策略名", "investmentStrategies", state.investmentStrategies.map((item) => `${item.plane} | ${item.strategyName}`).join("\n"))}
-          <label class="game-check"><input data-field="advisorUnlocked" type="checkbox" ${state.advisorState.unlocked ? "checked" : ""}/> 已解锁顾问</label>
-          ${textField("顾问名称", "advisorName", state.advisorState.name ?? "")}
+          ${selectField("已解锁顾问", "advisorName", `<option value="">未解锁</option>${optionList(getAdvisorOptions(editorOptions.characters).map(({ name }) => name), state.advisorState.name ?? "")}`)}
           ${textAreaField("特殊资源：名称 = 数量", "specialResources", Object.entries(state.specialResources).map(([key, value]) => `${key} = ${value}`).join("\n"))}
         `)}
         ${section("备注与问题", `
@@ -84,25 +102,151 @@ export function mountCurrencyWarStateView(options: {
         `)}
       </div>
     `;
+    bindEvents(state, editorOptions);
+    updateFeedback(model.snapshot());
+  }
 
+  function bindEvents(state: CurrencyWarGameState, available: CurrencyWarEditorOptions): void {
+    options.root.querySelectorAll<HTMLElement>("[data-action]").forEach((element) => {
+      element.addEventListener("click", async () => {
+        const action = element.dataset.action;
+        if (action === "reset") {
+          if (await confirm("重置当前会话的对局状态？")) {
+            const snapshot = await model.reset();
+            if (snapshot.state) render(snapshot.state);
+          }
+          return;
+        }
+        handleAction(action ?? "", element.dataset, state, available);
+      });
+    });
     options.root.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("[data-field]")
       .forEach((element) => {
-        element.addEventListener("change", () => model.edit(readPatch(element, model.snapshot().state!)));
+        element.addEventListener("change", () => handleField(element, state, available));
       });
-    options.root.querySelector<HTMLButtonElement>("[data-reset]")?.addEventListener("click", async () => {
-      if (await confirm("重置当前会话的对局状态？")) {
-        await model.reset();
-        render(model.snapshot().state!);
+  }
+
+  function handleAction(
+    action: string,
+    data: DOMStringMap,
+    state: CurrencyWarGameState,
+    available: CurrencyWarEditorOptions,
+  ): void {
+    const costs = getCharacterCosts(available.characters);
+    const firstCost = costs[0] ?? 1;
+    const index = Number(data.index);
+    if (action === "add-board") {
+      edit({ board: [...state.board, createCharacterInstance("board", available.characters, firstCost)] });
+    } else if (action === "add-bench") {
+      edit({ bench: [...state.bench, createCharacterInstance("bench", available.characters, firstCost)] });
+    } else if (action === "remove-unit") {
+      const group = data.group === "board" ? "board" : "bench";
+      const units = state[group];
+      const removed = units[index];
+      if (!removed) return;
+      edit({
+        [group]: units.filter((_, itemIndex) => itemIndex !== index),
+        equipmentAssignments: removeCharacterAssignments(state.equipmentAssignments, removed.instanceId),
+      });
+    } else if (action === "add-shop") {
+      edit({ shop: { locked: false, slots: [...state.shop.slots, createShopSlot(state.shop.slots.length + 1, available.characters, firstCost)] } });
+    } else if (action === "remove-shop") {
+      edit({ shop: { locked: false, slots: state.shop.slots.filter((_, itemIndex) => itemIndex !== index).map((slot, itemIndex) => ({ ...slot, slot: itemIndex + 1 })) } });
+    } else if (action === "add-equipment") {
+      const equipmentName = available.equipment[0];
+      if (!equipmentName) return;
+      edit({ inventory: [...state.inventory, { instanceId: crypto.randomUUID(), equipmentName }] });
+    } else if (action === "remove-equipment") {
+      const removed = state.inventory[index];
+      if (!removed) return;
+      edit({
+        inventory: state.inventory.filter((_, itemIndex) => itemIndex !== index),
+        equipmentAssignments: removeInventoryAssignments(state.equipmentAssignments, removed.instanceId),
+      });
+    } else if (action === "add-assignment") {
+      const units = numberCharacterInstances(state.board, state.bench);
+      const assigned = new Set(state.equipmentAssignments.map(({ equipmentInstanceId }) => equipmentInstanceId));
+      const equipment = state.inventory.find(({ instanceId }) => !assigned.has(instanceId));
+      if (!units[0] || !equipment) return;
+      edit({ equipmentAssignments: [...state.equipmentAssignments, { characterInstanceId: units[0].instanceId, equipmentInstanceId: equipment.instanceId }] });
+    } else if (action === "remove-assignment") {
+      edit({ equipmentAssignments: state.equipmentAssignments.filter((_, itemIndex) => itemIndex !== index) });
+    }
+  }
+
+  function handleField(
+    element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+    state: CurrencyWarGameState,
+    available: CurrencyWarEditorOptions,
+  ): void {
+    const field = element.dataset.field ?? "";
+    const index = Number(element.dataset.index);
+    const group = element.dataset.group === "board" ? "board" : "bench";
+    if (field.startsWith("unit-")) {
+      const units = [...state[group]];
+      const unit = units[index];
+      if (!unit) return;
+      if (field === "unit-cost") units[index] = replaceCharacterForCost(unit, available.characters, Number(element.value));
+      if (field === "unit-character") units[index] = { ...unit, characterName: element.value };
+      if (field === "unit-star") units[index] = { ...unit, star: Number(element.value) };
+      if (field === "unit-position") units[index] = { ...unit, position: element.value === "back" ? "back" : "front" };
+      edit({ [group]: units });
+      return;
+    }
+    if (field.startsWith("shop-")) {
+      const slots = state.shop.slots.map((slot) => ({ ...slot }));
+      const slot = slots[index];
+      if (!slot) return;
+      if (field === "shop-cost") {
+        const candidates = getCharactersForCost(available.characters, Number(element.value));
+        slot.characterName = candidates.some(({ name }) => name === slot.characterName) ? slot.characterName : candidates[0]?.name ?? null;
       }
-    });
+      if (field === "shop-character") slot.characterName = element.value || null;
+      if (field === "shop-star") slot.star = Number(element.value);
+      edit({ shop: { locked: false, slots } });
+      return;
+    }
+    if (field === "inventory-equipment") {
+      const inventory = state.inventory.map((item) => ({ ...item }));
+      if (inventory[index]) inventory[index].equipmentName = element.value;
+      edit({ inventory });
+      return;
+    }
+    if (field === "assignment-character" || field === "assignment-equipment") {
+      const assignments = state.equipmentAssignments.map((item) => ({ ...item }));
+      if (!assignments[index]) return;
+      if (field === "assignment-character") assignments[index].characterInstanceId = element.value;
+      else assignments[index].equipmentInstanceId = element.value;
+      edit({ equipmentAssignments: assignments });
+      return;
+    }
+    edit(readSimplePatch(element, state));
   }
 
   return {
-    async load(conversationId) {
+    async load(conversationId, title = "") {
+      conversationTitle = title;
+      if (!editorOptions) {
+        try {
+          editorOptions = await options.api.getEditorOptions();
+        } catch {
+          editorOptions = { characters: [], equipment: [] };
+        }
+      }
       const snapshot = await model.load(conversationId);
       if (snapshot.state) render(snapshot.state);
     },
-    flush: () => model.flush(),
+    setConversationTitle(title) {
+      conversationTitle = title;
+      const state = model.snapshot().state;
+      if (state) render(state);
+    },
+    async flush() {
+      await model.flush();
+      if (model.snapshot().saveStatus === "error") {
+        throw new Error("GAME_STATE_SAVE_FAILED");
+      }
+    },
     async reset() {
       const snapshot = await model.reset();
       if (snapshot.state) render(snapshot.state);
@@ -110,33 +254,60 @@ export function mountCurrencyWarStateView(options: {
   };
 }
 
-export function parseCharacterLines(
-  text: string,
+function characterRows(
   group: "board" | "bench",
-): CurrencyWarCharacterInstance[] {
-  return nonEmptyLines(text).map((line, index) => {
-    const [characterName = "", starText = "1", positionText = ""] = line.split("|").map((part) => part.trim());
-    const position: CurrencyWarPosition = group === "bench"
-      ? "bench"
-      : positionText === "back" ? "back" : "front";
-    return {
-      instanceId: `${group}-${index + 1}`,
-      characterName,
-      star: Math.max(1, Number.parseInt(starText, 10) || 1),
-      position,
-    };
-  });
+  units: CurrencyWarCharacterInstance[],
+  options: CurrencyWarEditorOptions,
+  offset: number,
+): string {
+  return units.map((unit, index) => {
+    const cost = getPrimaryCost(options.characters, unit.characterName);
+    const characters = getCharactersForCost(options.characters, cost).map(({ name }) => name);
+    return `<div class="game-editor-row character-editor-row ${group === "bench" ? "is-bench" : ""}">
+      <span class="game-row-number">${offset + index + 1}号</span>
+      ${rowSelect("费用", "unit-cost", optionList(getCharacterCosts(options.characters).map(String), String(cost)), group, index)}
+      ${rowSelect("角色", "unit-character", optionListWithUnknown(characters, unit.characterName), group, index)}
+      ${rowSelect("星级", "unit-star", optionList(["1", "2", "3"], String(unit.star)), group, index)}
+      ${group === "board" ? rowSelect("位置", "unit-position", optionList(["front", "back"], unit.position), group, index) : ""}
+      ${removeButton("remove-unit", group, index)}
+    </div>`;
+  }).join("") || emptyText("尚未添加角色");
 }
 
-export function parseShopNames(text: string): CurrencyWarShopSlot[] {
-  if (!text.trim()) return [];
-  return text.split(",").map((name, index) => ({
-    slot: index + 1,
-    characterName: name.trim() || null,
-  }));
+function shopRows(state: CurrencyWarGameState, options: CurrencyWarEditorOptions): string {
+  return state.shop.slots.map((slot, index) => {
+    const cost = getPrimaryCost(options.characters, slot.characterName);
+    const characters = getCharactersForCost(options.characters, cost).map(({ name }) => name);
+    return `<div class="game-editor-row shop-editor-row">
+      <span class="game-row-number">${index + 1}号</span>
+      ${rowSelect("费用", "shop-cost", optionList(getCharacterCosts(options.characters).map(String), String(cost)), "shop", index)}
+      ${rowSelect("角色", "shop-character", optionListWithUnknown(characters, slot.characterName ?? ""), "shop", index)}
+      ${rowSelect("星级", "shop-star", optionList(["1", "2", "3"], String(slot.star)), "shop", index)}
+      ${removeButton("remove-shop", "shop", index)}
+    </div>`;
+  }).join("") || emptyText("尚未添加商店角色");
 }
 
-function readPatch(
+function inventoryRows(state: CurrencyWarGameState, options: CurrencyWarEditorOptions): string {
+  return state.inventory.map((item, index) => `<div class="game-editor-row inventory-editor-row">
+    <span class="game-row-number">${index + 1}号</span>
+    ${rowSelect("装备", "inventory-equipment", optionListWithUnknown(options.equipment, item.equipmentName), "inventory", index)}
+    ${removeButton("remove-equipment", "inventory", index)}
+  </div>`).join("") || emptyText("尚未添加装备");
+}
+
+function assignmentRows(
+  state: CurrencyWarGameState,
+  units: ReturnType<typeof numberCharacterInstances>,
+): string {
+  return state.equipmentAssignments.map((assignment, index) => `<div class="game-editor-row assignment-editor-row">
+    ${rowSelect("角色", "assignment-character", units.map((unit) => `<option value="${escapeHtml(unit.instanceId)}" ${unit.instanceId === assignment.characterInstanceId ? "selected" : ""}>${escapeHtml(formatNumberedCharacter(unit))}</option>`).join(""), "assignment", index)}
+    ${rowSelect("装备", "assignment-equipment", state.inventory.map((item, itemIndex) => `<option value="${escapeHtml(item.instanceId)}" ${item.instanceId === assignment.equipmentInstanceId ? "selected" : ""}>${itemIndex + 1}号 ${escapeHtml(item.equipmentName)}</option>`).join(""), "assignment", index)}
+    ${removeButton("remove-assignment", "assignment", index)}
+  </div>`).join("") || emptyText("尚未分配装备");
+}
+
+function readSimplePatch(
   element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
   state: CurrencyWarGameState,
 ): CurrencyWarStatePatch {
@@ -151,41 +322,20 @@ function readPatch(
     case "experience":
       return { [field]: Number.parseInt(value, 10) } as CurrencyWarStatePatch;
     case "winStreak": return { winStreak: value.trim() ? Number.parseInt(value, 10) : null };
-    case "board": return { board: parseCharacterLines(value, "board") };
-    case "bench": return { bench: parseCharacterLines(value, "bench") };
-    case "shop": return { shop: { ...state.shop, slots: parseShopNames(value) } };
-    case "shopLocked": return { shop: { ...state.shop, locked: (element as HTMLInputElement).checked } };
-    case "inventory":
-      return { inventory: nonEmptyLines(value).map((equipmentName, index) => ({ instanceId: `equipment-${index + 1}`, equipmentName })) };
-    case "assignments": return { equipmentAssignments: parseAssignments(value, state) };
     case "investmentEnvironment": return { investmentEnvironment: value.trim() || null };
-    case "investmentStrategies":
-      return {
-        investmentStrategies: nonEmptyLines(value).flatMap((line) => {
-          const [planeText, strategyName = ""] = line.split("|").map((part) => part.trim());
-          const plane = Number.parseInt(planeText, 10);
-          return plane >= 1 && plane <= 3 && strategyName
-            ? [{ plane: plane as 1 | 2 | 3, strategyName }]
-            : [];
-        }),
-      };
-    case "advisorUnlocked": return { advisorState: { ...state.advisorState, unlocked: (element as HTMLInputElement).checked } };
-    case "advisorName": return { advisorState: { ...state.advisorState, name: value.trim() || null } };
+    case "investmentStrategies": return { investmentStrategies: parseStrategies(value) };
+    case "advisorName": return { advisorState: value ? { unlocked: true, name: value } : { unlocked: false, name: null } };
     case "specialResources": return { specialResources: parseResources(value) };
     case "notes": return { notes: value };
-    default: return {};
+    default: return { notes: state.notes };
   }
 }
 
-function parseAssignments(text: string, state: CurrencyWarGameState): CurrencyWarGameState["equipmentAssignments"] {
-  const characters = [...state.board, ...state.bench];
+function parseStrategies(text: string): CurrencyWarGameState["investmentStrategies"] {
   return nonEmptyLines(text).flatMap((line) => {
-    const [equipmentIndexText, characterName = ""] = line.split(">").map((part) => part.trim());
-    const equipment = state.inventory[Number.parseInt(equipmentIndexText, 10) - 1];
-    const character = characters.find((item) => item.characterName === characterName);
-    return equipment && character
-      ? [{ equipmentInstanceId: equipment.instanceId, characterInstanceId: character.instanceId }]
-      : [];
+    const [planeText, strategyName = ""] = line.split("|").map((part) => part.trim());
+    const plane = Number.parseInt(planeText, 10);
+    return plane >= 1 && plane <= 3 && strategyName ? [{ plane: plane as 1 | 2 | 3, strategyName }] : [];
   });
 }
 
@@ -197,25 +347,24 @@ function parseResources(text: string): Record<string, number> {
   }));
 }
 
-function formatAssignments(state: CurrencyWarGameState): string {
-  const characters = [...state.board, ...state.bench];
-  return state.equipmentAssignments.flatMap((assignment) => {
-    const equipmentIndex = state.inventory.findIndex((item) => item.instanceId === assignment.equipmentInstanceId);
-    const character = characters.find((item) => item.instanceId === assignment.characterInstanceId);
-    return equipmentIndex >= 0 && character ? [`${equipmentIndex + 1} > ${character.characterName}`] : [];
-  }).join("\n");
-}
-
-function formatCharacters(characters: CurrencyWarCharacterInstance[]): string {
-  return characters.map((unit) => `${unit.characterName} | ${unit.star} | ${unit.position}`).join("\n");
-}
-
 function nonEmptyLines(text: string): string[] {
   return text.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
 }
 
 function section(title: string, body: string): string {
   return `<section class="game-state-section"><h3>${title}</h3>${body}</section>`;
+}
+
+function addButton(action: string, label: string): string {
+  return `<button class="game-add-button" type="button" data-action="${action}">+ ${label}</button>`;
+}
+
+function removeButton(action: string, group: string, index: number): string {
+  return `<button class="game-row-remove" type="button" data-action="${action}" data-group="${group}" data-index="${index}" aria-label="删除">删除</button>`;
+}
+
+function rowSelect(label: string, field: string, options: string, group: string, index: number): string {
+  return `<label class="game-row-field"><span>${label}</span><select data-field="${field}" data-group="${group}" data-index="${index}">${options}</select></label>`;
 }
 
 function textField(label: string, field: string, value: string): string {
@@ -235,20 +384,28 @@ function selectField(label: string, field: string, options: string): string {
 }
 
 function standardNodeOptions(selected: string): string {
-  const ids = [
+  return optionList([
     ...Array.from({ length: 9 }, (_, index) => `1-${index + 1}`),
     ...Array.from({ length: 7 }, (_, index) => `2-${index + 1}`),
     ...Array.from({ length: 7 }, (_, index) => `3-${index + 1}`),
-  ];
-  return optionList(ids, selected);
+  ], selected);
 }
 
 function optionList(values: readonly string[], selected: string): string {
-  return values.map((value) => `<option value="${value}" ${value === selected ? "selected" : ""}>${value}</option>`).join("");
+  return values.map((value) => `<option value="${escapeHtml(value)}" ${value === selected ? "selected" : ""}>${escapeHtml(value)}</option>`).join("");
+}
+
+function optionListWithUnknown(values: readonly string[], selected: string): string {
+  const all = selected && !values.includes(selected) ? [selected, ...values] : values;
+  return optionList(all, selected);
 }
 
 function saveLabel(status: CurrencyWarStateViewSnapshot["saveStatus"]): string {
   return { idle: "未修改", dirty: "待保存", saving: "保存中…", saved: "已保存", error: "保存失败" }[status];
+}
+
+function emptyText(text: string): string {
+  return `<p class="game-editor-empty">${text}</p>`;
 }
 
 function escapeHtml(value: string): string {

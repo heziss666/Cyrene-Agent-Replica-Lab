@@ -238,6 +238,9 @@ function renderConversationList(snapshot: ConversationChangedPayload): void {
 }
 
 async function openConversation(id: string, persistActive = true): Promise<void> {
+  if (persistActive && activeConversationId && activeConversationId !== id) {
+    await currencyWarPanel.flush();
+  }
   const detail = persistActive
     ? await window.cyrene.conversations.setActive(id)
     : await window.cyrene.conversations.get(id);
@@ -246,7 +249,7 @@ async function openConversation(id: string, persistActive = true): Promise<void>
   renderConversation(detail);
   setBusy(conversationModel?.snapshot().busy ?? false);
   await loadConversationStyle();
-  await currencyWarPanel.load(id);
+  await currencyWarPanel.load(id, detail.title);
   renderConversationList(await window.cyrene.conversations.list());
 }
 
@@ -258,6 +261,7 @@ async function createConversation(): Promise<void> {
     messageInput.focus();
     return;
   }
+  await currencyWarPanel.flush();
   const result = await window.cyrene.conversations.create();
   if (!conversationModel) conversationModel = createConversationViewModel(result.conversation.id);
   await openConversation(result.conversation.id, false);
@@ -266,6 +270,7 @@ async function createConversation(): Promise<void> {
 
 async function renameConversation(id: string, title: string): Promise<void> {
   await window.cyrene.conversations.rename(id, title);
+  if (id === activeConversationId) currencyWarPanel.setConversationTitle(title);
   renderConversationList(await window.cyrene.conversations.list());
 }
 

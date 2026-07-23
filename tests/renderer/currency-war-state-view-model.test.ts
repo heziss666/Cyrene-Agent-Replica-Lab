@@ -21,6 +21,7 @@ function setup() {
     update,
     reset: vi.fn(async () => state),
     validate: vi.fn(async () => ({ valid: true, issues: [] })),
+    getEditorOptions: vi.fn(async () => ({ characters: [], equipment: [] })),
   } satisfies CurrencyWarStateApi;
   const model = createCurrencyWarStateViewModel({ api, debounceMs: 100 });
   return { api, model, update };
@@ -74,5 +75,21 @@ describe("CurrencyWarStateViewModel", () => {
       issues: [{ path: "level" }],
     });
     vi.useRealTimers();
+  });
+
+  it("does not switch conversations when the current game state cannot be saved", async () => {
+    const { api, model } = setup();
+    vi.mocked(api.update).mockResolvedValueOnce({
+      state: createDefaultGameState("conv_1"),
+      saved: false,
+      valid: false,
+      issues: [{ code: "VALUE_INVALID", path: "level", severity: "error", message: "等级无效" }],
+    });
+    await model.load("conv_1");
+    model.edit({ level: -1 });
+
+    await expect(model.load("conv_2")).rejects.toThrow("GAME_STATE_SWITCH_SAVE_FAILED");
+    expect(model.snapshot().conversationId).toBe("conv_1");
+    expect(api.get).not.toHaveBeenCalledWith("conv_2");
   });
 });

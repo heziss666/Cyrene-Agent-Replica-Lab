@@ -86,7 +86,10 @@ export function createCurrencyWarStateViewModel(options: {
     snapshot,
 
     async load(nextConversationId: string) {
-      if (conversationId && conversationId !== nextConversationId) await flush();
+      if (conversationId && conversationId !== nextConversationId) {
+        await flush();
+        if (saveStatus === "error") throw new Error("GAME_STATE_SWITCH_SAVE_FAILED");
+      }
       conversationId = nextConversationId;
       state = await options.api.get(nextConversationId);
       revision = 0;
