@@ -42,6 +42,9 @@ const api: CyreneApi = {
       IPC_CHANNELS.currencyWarState.validate,
       { conversationId },
     ),
+    getEditorOptions: async () => ipcRenderer.invoke(
+      IPC_CHANNELS.currencyWarState.getEditorOptions,
+    ),
   },
   chat: {
     sendMessage: async (input) => {

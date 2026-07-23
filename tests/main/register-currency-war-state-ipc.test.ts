@@ -19,6 +19,7 @@ function service() {
     update: vi.fn(async () => ({ state, saved: true, valid: true, issues: [] })),
     reset: vi.fn(async () => state),
     validate: vi.fn(async () => ({ valid: true, issues: [] })),
+    getEditorOptions: vi.fn(() => ({ characters: [], equipment: [] })),
   };
 }
 
@@ -33,6 +34,8 @@ describe("registerCurrencyWarStateIpc", () => {
 
     expect(stateService.get).toHaveBeenCalledWith("conv_1");
     expect(stateService.update).toHaveBeenCalledWith("conv_1", { gold: 20 });
+    await ipcMain.handlers.get(IPC_CHANNELS.currencyWarState.getEditorOptions)!({});
+    expect(stateService.getEditorOptions).toHaveBeenCalledOnce();
   });
 
   it("rejects extra keys and immutable patch fields", async () => {
@@ -49,7 +52,7 @@ describe("registerCurrencyWarStateIpc", () => {
   it("disposes all handlers", () => {
     const ipcMain = fakeIpcMain();
     const runtime = registerCurrencyWarStateIpc({ ipcMain, service: service() as never });
-    expect(ipcMain.handlers.size).toBe(5);
+    expect(ipcMain.handlers.size).toBe(6);
     runtime.dispose();
     expect(ipcMain.handlers.size).toBe(0);
   });

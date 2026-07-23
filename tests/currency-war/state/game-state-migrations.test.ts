@@ -26,7 +26,7 @@ describe("migrateGameState", () => {
       nodeId: "2-4",
       teamHealth: 72,
       board: [{ characterName: "黑塔", star: 2, position: "back" }],
-      shop: { locked: false, slots: [{ slot: 1, characterName: "翡翠" }] },
+      shop: { locked: false, slots: [{ slot: 1, characterName: "翡翠", star: 1 }] },
       inventory: [{ instanceId: "legacy-equipment-1", equipmentName: "某装备" }],
     });
   });

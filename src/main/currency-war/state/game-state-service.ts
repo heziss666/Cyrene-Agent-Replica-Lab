@@ -3,6 +3,7 @@ import type {
   CurrencyWarStatePatch,
   CurrencyWarStateUpdateResult,
   CurrencyWarStateValidationResult,
+  CurrencyWarEditorOptions,
 } from "../../../shared/currency-war-api-types.js";
 import type { CurrencyWarCatalog } from "../data/currency-war-catalog.js";
 import { buildCurrencyWarAgentContext } from "./game-state-agent-context.js";
@@ -19,6 +20,7 @@ export interface CurrencyWarGameStateService {
   validate(conversationId: string): Promise<CurrencyWarStateValidationResult>;
   getAgentContext(conversationId: string): Promise<string>;
   flush(): Promise<void>;
+  getEditorOptions(): CurrencyWarEditorOptions;
 }
 
 export function createCurrencyWarGameStateService(options: {
@@ -79,5 +81,27 @@ export function createCurrencyWarGameStateService(options: {
     },
 
     flush: () => options.store.flush(),
+
+    getEditorOptions() {
+      const characters = options.catalog.list("characters").map((entity) => ({
+        name: entity.name,
+        costs: normalizeCosts(entity.cost),
+        advisor: entity.advisor !== false && entity.advisor !== null,
+      })).sort((left, right) =>
+        (left.costs[0] ?? 999) - (right.costs[0] ?? 999)
+        || left.name.localeCompare(right.name, "zh-CN")
+      );
+      const equipment = options.catalog.list("equipment")
+        .map(({ name }) => name)
+        .sort((left, right) => left.localeCompare(right, "zh-CN"));
+      return structuredClone({ characters, equipment });
+    },
   };
+}
+
+function normalizeCosts(value: unknown): number[] {
+  const values = Array.isArray(value) ? value : [value];
+  return [...new Set(values.filter((item): item is number =>
+    typeof item === "number" && Number.isInteger(item) && item > 0
+  ))].sort((left, right) => left - right);
 }

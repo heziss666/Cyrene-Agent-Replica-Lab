@@ -48,9 +48,11 @@ describe("CyreneApi currency war contract", () => {
       update: async () => ({ state: {} as never, saved: true, valid: true, issues: [] }),
       reset: async () => ({} as never),
       validate: async () => ({ valid: true, issues: [] }),
+      getEditorOptions: async () => ({ characters: [], equipment: [] }),
     };
 
     await expect(currencyWarState.validate("conv_1")).resolves.toEqual({ valid: true, issues: [] });
+    await expect(currencyWarState.getEditorOptions()).resolves.toEqual({ characters: [], equipment: [] });
     expect(Object.keys(currencyWarState)).not.toContain("writeFile");
   });
 });

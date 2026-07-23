@@ -11,6 +11,7 @@ export interface CurrencyWarCharacterInstance {
 export interface CurrencyWarShopSlot {
   slot: number;
   characterName: string | null;
+  star: number;
 }
 
 export interface CurrencyWarShopState {
@@ -99,4 +100,16 @@ export interface CurrencyWarStateApi {
   update(conversationId: string, patch: CurrencyWarStatePatch): Promise<CurrencyWarStateUpdateResult>;
   reset(conversationId: string): Promise<CurrencyWarGameState>;
   validate(conversationId: string): Promise<CurrencyWarStateValidationResult>;
+  getEditorOptions(): Promise<CurrencyWarEditorOptions>;
+}
+
+export interface CurrencyWarCharacterOption {
+  name: string;
+  costs: number[];
+  advisor: boolean;
+}
+
+export interface CurrencyWarEditorOptions {
+  characters: CurrencyWarCharacterOption[];
+  equipment: string[];
 }

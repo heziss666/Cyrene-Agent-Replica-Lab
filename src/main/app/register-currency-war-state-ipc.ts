@@ -20,7 +20,7 @@ const PATCH_KEYS = new Set([
 
 export function registerCurrencyWarStateIpc(options: {
   ipcMain: CurrencyWarStateIpcMainLike;
-  service: Pick<CurrencyWarGameStateService, "get" | "create" | "update" | "reset" | "validate">;
+  service: Pick<CurrencyWarGameStateService, "get" | "create" | "update" | "reset" | "validate" | "getEditorOptions">;
 }): { dispose(): void } {
   for (const channel of CHANNELS) options.ipcMain.removeHandler(channel);
 
@@ -32,6 +32,8 @@ export function registerCurrencyWarStateIpc(options: {
     options.service.reset(parseConversationId(payload)));
   options.ipcMain.handle(IPC_CHANNELS.currencyWarState.validate, async (_event, payload) =>
     options.service.validate(parseConversationId(payload)));
+  options.ipcMain.handle(IPC_CHANNELS.currencyWarState.getEditorOptions, async () =>
+    options.service.getEditorOptions());
   options.ipcMain.handle(IPC_CHANNELS.currencyWarState.update, async (_event, payload) => {
     const object = exactObject(payload, ["conversationId", "patch"]);
     if (typeof object.conversationId !== "string" || !ID.test(object.conversationId)) invalid();

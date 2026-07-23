@@ -37,6 +37,7 @@ export const IPC_CHANNELS = {
     update: "currency-war:state:update",
     reset: "currency-war:state:reset",
     validate: "currency-war:state:validate",
+    getEditorOptions: "currency-war:state:get-editor-options",
   },
   runs: {
     list: "cyrene:runs:list",

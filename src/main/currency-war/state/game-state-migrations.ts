@@ -12,7 +12,12 @@ export function migrateGameState(
 ): CurrencyWarGameState {
   if (!isRecord(input)) throw new Error("GAME_STATE_INVALID");
   if (input.schemaVersion === 1) {
-    return structuredClone(input) as unknown as CurrencyWarGameState;
+    const cloned = structuredClone(input) as unknown as CurrencyWarGameState;
+    cloned.shop.slots = cloned.shop.slots.map((slot) => ({
+      ...slot,
+      star: Number.isInteger(slot.star) && slot.star > 0 ? slot.star : 1,
+    }));
+    return cloned;
   }
   if (input.schemaVersion !== undefined) {
     throw new Error("GAME_STATE_SCHEMA_UNSUPPORTED");
@@ -36,7 +41,7 @@ export function migrateGameState(
     bench,
     shop: {
       locked: false,
-      slots: shopNames.map((characterName, index) => ({ slot: index + 1, characterName })),
+      slots: shopNames.map((characterName, index) => ({ slot: index + 1, characterName, star: 1 })),
     },
     inventory: equipmentNames.map((equipmentName, index): CurrencyWarInventoryItem => ({
       instanceId: `legacy-equipment-${index + 1}`,
