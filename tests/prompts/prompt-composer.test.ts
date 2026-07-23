@@ -38,6 +38,18 @@ describe("createPromptComposer", () => {
     expect(prompt).not.toContain("当前项目资料对应的 4.4 版本");
   });
 
+  it("requires local evidence for every concrete currency war fact", () => {
+    const prompt = createPromptComposer().composeSystemPrompt({ styleId: "default" });
+
+    expect(prompt).toContain("没有证据，不得陈述");
+    expect(prompt).toContain("lookup_currency_war_data");
+    expect(prompt).toContain("字段为 `null`");
+    expect(prompt).toContain("【基础库】");
+    expect(prompt).toContain("【攻略 Skill】");
+    expect(prompt).toContain("【策略推导】");
+    expect(prompt).toContain("不得使用预训练记忆");
+  });
+
   it("eagerly loads all prompt assets and composes them in a stable order", () => {
     const readPrompt = vi.fn((path: string) => prompts[path] ?? "");
     const composer = createPromptComposer({ readPrompt });
