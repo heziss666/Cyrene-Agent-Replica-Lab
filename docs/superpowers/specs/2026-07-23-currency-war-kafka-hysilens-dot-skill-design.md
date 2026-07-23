@@ -1,10 +1,10 @@
-# 货币战争持续伤害阵容 Skill 设计
+# 货币战争卡芙卡—海瑟音持续伤害阵容 Skill 设计
 
 ## 1. 目标
 
 将根目录的 `CURRENCY_WAR_4_4_DOT_LINEUP_SKILL.md` 整理为能够被项目 SkillRegistry 自动发现、按需加载、直接指导 Agent 进行对局决策的正式 Skill。
 
-该 Skill 专门解决《崩坏：星穹铁道》货币战争 4.4 版本、标准博弈、最高难度中的持续伤害（DoT）阵容决策，包括：
+该 Skill 专门解决《崩坏：星穹铁道》货币战争 4.4 版本、标准博弈、最高难度中的卡芙卡—海瑟音持续伤害（DoT）阵容决策，包括：
 
 - 是否应该选择或继续持续伤害路线。
 - 当前节点购买、上阵、站位、升级、刷新和升星的优先级。
@@ -18,7 +18,7 @@
 ## 2. 文件结构
 
 ```text
-resources/skills/currency-war-dot-lineup/
+resources/skills/currency-war-kafka-hysilens-dot/
 ├── SKILL.md
 └── references/
     ├── lineup-core.md
@@ -88,8 +88,8 @@ resources/skills/currency-war-dot-lineup/
 
 ```yaml
 ---
-name: Currency War DoT Lineup
-description: 当用户在《货币战争》4.4 标准博弈最高难度中考虑、运营或调整持续伤害阵容，并需要购买、站位、升星、升级、刷新、装备、止损或转型建议时使用。
+name: Currency War Kafka Hysilens DoT
+description: 当用户在《货币战争》4.4 标准博弈最高难度中考虑、运营或调整以卡芙卡和海瑟音为核心的持续伤害阵容，或围绕黑天鹅、椒丘等成员进行购买、站位、升星、升级、刷新、装备、止损或转型决策时使用。
 version: "1.0.0"
 defaultEnabled: true
 tools: []
@@ -191,7 +191,7 @@ tools: []
 - 货币战争 System Prompt。
 - `src/main/currency-war/rules/`。
 - `data/currency-war/runtime/4.4/`。
-- 新的 DoT Skill。
+- 新的卡芙卡—海瑟音 DoT Skill。
 
 没有进入运行时且仍对 DoT 决策必要的内容，应先迁移到对应 Reference。
 
@@ -230,7 +230,7 @@ Agent 结合用户对局总结选择本轮主任务
 
 ### 9.1 结构测试
 
-- SkillRegistry 能扫描到 `Currency War DoT Lineup`。
+- SkillRegistry 能扫描到 `Currency War Kafka Hysilens DoT`。
 - frontmatter 可解析，`defaultEnabled` 为 `true`。
 - `tools` 为空，不错误声明 `search_knowledge`。
 - 四个 Reference 文件均存在且非空。
