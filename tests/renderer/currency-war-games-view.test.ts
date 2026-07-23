@@ -32,4 +32,13 @@ describe("currency war games operations", () => {
     expect(source).toContain("data-game-name");
     expect(source).toContain('data-game-action="save-rename"');
   });
+
+  it("shows only the game name in the selector", async () => {
+    const source = await readFile(
+      new URL("../../src/renderer/chat/currency-war-games-view.ts", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain("item.textContent = game.name");
+    expect(source).not.toContain("${game.name} · ${game.nodeId}");
+  });
 });

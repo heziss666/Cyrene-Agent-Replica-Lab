@@ -51,7 +51,7 @@ export function mountCurrencyWarGamesView(options: {
     select.replaceChildren(...result.games.map((game) => {
       const item = document.createElement("option");
       item.value = game.gameId;
-      item.textContent = `${game.name} · ${game.nodeId}`;
+      item.textContent = game.name;
       item.selected = game.gameId === result.activeGameId;
       return item;
     }));
