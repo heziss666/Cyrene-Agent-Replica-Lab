@@ -15,6 +15,16 @@ describe("renderer workspace shell", () => {
     expect(html).toContain('id="activity-drawer" class="activity-drawer" aria-hidden="true" hidden');
   });
 
+  it("provides a dedicated currency war game workspace", async () => {
+    const html = await readFile(htmlPath, "utf8");
+    const css = await readFile(cssPath, "utf8");
+
+    expect(html).toContain('id="currency-war-view-button"');
+    expect(html).toContain('id="currency-war-view"');
+    expect(css).toContain(".game-state-grid");
+    expect(css).toContain(".game-state-section");
+  });
+
   it("defines the calm theme and responsive application layout", async () => {
     const css = await readFile(cssPath, "utf8");
 

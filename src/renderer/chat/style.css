@@ -25,6 +25,152 @@ textarea {
   font: inherit;
 }
 
+.currency-war-view {
+  min-width: 0;
+  min-height: 0;
+  padding: 20px;
+  overflow: auto;
+  background: #f4f6f8;
+}
+
+.game-state-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -20px -20px 16px;
+  padding: 14px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-state-toolbar h2,
+.game-state-section h3 {
+  margin: 0;
+}
+
+.game-state-toolbar h2 {
+  font-size: 18px;
+}
+
+.game-state-toolbar p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.game-state-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-state-toolbar-actions span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.game-state-toolbar-actions button {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #c6d0d8;
+  border-radius: 6px;
+  color: #8b3030;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.game-state-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.game-state-section {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.game-state-section h3 {
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
+.game-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.game-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin-bottom: 10px;
+  color: #50606d;
+  font-size: 12px;
+}
+
+.game-field input,
+.game-field select,
+.game-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #c5d0d9;
+  border-radius: 6px;
+  color: #1d252c;
+  background: #ffffff;
+}
+
+.game-field input,
+.game-field select {
+  height: 34px;
+  padding: 0 9px;
+}
+
+.game-field textarea {
+  min-height: 70px;
+  padding: 8px 9px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.game-field input:focus,
+.game-field select:focus,
+.game-field textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.game-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  color: #45545f;
+}
+
+.game-validation-issues {
+  margin: 0;
+  padding-left: 18px;
+  color: #9b3535;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .game-state-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(240px, 28vw, 340px);

@@ -21,6 +21,7 @@ import { mountConversationView } from "./conversation-view.js";
 import { mountRunsView } from "./runs-view.js";
 import { createConversationViewModel } from "./conversation-view-model.js";
 import { createActivityDrawer } from "./activity-drawer.js";
+import { mountCurrencyWarStateView } from "./currency-war-state-view.js";
 import type {
   ConversationChangedPayload,
   ConversationDetail,
@@ -43,8 +44,10 @@ const newChatButton = document.querySelector<HTMLButtonElement>("#new-chat-butto
 const styleSelectElement = document.querySelector<HTMLSelectElement>("#style-select");
 const chatViewElement = document.querySelector<HTMLElement>("#chat-view");
 const memoryViewElement = document.querySelector<HTMLElement>("#memory-view");
+const currencyWarViewElement = document.querySelector<HTMLElement>("#currency-war-view");
 const chatViewButtonElement = document.querySelector<HTMLButtonElement>("#chat-view-button");
 const memoryViewButtonElement = document.querySelector<HTMLButtonElement>("#memory-view-button");
+const currencyWarViewButtonElement = document.querySelector<HTMLButtonElement>("#currency-war-view-button");
 const skillsViewElement = document.querySelector<HTMLElement>("#skills-view");
 const skillsViewButtonElement = document.querySelector<HTMLButtonElement>("#skills-view-button");
 const mcpViewElement = document.querySelector<HTMLElement>("#mcp-view");
@@ -78,8 +81,10 @@ const newChat = requireElement(newChatButton, "new-chat-button");
 const styleSelect = requireElement(styleSelectElement, "style-select");
 const chatView = requireElement(chatViewElement, "chat-view");
 const memoryView = requireElement(memoryViewElement, "memory-view");
+const currencyWarView = requireElement(currencyWarViewElement, "currency-war-view");
 const chatViewButton = requireElement(chatViewButtonElement, "chat-view-button");
 const memoryViewButton = requireElement(memoryViewButtonElement, "memory-view-button");
+const currencyWarViewButton = requireElement(currencyWarViewButtonElement, "currency-war-view-button");
 const skillsView = requireElement(skillsViewElement, "skills-view");
 const skillsViewButton = requireElement(skillsViewButtonElement, "skills-view-button");
 const mcpView = requireElement(mcpViewElement, "mcp-view");
@@ -106,6 +111,10 @@ const memoryPanel = mountMemoryView({
   root: memoryView,
   api: window.cyrene.memory,
 });
+const currencyWarPanel = mountCurrencyWarStateView({
+  root: currencyWarView,
+  api: window.cyrene.currencyWarState,
+});
 const skillsPanel = mountSkillsView({
   root: skillsView,
   api: window.cyrene.skills,
@@ -123,25 +132,29 @@ const conversationPanel = mountConversationView({
   onRemove: (id) => removeConversation(id),
 });
 
-function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler" | "runs"): void {
+function setActiveView(view: "chat" | "currency-war" | "memory" | "skills" | "mcp" | "scheduler" | "runs"): void {
+  const isCurrencyWar = view === "currency-war";
   const isMemory = view === "memory";
   const isSkills = view === "skills";
   const isMcp = view === "mcp";
   const isScheduler = view === "scheduler";
   const isRuns = view === "runs";
-  chatView.hidden = isMemory || isSkills || isMcp || isScheduler || isRuns;
+  chatView.hidden = isCurrencyWar || isMemory || isSkills || isMcp || isScheduler || isRuns;
+  currencyWarView.hidden = !isCurrencyWar;
   memoryView.hidden = !isMemory;
   skillsView.hidden = !isSkills;
   mcpView.hidden = !isMcp;
   schedulerView.hidden = !isScheduler;
   runsView.hidden = !isRuns;
-  chatViewButton.classList.toggle("is-active", !isMemory && !isSkills && !isMcp && !isScheduler && !isRuns);
+  chatViewButton.classList.toggle("is-active", !isCurrencyWar && !isMemory && !isSkills && !isMcp && !isScheduler && !isRuns);
+  currencyWarViewButton.classList.toggle("is-active", isCurrencyWar);
   memoryViewButton.classList.toggle("is-active", isMemory);
   skillsViewButton.classList.toggle("is-active", isSkills);
   mcpViewButton.classList.toggle("is-active", isMcp);
   schedulerViewButton.classList.toggle("is-active", isScheduler);
   runsViewButton.classList.toggle("is-active", isRuns);
-  chatViewButton.setAttribute("aria-pressed", String(!isMemory && !isSkills && !isMcp && !isScheduler && !isRuns));
+  chatViewButton.setAttribute("aria-pressed", String(!isCurrencyWar && !isMemory && !isSkills && !isMcp && !isScheduler && !isRuns));
+  currencyWarViewButton.setAttribute("aria-pressed", String(isCurrencyWar));
   memoryViewButton.setAttribute("aria-pressed", String(isMemory));
   skillsViewButton.setAttribute("aria-pressed", String(isSkills));
   mcpViewButton.setAttribute("aria-pressed", String(isMcp));
@@ -149,6 +162,7 @@ function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler" 
   runsViewButton.setAttribute("aria-pressed", String(isRuns));
   const pages = {
     chat: ["Chat", "Conversation workspace"],
+    "currency-war": ["货币战争", "当前会话的标准博弈对局状态"],
     memory: ["Memory", "Long-term context and profile"],
     skills: ["Skills", "Reusable agent capabilities"],
     mcp: ["MCP", "External tools and connections"],
@@ -157,7 +171,7 @@ function setActiveView(view: "chat" | "memory" | "skills" | "mcp" | "scheduler" 
   } as const;
   pageTitle.textContent = pages[view][0];
   pageDescription.textContent = pages[view][1];
-  for (const button of [chatViewButton, memoryViewButton, skillsViewButton, mcpViewButton, schedulerViewButton, runsViewButton]) {
+  for (const button of [chatViewButton, currencyWarViewButton, memoryViewButton, skillsViewButton, mcpViewButton, schedulerViewButton, runsViewButton]) {
     if (button.classList.contains("is-active")) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   }
@@ -232,6 +246,7 @@ async function openConversation(id: string, persistActive = true): Promise<void>
   renderConversation(detail);
   setBusy(conversationModel?.snapshot().busy ?? false);
   await loadConversationStyle();
+  await currencyWarPanel.load(id);
   renderConversationList(await window.cyrene.conversations.list());
 }
 
@@ -319,6 +334,10 @@ stopButton.addEventListener("click", async () => {
 chatViewButton.addEventListener("click", () => {
   setActiveView("chat");
   messageInput.focus();
+});
+
+currencyWarViewButton.addEventListener("click", () => {
+  setActiveView("currency-war");
 });
 
 memoryViewButton.addEventListener("click", async () => {
