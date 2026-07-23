@@ -25,14 +25,35 @@ export interface CurrencyWarCharacter extends CurrencyWarNamedEntity {
   field: string;
   roles: string[];
   bonds: string[];
-  empowerment: { front: unknown; back: unknown; stars: Record<string, unknown> };
+  empowerment: {
+    front: CurrencyWarEmpowermentGroup | null;
+    back: CurrencyWarEmpowermentGroup | null;
+    stars: Record<string, Record<string, string | number>>;
+  };
+  recommended_equipment?: string[];
   advisor: boolean | Record<string, unknown> | null;
+}
+
+export interface CurrencyWarEmpowermentSkill {
+  name: string;
+  tags: string[];
+  description: string;
+}
+
+export interface CurrencyWarEmpowermentGroup {
+  name: string;
+  summary: string;
+  tags: string[];
+  skills: CurrencyWarEmpowermentSkill[];
+  shared: boolean;
 }
 
 export interface CurrencyWarBond extends CurrencyWarNamedEntity {
   category: string;
   members: string[];
   effects: Record<string, unknown>;
+  base_effect?: string;
+  special_rules?: string[];
 }
 
 export interface CurrencyWarEquipment extends CurrencyWarNamedEntity {
@@ -40,6 +61,8 @@ export interface CurrencyWarEquipment extends CurrencyWarNamedEntity {
   stats: Record<string, unknown>;
   effect: string | null;
   recipe?: string[];
+  tags?: string[];
+  recommended_for?: string[];
 }
 
 export interface CurrencyWarInvestmentStrategy extends CurrencyWarNamedEntity {

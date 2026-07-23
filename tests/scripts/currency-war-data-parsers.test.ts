@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+// @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
 import { parseCharacterPage } from "../../scripts/currency-war-data/character-parser.mjs";
+// @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
 import { parseBondPage } from "../../scripts/currency-war-data/bond-parser.mjs";
 
 describe("currency war wiki parsers", () => {

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+// @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
 import { askSemantic, fetchPageRevisions } from "../../scripts/currency-war-data/mediawiki-client.mjs";
+// @ts-expect-error The data pipeline is a Node ESM script tested directly by Vitest.
 import { parseEnvironmentResult, parseEquipmentResult } from "../../scripts/currency-war-data/semantic-record-parser.mjs";
 
 describe("currency war source client", () => {

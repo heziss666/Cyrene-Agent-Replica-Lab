@@ -17,24 +17,45 @@ const sourceSchema = z.object({
 }).passthrough();
 const baseDocumentSchema = z.object({ version: z.string().min(1), source: sourceSchema }).passthrough();
 const namedEntitySchema = z.object({ name: z.string().min(1), aliases: z.array(z.string()).optional() }).passthrough();
+const empowermentSkillSchema = z.object({
+  name: z.string().min(1),
+  tags: z.array(z.string()),
+  description: z.string(),
+});
+const empowermentGroupSchema = z.object({
+  name: z.string(),
+  summary: z.string(),
+  tags: z.array(z.string()),
+  skills: z.array(empowermentSkillSchema),
+  shared: z.boolean(),
+});
 const characterSchema = namedEntitySchema.extend({
   cost: z.union([z.number().int(), z.array(z.number().int()).min(1)]),
   field: z.string().min(1),
   roles: z.array(z.string()),
   bonds: z.array(z.string()),
-  empowerment: z.object({ front: z.unknown(), back: z.unknown(), stars: z.record(z.string(), z.unknown()) }).passthrough(),
+  empowerment: z.object({
+    front: empowermentGroupSchema.nullable(),
+    back: empowermentGroupSchema.nullable(),
+    stars: z.record(z.string(), z.record(z.string(), z.union([z.string(), z.number()]))),
+  }).passthrough(),
+  recommended_equipment: z.array(z.string()).optional(),
   advisor: z.union([z.boolean(), z.record(z.string(), z.unknown()), z.null()]),
 }).passthrough();
 const bondSchema = namedEntitySchema.extend({
   category: z.string().min(1),
   members: z.array(z.string()),
   effects: z.record(z.string(), z.unknown()),
+  base_effect: z.string().optional(),
+  special_rules: z.array(z.string()).optional(),
 }).passthrough();
 const equipmentSchema = namedEntitySchema.extend({
   type: z.string().min(1),
   stats: z.record(z.string(), z.unknown()),
   effect: z.string().nullable(),
   recipe: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  recommended_for: z.array(z.string()).optional(),
 }).passthrough();
 const strategySchema = namedEntitySchema.extend({
   rarity: z.string().min(1),

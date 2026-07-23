@@ -25,6 +25,29 @@ describe("parseCurrencyWarSimpleFile", () => {
     });
   });
 
+  it("accepts structured empowerment, star stats, and recommended equipment", () => {
+    const document: any = structuredClone(validCharacters);
+    document.characters[0]!.empowerment = {
+      front: {
+        name: "测试赋能",
+        summary: "测试摘要",
+        tags: ["天赋"],
+        skills: [{ name: "测试技能", tags: ["天赋"], description: "造成100%伤害。" }],
+        shared: false,
+      },
+      back: null,
+      stars: { "1": { 基础前台强度: 100, 生命增幅: "10%" } },
+    };
+    Object.assign(document.characters[0]!, { recommended_equipment: ["测试装备"] });
+
+    expect(parseCurrencyWarSimpleFile(document, "characters", "4.4")).toMatchObject({
+      characters: [{
+        empowerment: { front: { name: "测试赋能" }, stars: { "1": { 基础前台强度: 100 } } },
+        recommended_equipment: ["测试装备"],
+      }],
+    });
+  });
+
   it("rejects a document from another game version", () => {
     expect(() => parseCurrencyWarSimpleFile(
       { ...validCharacters, version: "4.2" },
