@@ -137,6 +137,41 @@ try {
     }
     const skillsButton = document.querySelector("#skills-view-button");
     if (!skillsButton || !window.cyrene?.skills) throw new Error("Renderer API did not become ready");
+    document.querySelector("#currency-war-view-button").click();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (document.querySelectorAll("[data-game-select] option").length === 1) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    document.querySelector('[data-game-action="create"]').click();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (document.querySelectorAll("[data-game-select] option").length === 2) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    document.querySelector('[data-game-action="rename"]').click();
+    const gameNameInput = document.querySelector("[data-game-name]");
+    gameNameInput.value = "Electron Smoke Game";
+    document.querySelector('[data-game-action="save-rename"]').click();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if ([...document.querySelectorAll("[data-game-select] option")]
+        .some((item) => item.textContent.includes("Electron Smoke Game"))) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const renamedBeforeDelete = [...document.querySelectorAll("[data-game-select] option")]
+      .some((item) => item.textContent.includes("Electron Smoke Game"));
+    const goldInput = document.querySelector('[data-field="gold"]');
+    goldInput.value = "25";
+    goldInput.dispatchEvent(new Event("change", { bubbles: true }));
+    window.confirm = () => true;
+    document.querySelector('[data-game-action="remove"]').click();
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (document.querySelectorAll("[data-game-select] option").length === 1) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const currencyWarResult = {
+      gameCount: document.querySelectorAll("[data-game-select] option").length,
+      renamedBeforeDelete,
+      editorVisible: Boolean(document.querySelector('[data-field="gold"]')),
+    };
     skillsButton.click();
     for (let attempt = 0; attempt < 50; attempt += 1) {
       if (document.querySelectorAll(".skill-row h3").length >= 2) break;
@@ -219,6 +254,7 @@ try {
     };
     return {
       ...skillsResult,
+      currencyWar: currencyWarResult,
       mcp: mcpResult,
       scheduler: schedulerResult,
       layout,
@@ -229,6 +265,11 @@ try {
     || !result.skillNames.includes("Agent Learning Tutor")
     || !result.skillNames.includes("Cyrene Original Voice")) {
     throw new Error(`Unexpected Skills view: ${JSON.stringify(result)}`);
+  }
+  if (result.currencyWar.gameCount !== 1
+    || !result.currencyWar.renamedBeforeDelete
+    || !result.currencyWar.editorVisible) {
+    throw new Error(`Unexpected Currency War lifecycle: ${JSON.stringify(result.currencyWar)}`);
   }
   if (!result.mcp.visible
     || !result.mcp.serverNames.includes("Electron Smoke MCP")
@@ -252,7 +293,7 @@ try {
   }
   if (process.env.CYRENE_SMOKE_SCREENSHOT_DIR) {
     await mkdir(process.env.CYRENE_SMOKE_SCREENSHOT_DIR, { recursive: true });
-    for (const view of ["chat", "memory", "skills", "mcp", "scheduler"]) {
+    for (const view of ["chat", "currency-war", "memory", "skills", "mcp", "scheduler"]) {
       await evaluate(target.webSocketDebuggerUrl, `(async () => {
         document.querySelector("#${view}-view-button").click();
         await new Promise((resolve) => setTimeout(resolve, 350));

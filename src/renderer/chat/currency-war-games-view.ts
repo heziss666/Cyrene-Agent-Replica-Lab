@@ -1,4 +1,5 @@
 import type { CurrencyWarGamesApi } from "../../shared/currency-war-api-types.js";
+import { createCurrencyWarGamesOperations } from "./currency-war-games-operations.js";
 import { mountCurrencyWarStateView } from "./currency-war-state-view.js";
 
 export interface CurrencyWarGamesViewController {
@@ -10,17 +11,18 @@ export function mountCurrencyWarGamesView(options: {
   root: HTMLElement;
   api: CurrencyWarGamesApi;
   confirm?: (message: string) => boolean | Promise<boolean>;
-  prompt?: (message: string, initial?: string) => string | null;
   copyText?: (text: string) => Promise<void>;
 }): CurrencyWarGamesViewController {
   const confirm = options.confirm ?? ((message) => window.confirm(message));
-  const prompt = options.prompt ?? ((message, initial) => window.prompt(message, initial));
   const copyText = options.copyText ?? ((text) => navigator.clipboard.writeText(text));
   options.root.innerHTML = `
     <div class="currency-war-games-toolbar">
       <label><span>当前对局</span><select data-game-select></select></label>
+      <label data-game-name-wrap hidden><span>对局名称</span><input data-game-name maxlength="60"/></label>
       <button type="button" data-game-action="create">新建</button>
       <button type="button" data-game-action="rename">重命名</button>
+      <button type="button" data-game-action="save-rename" hidden>保存名称</button>
+      <button type="button" data-game-action="cancel-rename" hidden>取消</button>
       <button type="button" data-game-action="remove">删除</button>
       <button type="button" data-game-action="summary">总结并复制</button>
       <span data-game-count></span>
@@ -33,10 +35,13 @@ export function mountCurrencyWarGamesView(options: {
   `;
   const editorRoot = required<HTMLElement>("[data-game-editor]");
   const select = required<HTMLSelectElement>("[data-game-select]");
+  const nameWrap = required<HTMLElement>("[data-game-name-wrap]");
+  const nameInput = required<HTMLInputElement>("[data-game-name]");
   const count = required<HTMLElement>("[data-game-count]");
   const summaryWrap = required<HTMLElement>("[data-game-summary-wrap]");
   const summary = required<HTMLTextAreaElement>("[data-game-summary]");
   const editor = mountCurrencyWarStateView({ root: editorRoot, api: options.api, confirm });
+  const operations = createCurrencyWarGamesOperations({ api: options.api, editor });
   let activeGameId = "";
   let initialized = false;
 
@@ -80,13 +85,20 @@ export function mountCurrencyWarGamesView(options: {
       await refresh();
     } else if (action === "rename") {
       const current = await options.api.get(activeGameId);
-      const name = prompt("输入对局名称", current.name);
-      if (name === null) return;
-      await options.api.rename(activeGameId, name);
+      nameInput.value = current.name;
+      setRenameMode(true);
+      nameInput.focus();
+      nameInput.select();
+    } else if (action === "save-rename") {
+      await operations.rename(activeGameId, nameInput.value);
+      setRenameMode(false);
       await refresh();
+    } else if (action === "cancel-rename") {
+      setRenameMode(false);
     } else if (action === "remove") {
       if (!await confirm("删除当前对局？")) return;
-      await options.api.remove(activeGameId);
+      activeGameId = await operations.remove(activeGameId);
+      setRenameMode(false);
       summaryWrap.hidden = true;
       await refresh();
     } else if (action === "summary") {
@@ -96,6 +108,19 @@ export function mountCurrencyWarGamesView(options: {
       await copyText(summary.value);
     } else if (action === "copy" && summary.value) {
       await copyText(summary.value);
+    }
+  }
+
+  function setRenameMode(enabled: boolean): void {
+    nameWrap.hidden = !enabled;
+    select.parentElement!.hidden = enabled;
+    for (const action of ["rename", "create", "remove", "summary"]) {
+      const button = options.root.querySelector<HTMLButtonElement>(`[data-game-action="${action}"]`);
+      if (button) button.hidden = enabled;
+    }
+    for (const action of ["save-rename", "cancel-rename"]) {
+      const button = options.root.querySelector<HTMLButtonElement>(`[data-game-action="${action}"]`);
+      if (button) button.hidden = !enabled;
     }
   }
 
