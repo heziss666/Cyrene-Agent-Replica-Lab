@@ -1,5 +1,7 @@
 import type { CurrencyWarFactRecord, CurrencyWarFactService } from "./currency-war-facts.js";
 import { routeCurrencyWarSkills } from "./currency-war-skill-router.js";
+import { decideCurrencyWarGuidanceRetrieval } from "../rag/currency-war-guidance-policy.js";
+import type { CurrencyWarGuidanceRetriever } from "../rag/currency-war-guidance-retriever.js";
 
 const MAX_SKILL_CONTENT_CHARS = 32_000;
 
@@ -21,6 +23,7 @@ export interface CurrencyWarGroundingBuilder {
 export interface CreateCurrencyWarGroundingBuilderOptions {
   facts: CurrencyWarFactService;
   skills: CurrencyWarGroundingSkillRegistry;
+  guidance?: CurrencyWarGuidanceRetriever;
 }
 
 export function createCurrencyWarGroundingBuilder(
@@ -30,6 +33,12 @@ export function createCurrencyWarGroundingBuilder(
     async build(text) {
       const directFacts = options.facts.matchText(text);
       const routedIds = routeCurrencyWarSkills(text);
+      const hasCurrencyWarContext = directFacts.length > 0
+        || /货币战争|货币戰爭|#\s*货币战争对局/u.test(text);
+      const guidanceDecision = decideCurrencyWarGuidanceRetrieval({
+        text,
+        hasCurrencyWarContext,
+      });
       const loadedSkills: string[] = [];
       const skillTextForFactMatching: string[] = [];
 
@@ -55,7 +64,7 @@ export function createCurrencyWarGroundingBuilder(
           })));
           const content = [
             body,
-            ...references.map(({ name, content }) => `#### Reference: ${name}\n${content}`),
+            ...references.map(({ name, content: reference }) => `#### Reference: ${name}\n${reference}`),
           ].join("\n\n");
           const bounded = content.length > MAX_SKILL_CONTENT_CHARS
             ? `${content.slice(0, MAX_SKILL_CONTENT_CHARS)}\n[攻略内容因长度限制已截断]`
@@ -70,9 +79,32 @@ export function createCurrencyWarGroundingBuilder(
         }
       }
 
+      let guidanceText = "";
+      if (options.guidance && guidanceDecision.shouldRetrieve && guidanceDecision.query) {
+        try {
+          const response = await options.guidance.search(guidanceDecision.query, 3);
+          if (response.results.length > 0) {
+            guidanceText = [
+              "### 通用攻略检索结果",
+              `检索模式：${response.mode}`,
+              ...response.results.map(({ chunk, score }, index) => [
+                `[通用攻略 ${index + 1}] ${chunk.title}`,
+                `来源：${chunk.source}`,
+                `证据标记：${String(chunk.metadata?.sources ?? "未标注")}`,
+                `相关度：${score.toFixed(3)}`,
+                chunk.text,
+              ].join("\n")),
+            ].join("\n\n");
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          guidanceText = `### 通用攻略检索结果\n[error] GUIDANCE_RETRIEVAL_FAILED: ${message}`;
+        }
+      }
+
       const referencedFacts = options.facts.matchText(skillTextForFactMatching.join("\n"));
       const allFacts = deduplicateFacts([...directFacts, ...referencedFacts]);
-      if (allFacts.length === 0 && loadedSkills.length === 0) return "";
+      if (allFacts.length === 0 && loadedSkills.length === 0 && !guidanceText) return "";
 
       return [
         "## 货币战争本轮证据包",
@@ -81,14 +113,14 @@ export function createCurrencyWarGroundingBuilder(
         "",
         "### 基础库事实",
         options.facts.format(allFacts),
-        ...(loadedSkills.length > 0
-          ? ["", "### 已加载攻略 Skill", ...loadedSkills]
-          : []),
+        ...(loadedSkills.length > 0 ? ["", "### 已加载攻略 Skill", ...loadedSkills] : []),
+        ...(guidanceText ? ["", guidanceText] : []),
         "",
         "### 使用约束",
         "- 只允许根据本证据包和本轮工具结果陈述游戏事实。",
         "- 字段缺失或标记为“本地资料未记录”时，不得根据模型记忆补全。",
-        "- 基础库记录实体事实；Skill 提供攻略经验；结合当前局面得出的内容必须标记为策略推导。",
+        "- 基础库记录实体事实；Skill 提供阵容经验；通用攻略提供运营框架。结合当前局面得出的内容必须标记为策略推导。",
+        "- 通用攻略不得覆盖角色、羁绊、装备、投资环境和投资策略的具体结构化事实。",
       ].join("\n");
     },
   };

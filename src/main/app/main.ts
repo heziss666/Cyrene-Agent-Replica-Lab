@@ -89,6 +89,7 @@ import { registerCurrencyWarGamesIpc } from "./register-currency-war-games-ipc.j
 import { createCurrencyWarFactService } from "../currency-war/grounding/currency-war-facts.js";
 import { registerCurrencyWarTools } from "../currency-war/grounding/currency-war-tools.js";
 import { createCurrencyWarGroundingBuilder } from "../currency-war/grounding/currency-war-grounding.js";
+import { createCurrencyWarGuidanceRetriever } from "../currency-war/rag/currency-war-guidance-retriever.js";
 
 async function boot(): Promise<void> {
   await app.whenReady();
@@ -130,10 +131,6 @@ async function boot(): Promise<void> {
     toolIds: baseToolRegistry.getAllTools().map((tool) => tool.id),
   });
   registerSkillTools(baseToolRegistry, skillRuntime.registry);
-  const currencyWarGrounding = createCurrencyWarGroundingBuilder({
-    facts: currencyWarFacts,
-    skills: skillRuntime.registry,
-  });
   const mcpRuntime = createMcpRuntime({
     configPath: join(userData, "mcp-servers.json"),
     registry: baseToolRegistry,
@@ -146,6 +143,12 @@ async function boot(): Promise<void> {
   const resolverQueue = createMemoryResolverQueue();
   const embeddingProvider = createOllamaEmbeddingProvider(loadEmbeddingConfig());
   const storage = loadRagStorageConfig();
+  const currencyWarGuidance = createCurrencyWarGuidanceRetriever({ embeddingProvider });
+  const currencyWarGrounding = createCurrencyWarGroundingBuilder({
+    facts: currencyWarFacts,
+    skills: skillRuntime.registry,
+    guidance: currencyWarGuidance,
+  });
   const vectorIndex = createJsonVectorIndex({ filePath: join(storage.dataDir, "memory-vector-index.json"), identity: { providerId: embeddingProvider.id, model: embeddingProvider.model, schemaVersion: VECTOR_INDEX_SCHEMA_VERSION }, chunkSizeChars: DEFAULT_CHUNK_SIZE_CHARS, overlapChars: DEFAULT_OVERLAP_CHARS });
   const entityGraph = new EntityGraphService();
   const reflection = createMemoryReflection({ getConfig: loadRuntimeModelConfig, adapter: openAICompatibleAdapter });

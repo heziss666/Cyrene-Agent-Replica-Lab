@@ -1,0 +1,247 @@
+{
+  "schema_version": "1.0.0",
+  "last_verified": "2026-07-24",
+  "scope": "currency-war-general-guidance",
+  "mode": "standard-gambit",
+  "default_game_versions": [
+    "4.4"
+  ],
+  "notes": [
+    "仅收录4.4已验证内容，不提前标记适用于4.5-4.7。",
+    "社区攻略只提取与当前结构化规则不冲突的条件化运营经验。",
+    "角色、羁绊、装备、投资环境和投资策略的具体效果必须由JSON精确查询。"
+  ],
+  "sources": [
+    {
+      "id": "cw-user-verified-standard-node-flow",
+      "kind": "user_verified_rule",
+      "title": "User-verified standard gambit fixed node sequence",
+      "repository": "heziss666/Cyrene-Agent-Replica-Lab",
+      "path": "resources/currency-war/knowledge/sources/user-verified-rules.md",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted",
+      "allowed_claims": [
+        "标准博弈固定节点顺序",
+        "第一轮四份文档范围"
+      ]
+    },
+    {
+      "id": "cw-official-gameplay",
+      "kind": "official_rule",
+      "title": "「货币战争」玩法说明",
+      "url": "https://sr.mihoyo.com/news/160700",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted",
+      "allowed_claims": [
+        "三个位面",
+        "有限行动值与生命值失败",
+        "金币用途",
+        "标准博弈基础边界"
+      ]
+    },
+    {
+      "id": "cw-bwiki-general",
+      "kind": "structured_reference",
+      "title": "BWIKI「货币战争」",
+      "url": "https://wiki.biligame.com/sr/货币战争",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted",
+      "allowed_claims": [
+        "标准博弈说明",
+        "当前结构化资料入口"
+      ],
+      "restriction": "具体数值优先进入JSON，不复制到通用攻略。"
+    },
+    {
+      "id": "cw-4-4-update",
+      "kind": "secondary_reference",
+      "title": "「货币战争•零和博弈」赛季扩充说明 V4.4",
+      "url": "https://news.4399.com/bhxqtd/zixun/m/1014073.html",
+      "published_at": "2026-07-13",
+      "effective_at": "2026-07-15",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_secondary_reference_only",
+      "allowed_claims": [
+        "4.4内容边界",
+        "最高职级难度扩展",
+        "新增敌人词缀、环境和策略"
+      ]
+    },
+    {
+      "id": "cw-guide-basic-principles",
+      "kind": "community_guide",
+      "title": "货币战争攻略：必修一——货币战争的基本原理",
+      "author": "甘泽成谣雨成诗",
+      "url": "https://www.bilibili.com/video/BV1xU17BkEqe/",
+      "published_at": "2025-11-05",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "通用运营需结合实际局面",
+        "阵容质量与运营相互影响"
+      ],
+      "excluded_claims": [
+        "旧版角色数值",
+        "旧版固定阵容",
+        "未核验具体数值"
+      ]
+    },
+    {
+      "id": "cw-guide-economics",
+      "kind": "community_guide",
+      "title": "货币战争攻略：必修二——货币战争经济学原理",
+      "author": "甘泽成谣雨成诗",
+      "url": "https://www.bilibili.com/video/BV1Na1DBYEce/",
+      "published_at": "2025-11-08",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "升级、刷新和保经济需比较边际收益",
+        "刷新要有目标和止损",
+        "经济不能脱离下一战风险"
+      ],
+      "excluded_claims": [
+        "固定金币线",
+        "统一升级节奏",
+        "旧版费用概率和角色结论"
+      ]
+    },
+    {
+      "id": "cw-guide-general-flow",
+      "kind": "community_guide",
+      "title": "货币战争通用运营攻略，打法思路分享+全局流程解说",
+      "author": "墨色长安",
+      "url": "https://www.bilibili.com/video/BV14BUnBZECm/",
+      "published_at": "2025-11-22",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "跨节点运营框架",
+        "即时战力与长期经济取舍",
+        "位面阶段目标"
+      ],
+      "excluded_claims": [
+        "旧版实体效果",
+        "固定阵容",
+        "未核验数值"
+      ]
+    },
+    {
+      "id": "cw-guide-early-development",
+      "kind": "community_guide",
+      "title": "V3.7攻略：货币战争技巧——初期发育与刷角色方法",
+      "author": "冻梨游研社",
+      "url": "https://www.taptap.cn/moment/738459561739945075",
+      "published_at": "2025-11-14",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "前期用低成本过渡",
+        "目标费用与刷新阶段匹配",
+        "考虑敌人克制",
+        "未成型时遭遇风险保守"
+      ],
+      "excluded_claims": [
+        "已变化成员名单",
+        "固定等级和金币线",
+        "未确认的卡池数量技巧"
+      ]
+    },
+    {
+      "id": "cw-guide-beginner",
+      "kind": "community_guide",
+      "title": "V3.7货币战争萌新攻略",
+      "url": "https://news.17173.com/content/11072025/175303925.shtml",
+      "published_at": "2025-11-07",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "前期自然过渡",
+        "安全条件下升级",
+        "战力吃力时补强",
+        "后期再集中完成核心"
+      ],
+      "excluded_claims": [
+        "固定经济线",
+        "旧版阵容与实体结论"
+      ]
+    },
+    {
+      "id": "cw-guide-midgame-transition",
+      "kind": "community_guide",
+      "title": "A830中期过渡护航运营思路",
+      "author": "甘泽成谣雨成诗",
+      "url": "https://www.bilibili.com/video/BV13uAdzvEXK/",
+      "published_at": "2026-03-03",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_verified_claims_only",
+      "allowed_claims": [
+        "高星低中费过渡可优于等待最终主C",
+        "过渡角色承担中期护航"
+      ],
+      "excluded_claims": [
+        "当时版本具体角色强度",
+        "固定过渡名单"
+      ]
+    },
+    {
+      "id": "cw-run-log-hupu",
+      "kind": "community_run_log",
+      "title": "开一个游玩货币战争的过程记录楼",
+      "url": "https://m.hupu.com/bbs/635729773.html",
+      "published_at": "2025-11-13",
+      "game_versions": [
+        "4.4"
+      ],
+      "mode": "standard-gambit",
+      "status": "accepted_case_evidence_only",
+      "allowed_claims": [
+        "节点选择需要结合局面",
+        "提高遭遇风险可能造成生命与连胜损失"
+      ],
+      "restriction": "仅作为案例，不形成固定策略。"
+    },
+    {
+      "id": "cw-rejected-bittopup",
+      "kind": "aggregated_guide",
+      "title": "Currency Wars v3.7 guide",
+      "url": "https://bittopup.com/zh/article/Honkai-Star-Rail-Currency-Wars-v37-4000-Jades-A8-Teams-Guide",
+      "status": "rejected",
+      "reasons": [
+        "包含与当前结构化规则可能冲突的固定经济数值",
+        "核验链不清晰",
+        "不进入默认知识库"
+      ]
+    }
+  ]
+}
